@@ -1,0 +1,30 @@
+# CMake generation dependency list for this directory.
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeCInformation.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeCXXInformation.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeCommonLanguageInclude.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeGenericSystem.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeInitializeConfigs.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeLanguageInformation.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeRCInformation.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeSystemSpecificInformation.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CMakeSystemSpecificInitialize.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CPack.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CPackComponent.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CTest.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CTestTargets.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/CTestUseLaunchers.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/Compiler/MSVC-C.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/Compiler/MSVC-CXX.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/DartConfiguration.tcl.in
+D:/Program Files (x86)/share/cmake-3.22/Modules/Platform/Windows-MSVC-C.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/Platform/Windows-MSVC-CXX.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/Platform/Windows-MSVC.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/Platform/Windows.cmake
+D:/Program Files (x86)/share/cmake-3.22/Modules/Platform/WindowsPaths.cmake
+D:/Program Files (x86)/share/cmake-3.22/Templates/CPackConfig.cmake.in
+D:/Projects/bridge/CMakeLists.txt
+D:/Projects/bridge/build/CMakeFiles/3.22.4/CMakeCCompiler.cmake
+D:/Projects/bridge/build/CMakeFiles/3.22.4/CMakeCXXCompiler.cmake
+D:/Projects/bridge/build/CMakeFiles/3.22.4/CMakeRCCompiler.cmake
+D:/Projects/bridge/build/CMakeFiles/3.22.4/CMakeSystem.cmake

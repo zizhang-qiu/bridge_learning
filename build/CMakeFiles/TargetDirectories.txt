@@ -1,0 +1,10 @@
+D:/Projects/bridge/build/CMakeFiles/Experimental.dir
+D:/Projects/bridge/build/CMakeFiles/Nightly.dir
+D:/Projects/bridge/build/CMakeFiles/Continuous.dir
+D:/Projects/bridge/build/CMakeFiles/NightlyMemoryCheck.dir
+D:/Projects/bridge/build/CMakeFiles/bridge_lib.dir
+D:/Projects/bridge/build/CMakeFiles/main.dir
+D:/Projects/bridge/build/CMakeFiles/PACKAGE.dir
+D:/Projects/bridge/build/CMakeFiles/RUN_TESTS.dir
+D:/Projects/bridge/build/CMakeFiles/ALL_BUILD.dir
+D:/Projects/bridge/build/CMakeFiles/ZERO_CHECK.dir
