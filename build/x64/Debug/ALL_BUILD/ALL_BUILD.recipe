@@ -5,6 +5,9 @@
       <FullPath>D:\Projects\bridge\build\x64\Debug\ZERO_CHECK</FullPath>
     </ProjectOutput>
     <ProjectOutput>
+      <FullPath>D:\Projects\bridge\build\Debug\bridge.cp38-win_amd64.pyd</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
       <FullPath>D:\Projects\bridge\build\Debug\main.exe</FullPath>
     </ProjectOutput>
     <ProjectOutput>

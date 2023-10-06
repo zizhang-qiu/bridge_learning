@@ -5,7 +5,7 @@
 
 namespace bridge {
 template <>
-int ParameterValue<int>(const Parameters& params, const std::string& key,
+int ParameterValue<int>(const GameParameters& params, const std::string& key,
                         int default_value) {
   auto iter = params.find(key);
   if (iter == params.end()) {
@@ -16,7 +16,7 @@ int ParameterValue<int>(const Parameters& params, const std::string& key,
 }
 
 template <>
-std::string ParameterValue<std::string>(const Parameters& params,
+std::string ParameterValue<std::string>(const GameParameters& params,
                                         const std::string& key,
                                         std::string default_value) {
   auto iter = params.find(key);
@@ -28,7 +28,7 @@ std::string ParameterValue<std::string>(const Parameters& params,
 }
 
 template <>
-double ParameterValue<double>(const Parameters& params, const std::string& key,
+double ParameterValue<double>(const GameParameters& params, const std::string& key,
                               double default_value) {
   auto iter = params.find(key);
   if (iter == params.end()) {
@@ -39,7 +39,7 @@ double ParameterValue<double>(const Parameters& params, const std::string& key,
 }
 
 template <>
-bool ParameterValue<bool>(const Parameters& params, const std::string& key,
+bool ParameterValue<bool>(const GameParameters& params, const std::string& key,
                           bool default_value) {
   auto iter = params.find(key);
   if (iter == params.end()) {

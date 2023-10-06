@@ -1,13 +1,13 @@
 The system is: Windows - 10.0.22621 - AMD64
 Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
 Compiler:  
-Build flags: 
+Build flags: /DWIN32;/D_WINDOWS;/W3
 Id flags:  
 
 The output was:
 0
 适用于 .NET Framework MSBuild 版本 17.7.2+d6990bcfa
-生成启动时间为 2023/8/21 13:04:50。
+生成启动时间为 2023/9/25 14:33:54。
 
 节点 1 上的项目“D:\Projects\bridge\build\CMakeFiles\3.22.4\CompilerIdC\CompilerIdC.vcxproj”(默认目标)。
 PrepareForBuild:
@@ -35,7 +35,7 @@ FinalizeBuildStatus:
     0 个警告
     0 个错误
 
-已用时间 00:00:01.36
+已用时间 00:00:01.02
 
 
 Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
@@ -46,13 +46,13 @@ The C compiler identification is MSVC, found in "D:/Projects/bridge/build/CMakeF
 
 Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
 Compiler:  
-Build flags: 
+Build flags: /DWIN32;/D_WINDOWS;/W3;/GR;/EHsc
 Id flags:  
 
 The output was:
 0
 适用于 .NET Framework MSBuild 版本 17.7.2+d6990bcfa
-生成启动时间为 2023/8/21 13:04:52。
+生成启动时间为 2023/9/25 14:33:55。
 
 节点 1 上的项目“D:\Projects\bridge\build\CMakeFiles\3.22.4\CompilerIdCXX\CompilerIdCXX.vcxproj”(默认目标)。
 PrepareForBuild:
@@ -80,7 +80,7 @@ FinalizeBuildStatus:
     0 个警告
     0 个错误
 
-已用时间 00:00:01.19
+已用时间 00:00:00.62
 
 
 Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
@@ -92,26 +92,26 @@ The CXX compiler identification is MSVC, found in "D:/Projects/bridge/build/CMak
 Detecting C compiler ABI info compiled with the following output:
 Change Dir: D:/Projects/bridge/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):D:/Program Files (x86)/vs22/MSBuild/Current/Bin/amd64/MSBuild.exe cmTC_35dd3.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:m && 适用于 .NET Framework MSBuild 版本 17.7.2+d6990bcfa
+Run Build Command(s):D:/Program Files (x86)/vs22/MSBuild/Current/Bin/amd64/MSBuild.exe cmTC_f37ec.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:m && 适用于 .NET Framework MSBuild 版本 17.7.2+d6990bcfa
 
   Microsoft (R) C/C++ Optimizing Compiler Version 19.37.32822 for x64
-  Copyright (C) Microsoft Corporation.  All rights reserved.
   CMakeCCompilerABI.c
-  cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_35dd3.dir\Debug\\" /Fd"cmTC_35dd3.dir\Debug\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "D:\Program Files (x86)\share\cmake-3.22\Modules\CMakeCCompilerABI.c"
-  cmTC_35dd3.vcxproj -> D:\Projects\bridge\build\CMakeFiles\CMakeTmp\Debug\cmTC_35dd3.exe
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_f37ec.dir\Debug\\" /Fd"cmTC_f37ec.dir\Debug\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "D:\Program Files (x86)\share\cmake-3.22\Modules\CMakeCCompilerABI.c"
+  cmTC_f37ec.vcxproj -> D:\Projects\bridge\build\CMakeFiles\CMakeTmp\Debug\cmTC_f37ec.exe
 
 
 
 Detecting CXX compiler ABI info compiled with the following output:
 Change Dir: D:/Projects/bridge/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):D:/Program Files (x86)/vs22/MSBuild/Current/Bin/amd64/MSBuild.exe cmTC_e412e.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:m && 适用于 .NET Framework MSBuild 版本 17.7.2+d6990bcfa
+Run Build Command(s):D:/Program Files (x86)/vs22/MSBuild/Current/Bin/amd64/MSBuild.exe cmTC_bcfe7.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:m && 适用于 .NET Framework MSBuild 版本 17.7.2+d6990bcfa
 
   Microsoft (R) C/C++ Optimizing Compiler Version 19.37.32822 for x64
-  Copyright (C) Microsoft Corporation.  All rights reserved.
   CMakeCXXCompilerABI.cpp
-  cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_e412e.dir\Debug\\" /Fd"cmTC_e412e.dir\Debug\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\Program Files (x86)\share\cmake-3.22\Modules\CMakeCXXCompilerABI.cpp"
-  cmTC_e412e.vcxproj -> D:\Projects\bridge\build\CMakeFiles\CMakeTmp\Debug\cmTC_e412e.exe
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_bcfe7.dir\Debug\\" /Fd"cmTC_bcfe7.dir\Debug\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\Program Files (x86)\share\cmake-3.22\Modules\CMakeCXXCompilerABI.cpp"
+  cmTC_bcfe7.vcxproj -> D:\Projects\bridge\build\CMakeFiles\CMakeTmp\Debug\cmTC_bcfe7.exe
 
 
 

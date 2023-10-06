@@ -94,7 +94,7 @@ int Contract::Index() const {
   index += static_cast<int>(denomination);
   index *= kNumPlayers;
   index += static_cast<int>(declarer);
-  index *= kNumDoubleStates;
+  index *= kNumDoubleStatus;
   if (double_status == kRedoubled) index += 2;
   if (double_status == kDoubled) index += 1;
   return index + 1;

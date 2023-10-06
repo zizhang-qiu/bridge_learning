@@ -19,11 +19,156 @@
     <ClCompile Include="D:\Projects\bridge\bridge_lib\trick.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\canonical_encoder.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\bridge_observation.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\bridge_card.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\bridge_hand.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\bridge_move.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\bridge_state_2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\bridge_history_item.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\auction_tracker.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\canonical_encoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\example_cards_ddts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\bridge_observation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\bridge_card.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\bridge_hand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\bridge_move.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\bridge_state_2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\bridge_history_item.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\auction_tracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projects\bridge\bridge_lib\observation_encoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="D:\Projects\bridge\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\ABsearch.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\ABstats.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\CalcTables.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\dds.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\DealerPar.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\dump.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\File.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\Init.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\LaterTricks.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\Memory.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\Moves.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\Par.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\PBN.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\PlayAnalyser.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\QuickTricks.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\Scheduler.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\SolveBoard.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\SolverIF.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\System.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\ThreadMgr.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\Timer.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\TimerGroup.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\TimerList.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\TimeStat.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\TimeStatList.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\TransTableL.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+    <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\TransTableS.obj">
+      <Filter>Object Libraries</Filter>
+    </Object>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{5B85CAE2-470D-3185-B52D-CF5E9B749C59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object Libraries">
+      <UniqueIdentifier>{C93300DF-1CC0-356F-9D10-474218B7AADC}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4876EBE2-C5FC-36EE-95A3-F94DAF46125B}</UniqueIdentifier>
     </Filter>

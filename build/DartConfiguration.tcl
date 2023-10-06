@@ -21,13 +21,14 @@ LabelsForSubprojects:
 
 # Submission information
 SubmitURL: http://
+SubmitInactivityTimeout: 
 
 # Dashboard start time
 NightlyStartTime: 00:00:00 EDT
 
 # Commands for the build/test/submit cycle
-ConfigureCommand: "D:/Program Files (x86)/bin/cmake.exe" "D:/Projects/bridge"
-MakeCommand: "D:\Program Files (x86)\bin\cmake.exe" --build . --config "${CTEST_CONFIGURATION_TYPE}"
+ConfigureCommand: "D:/Program Files (x86)/CLion/bin/cmake/win/x64/bin/cmake.exe" "D:/Projects/bridge"
+MakeCommand: "D:\Program Files (x86)\CLion\bin\cmake\win\x64\bin\cmake.exe" --build . --config "${CTEST_CONFIGURATION_TYPE}"
 DefaultCTestConfigurationType: Release
 
 # version control

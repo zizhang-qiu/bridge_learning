@@ -1,32 +1,34 @@
-#ifndef UTILS
-#define UTILS
+#ifndef BRIDGE_LEARNING_BRIDGE_LIB_UTILS_H
+#define BRIDGE_LEARNING_BRIDGE_LIB_UTILS_H
 #include <memory>
+#include <cassert>
 #include <random>
 #include <stdexcept>
 #include <string>
 #include <iostream>
 #include <unordered_map>
+#include <sstream>
 
 namespace bridge {
-using Parameters = std::unordered_map<std::string, std::string>;
+using GameParameters = std::unordered_map<std::string, std::string>;
 
 // Returns string associated with key in params, parsed as template type.
 // If key is not in params, returns the provided default value.
 template <class T>
-T ParameterValue(const Parameters& params, const std::string& key,
+T ParameterValue(const GameParameters& params, const std::string& key,
                  T default_value);
 
 template <>
-int ParameterValue(const Parameters& params, const std::string& key,
+int ParameterValue(const GameParameters& params, const std::string& key,
                    int default_value);
 template <>
-double ParameterValue(const Parameters& params, const std::string& key,
+double ParameterValue(const GameParameters& params, const std::string& key,
                       double default_value);
 template <>
-std::string ParameterValue(const Parameters& params, const std::string& key,
+std::string ParameterValue(const GameParameters& params, const std::string& key,
                            std::string default_value);
 template <>
-bool ParameterValue(const Parameters& params, const std::string& key,
+bool ParameterValue(const GameParameters& params, const std::string& key,
                     bool default_value);
 
 template <typename... Args>
@@ -57,7 +59,24 @@ void PrintVector(const std::vector<T>& vec) {
   std::cout << std::endl;
 }
 
+template <class... Args>
+std::string StrCat(const Args&... args) {
+  using Expander = int[];
+  std::stringstream ss;
+  (void)Expander{0, (void(ss << args), 0)...};
+  return ss.str();
+}
+
+#if defined(NDEBUG)
+#define REQUIRE(expr)                                                        \
+  (expr ? (void)0                                                            \
+        : (fprintf(stderr, "Input requirements failed at %s:%d in %s: %s\n", \
+                   __FILE__, __LINE__, __func__, #expr),                     \
+           std::abort()))
+#else
+#define REQUIRE(expr) assert(expr)
+#endif
 
 }  // namespace bridge
 
-#endif /* UTILS */
+#endif // BRIDGE_LEARNING_BRIDGE_LIB_UTILS_H

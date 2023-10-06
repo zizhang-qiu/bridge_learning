@@ -1,5 +1,5 @@
-#ifndef BRIDGE_SCORING
-#define BRIDGE_SCORING
+#ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_SCORING_H
+#define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_SCORING_H
 #include <array>
 #include "bridge_utils.h"
 namespace bridge {
@@ -17,14 +17,14 @@ int Score(Contract contract, int declarer_tricks, bool is_vulnerable);
 
 // All possible contracts.
 inline constexpr int kNumContracts =
-    kNumBids * kNumPlayers * kNumDoubleStates + 1;
+    kNumBids * kNumPlayers * kNumDoubleStatus + 1;
 constexpr std::array<Contract, kNumContracts> AllContracts() {
   std::array<Contract, kNumContracts> contracts;
   int i = 0;
   contracts[i++] = Contract();
   for (int level : {1, 2, 3, 4, 5, 6, 7}) {
     for (Denomination trumps :
-         {kClubs, kDiamonds, kHearts, kSpades, kNoTrump}) {
+        {kClubsTrump, kDiamondsTrump, kHeartsTrump, kSpadesTrump, kNoTrump}) {
       for (int declarer = 0; declarer < kNumPlayers; ++declarer) {
         for (DoubleStatus double_status : {kUndoubled, kDoubled, kRedoubled}) {
           contracts[i++] = Contract{level, trumps, double_status, declarer};
@@ -34,8 +34,9 @@ constexpr std::array<Contract, kNumContracts> AllContracts() {
   }
   return contracts;
 }
+
 inline constexpr std::array<Contract, kNumContracts> kAllContracts =
     AllContracts();
 }  // namespace bridge
 
-#endif /* BRIDGE_SCORING */
+#endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_SCORING_H
