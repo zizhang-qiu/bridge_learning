@@ -1,7 +1,7 @@
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_TRICK_H
 #define BRIDGE_LEARNING_BRIDGE_LIB_TRICK_H
 #include "bridge_utils.h"
-namespace bridge {
+namespace bridge_learning_env {
 class Trick {
  public:
   Trick(Player leader, Denomination trumps, int card);

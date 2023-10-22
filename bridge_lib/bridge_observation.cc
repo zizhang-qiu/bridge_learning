@@ -4,7 +4,7 @@
 
 #include "bridge_observation.h"
 
-namespace bridge {
+namespace bridge_learning_env {
 
 int PlayerToOffset(Player pid, Player observer_pid) {
   int direct_offset = pid - observer_pid;
@@ -29,7 +29,8 @@ BridgeObservation::BridgeObservation(const BridgeState2 &state,
       cur_player_offset_(
           PlayerToOffset(state.CurrentPlayer(), observing_player)),
       legal_moves_(state.LegalMoves(observing_player)),
-      parent_game_(state.ParentGame()) {
+      parent_game_(state.ParentGame()),
+      current_phase_(state.CurrentPhase()){
   hands_.reserve(kNumPlayers);
   hands_.push_back(state.Hands()[observing_player_]);
   for (int offset = 1; offset < kNumPlayers; ++offset) {

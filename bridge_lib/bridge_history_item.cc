@@ -5,7 +5,7 @@
 #include "bridge_history_item.h"
 #include "utils.h"
 
-namespace bridge {
+namespace bridge_learning_env {
 std::string BridgeHistoryItem::ToString() const {
   std::string str = StrCat("<", move.ToString());
   if (player >= 0) {

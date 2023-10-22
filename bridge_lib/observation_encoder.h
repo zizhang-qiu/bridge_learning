@@ -6,7 +6,7 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_OBSERVATION_ENCODER_H_
 #include <vector>
 #include "bridge_observation.h"
-namespace bridge {
+namespace bridge_learning_env {
 
 
 class ObservationEncoder {

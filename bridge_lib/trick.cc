@@ -1,5 +1,5 @@
 #include "trick.h"
-namespace bridge {
+namespace bridge_learning_env {
 Trick::Trick(Player leader, Denomination trumps, int card)
     : trumps_(trumps),
       led_suit_(CardSuit(card)),

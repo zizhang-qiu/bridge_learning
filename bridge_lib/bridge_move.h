@@ -6,11 +6,11 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_MOVE_H_
 #include "bridge_card.h"
 #include "bridge_utils.h"
-namespace bridge {
+namespace bridge_learning_env {
 
 class BridgeMove {
  public:
-  enum Type { kInvalid, kAuction, kPlay, kDeal };
+  enum Type { kInvalid=-1, kAuction, kPlay, kDeal };
   BridgeMove(Type move_type, Suit suit, int rank,
              Denomination denomination, int level, OtherCalls other_call)
       : move_type_(move_type), suit_(suit),

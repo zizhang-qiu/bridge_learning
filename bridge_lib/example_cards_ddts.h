@@ -6,10 +6,10 @@
 #define BRIDGE_LIB_BRIDGE_LIB_EXAMPLE_CARDS_DDTS_H_
 #include <vector>
 #include "bridge_utils.h"
-namespace bridge{
+namespace bridge_learning_env{
 // Some cards and ddts for debug and test.
 
-const std::vector<std::vector<Action>> example_cards = {
+const std::vector<std::vector<Action>> example_deals = {
     {47, 39, 43, 51, 35, 27, 3, 19, 31, 15, 46, 26, 23, 30, 38, 2, 11, 41, 22, 49, 7, 17, 18, 45, 50, 44, 14, 21, 42,
      40, 33, 13, 34, 36, 29, 9, 10, 28, 25, 5, 6, 12, 32, 1, 37, 4, 16, 48, 20, 0, 8, 24},
     {51, 39, 27, 7, 47, 31, 23, 3, 43, 19, 15, 38, 35, 50, 11, 10, 42, 46, 26, 6, 34, 30, 18, 37, 22, 2, 14, 33, 49, 21,

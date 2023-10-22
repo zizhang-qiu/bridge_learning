@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <random>
 
-namespace bridge {
+namespace bridge_learning_env {
 template <>
 int ParameterValue<int>(const GameParameters& params, const std::string& key,
                         int default_value) {

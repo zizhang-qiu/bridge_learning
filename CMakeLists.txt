@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 include(CTest)
 enable_testing()
 
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+
 add_library(double_dummy_solver OBJECT
         bridge_lib/third_party/dds/include/dll.h
         bridge_lib/third_party/dds/include/portab.h
@@ -155,6 +157,7 @@ add_library(rela_lib rela/batcher.h
         rela/transition.h
         rela/transition.cc
         rela/prioritized_replay.h
+        rela/logging.h
 )
 
 target_include_directories(rela_lib PUBLIC ${TORCH_INCLUDE_DIRS})
@@ -173,9 +176,17 @@ target_link_libraries(rela PUBLIC rela_lib ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIB
 
 
 
-
 add_library(_bridgelearn
-        rlcc/pybind.cc)
+        rlcc/bridge_env.h
+        rlcc/bridge_env.cc
+        rlcc/bridge_dataset.h
+        rlcc/bridge_dataset.cc
+        rlcc/bridge_agent.cc
+        rlcc/bridge_agent.h
+        rlcc/supervise_data_generator.h
+        playcc/utils.h
+        playcc/pimc.h
+)
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
 target_include_directories(_bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

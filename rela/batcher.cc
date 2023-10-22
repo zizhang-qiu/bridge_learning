@@ -106,7 +106,7 @@ FutureReply Batcher::send(const TensorDict& t) {
   if (numActiveWrite_ == 0) {
     cvGetBatch_.notify_one();
   }
-  return FutureReply(reply, slot);
+  return {reply, slot};
 }
 
 // get batch input from batcher
@@ -116,7 +116,7 @@ TensorDict Batcher::get() {
       lk, [this] { return (nextSlot_ > 0 && numActiveWrite_ == 0) || exit_; });
 
   if (exit_) {
-    return TensorDict();
+    return {};
   }
 
   int bsize = nextSlot_;

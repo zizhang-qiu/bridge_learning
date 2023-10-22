@@ -4,7 +4,7 @@
 
 #include "bridge_card.h"
 
-namespace bridge {
+namespace bridge_learning_env {
 
 std::string BridgeCard::ToString() const {
   if (!IsValid()) {
@@ -14,7 +14,7 @@ std::string BridgeCard::ToString() const {
 }
 
 bool BridgeCard::operator==(const BridgeCard &other_card) const {
-  return other_card.Suit() == Suit() && other_card.Rank() == Rank();
+  return other_card.CardSuit() == CardSuit() && other_card.Rank() == Rank();
 }
 
 } // bridge

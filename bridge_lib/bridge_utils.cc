@@ -1,6 +1,6 @@
 #include "bridge_utils.h"
 
-namespace bridge {
+namespace bridge_learning_env {
 int BidIndex(int level, Denomination denomination) {
   return (level - 1) * kNumDenominations + denomination + kFirstBid;
 }
@@ -29,7 +29,7 @@ std::string CardString(int card) {
   return CardString(CardSuit(card), CardRank(card));
 }
 
-std::string bridge::CardString(Suit suit, int rank) {
+std::string CardString(Suit suit, int rank) {
   return {SuitIndexToChar(suit), RankIndexToChar(rank)};
 }
 

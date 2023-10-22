@@ -6,7 +6,7 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HAND_H_
 #include <vector>
 #include "bridge_card.h"
-namespace bridge {
+namespace bridge_learning_env {
 
 class BridgeHand {
  public:

@@ -7,7 +7,7 @@
 #include "bridge_game.h"
 #include "bridge_hand.h"
 #include "bridge_state_2.h"
-namespace bridge {
+namespace bridge_learning_env {
 int PlayerToOffset(Player pid, Player observer_pid);
 
 class BridgeObservation {
@@ -31,9 +31,12 @@ public:
 
   bool IsOpponentVulnerable() const{return is_opponent_vulnerable_;}
 
+  BridgeState2::Phase CurrentPhase() const{return current_phase_;}
+
 private:
   int cur_player_offset_; // offset of current_player_ from observing_player
   Player observing_player_;
+  BridgeState2::Phase current_phase_;
   // hands_[0] contains observing player's hand.
   std::vector<BridgeHand> hands_;
   std::vector<BridgeMove> legal_moves_;

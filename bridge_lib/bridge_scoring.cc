@@ -1,7 +1,7 @@
 #include "bridge_scoring.h"
 #include <string>
 
-namespace bridge {
+namespace bridge_learning_env {
 constexpr int kBaseTrickScores[] = {20, 20, 30, 30, 30};
 
 int ScoreContract(Contract contract, DoubleStatus double_status) {

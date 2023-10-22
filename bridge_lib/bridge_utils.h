@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace bridge {
+namespace bridge_learning_env {
 using Player = int;
 using Action = int;
 

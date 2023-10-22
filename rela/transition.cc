@@ -116,7 +116,7 @@ TensorDict RNNTransition::toDict() {
   return dict;
 }
 
-RNNTransition rela::makeBatch(
+RNNTransition makeBatch(
     const std::vector<RNNTransition>& transitions, const std::string& device) {
   std::vector<TensorDict> obsVec;
   std::vector<TensorDict> h0Vec;
@@ -160,7 +160,7 @@ RNNTransition rela::makeBatch(
   return batch;
 }
 
-TensorDict rela::makeBatch(
+TensorDict makeBatch(
     const std::vector<TensorDict>& transitions, const std::string& device) {
   auto batch = tensor_dict::stack(transitions, 0);
   if (device != "cpu") {

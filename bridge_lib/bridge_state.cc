@@ -8,6 +8,7 @@
 #include <optional>
 #include <cstdlib>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <set>
 
@@ -23,7 +24,7 @@
 #define DDS_EXTERNAL(x) x
 #endif
 
-namespace bridge {
+namespace bridge_learning_env {
 BridgeState::BridgeState(bool is_dealer_vulnerable,
                          bool is_non_dealer_vulnerable)
     : phase_(Phase::kDeal),

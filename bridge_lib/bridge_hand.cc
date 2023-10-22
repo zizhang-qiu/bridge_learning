@@ -6,8 +6,9 @@
 #include "utils.h"
 #include <cassert>
 #include <array>
+#include <algorithm>
 
-namespace bridge {
+namespace bridge_learning_env {
 int BridgeHand::HighCardPoints() const {
   REQUIRE(IsFullHand());
   int point = 0;
@@ -42,7 +43,7 @@ std::string BridgeHand::ToString() const {
     cards_string[suit] = kSuitChar[suit];
   }
   for (const auto &card : cards_) {
-    cards_string[card.Suit()].push_back(kRankChar[card.Rank()]);
+    cards_string[card.CardSuit()].push_back(kRankChar[card.Rank()]);
   }
   for (const Suit suit : kAllSuits) {
     cards_string[suit] += " ";

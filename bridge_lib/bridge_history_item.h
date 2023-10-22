@@ -5,7 +5,7 @@
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HISTORY_ITEM_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HISTORY_ITEM_H_
 #include "bridge_move.h"
-namespace bridge {
+namespace bridge_learning_env {
 
 struct BridgeHistoryItem {
   explicit BridgeHistoryItem(BridgeMove move_made) : move(move_made) {}

@@ -2,7 +2,7 @@
 #include <memory>
 #include <utility>
 
-namespace bridge {
+namespace bridge_learning_env {
 
 inline constexpr bool kIsDealerVulnerable = false;
 inline constexpr bool kIsNonDealerVulnerable = false;
@@ -104,7 +104,7 @@ BridgeMove BridgeGame::ConstructChanceMove(int uid) const {
       /*level=*/-1,
       /*other_call=*/kNotOtherCall};
 }
-bridge::GameParameters BridgeGame::Parameters() const {
+bridge_learning_env::GameParameters BridgeGame::Parameters() const {
   return {{"is_dealer_vulnerable", std::to_string(IsDealerVulnerable())},
           {"is_non_dealer_vulnerable", std::to_string(IsNonDealerVulnerable())},
           {"dealer", std::to_string(dealer_)},

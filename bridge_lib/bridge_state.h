@@ -13,7 +13,7 @@
 
 #include "third_party/dds/include/dll.h"
 
-namespace bridge {
+namespace bridge_learning_env {
 class BridgeState {
  public:
 

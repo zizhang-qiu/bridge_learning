@@ -6,7 +6,7 @@
 #include "bridge_utils.h"
 #include "utils.h"
 
-namespace bridge {
+namespace bridge_learning_env {
 class BridgeGame {
  public:
   // Acceptable parameters
@@ -15,24 +15,32 @@ class BridgeGame {
   // "is_non_dealer_vulnerable": Whether the non-dealer side is vulnerable. (default false)
   // "dealer": The dealer of the game, first player to make a call in auction phase.
   // "seed": Pseudo-random number generator seed. (default -1)
-  explicit BridgeGame(const GameParameters& params);
+  explicit BridgeGame(const GameParameters &params);
   std::shared_ptr<BridgeState> NewInitialState() const;
   int NumDistinctActions() const { return kNumCards + kNumCalls; }
   int MaxChanceOutcomes() const { return kNumCards; }
+  // Four player passes.
+  int MinGameLength() const { return MaxChanceOutcomes() + kNumPlayers; }
+  int MaxGameLength() const {
+    return kNumCards // 52 cards for deal
+        + kNumPlayers // Opening pass
+        + 9 * kNumBids // In auction, each bid can lead a sequence like 1C-pass-pass-double-pass-pass-redouble-pass-pass
+        + kNumCards; // 52 card for play
+  }
   int MaxMoves() const;
   int MaxUtility() const { return kMaxUtility; }
   int MinUtility() const { return kMinUtility; }
-  bridge::GameParameters Parameters() const;
-  std::string Name() const{return "Contract Bridge";}
-  std::string ShortName() const{return "bridge";}
+  bridge_learning_env::GameParameters Parameters() const;
+  std::string Name() const { return "Contract Bridge"; }
+  std::string ShortName() const { return "bridge"; }
 
-  int HandSize() const{return hand_size;}
+  int HandSize() const { return hand_size; }
 
   bool IsDealerVulnerable() const { return is_dealer_vulnerable_; }
   bool IsNonDealerVulnerable() const { return is_non_dealer_vulnerable_; }
   bool IsPlayerVulnerable(Player player) const;
   bool IsPartnershipVulnerable(int partnership) const;
-  Player Dealer() const{return dealer_;}
+  Player Dealer() const { return dealer_; }
 
   BridgeMove GetMove(int uid) const { return moves_[uid]; }
   BridgeMove GetChanceOutcome(int uid) const { return chance_outcomes_[uid]; }
@@ -47,7 +55,7 @@ class BridgeGame {
   BridgeMove PickRandomChance(const std::pair<std::vector<BridgeMove>, std::vector<double>> &chance_outcomes) const;
 
  private:
-  bridge::GameParameters params_;
+  bridge_learning_env::GameParameters params_;
   bool is_dealer_vulnerable_;
   bool is_non_dealer_vulnerable_;
   Player dealer_;

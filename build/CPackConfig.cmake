@@ -25,7 +25,7 @@ set(CPACK_DEFAULT_PACKAGE_DESCRIPTION_FILE "D:/Program Files (x86)/CLion/bin/cma
 set(CPACK_DEFAULT_PACKAGE_DESCRIPTION_SUMMARY "bridge_learning built using CMake")
 set(CPACK_GENERATOR "NSIS")
 set(CPACK_INSTALL_CMAKE_PROJECTS "D:/Projects/bridge/build;bridge_learning;ALL;/")
-set(CPACK_INSTALL_PREFIX "C:/Program Files (x86)/bridge_lib")
+set(CPACK_INSTALL_PREFIX "C:/Program Files (x86)/bridge_learning")
 set(CPACK_MODULE_PATH "")
 set(CPACK_NSIS_DISPLAY_NAME "bridge_learning 0.1.0")
 set(CPACK_NSIS_INSTALLER_ICON_CODE "")

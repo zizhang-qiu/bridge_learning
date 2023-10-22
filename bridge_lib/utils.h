@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <sstream>
 
-namespace bridge {
+namespace bridge_learning_env {
 using GameParameters = std::unordered_map<std::string, std::string>;
 
 // Returns string associated with key in params, parsed as template type.

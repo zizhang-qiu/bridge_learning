@@ -16,7 +16,7 @@
 #include "third_party/dds/src/Memory.h"
 #include "third_party/dds/src/SolverIF.h"
 #include "third_party/dds/src/TransTableL.h"
-namespace bridge {
+namespace bridge_learning_env {
 class BridgeState2 {
  public:
   class BridgeDeck {
@@ -52,7 +52,7 @@ class BridgeState2 {
 
   explicit BridgeState2(std::shared_ptr<BridgeGame> parent_game);
 
-  bridge::Contract GetContract() const { return contract_; }
+  bridge_learning_env::Contract GetContract() const { return contract_; }
 
   const BridgeDeck &Deck() const { return deck_; }
 
@@ -82,7 +82,7 @@ class BridgeState2 {
 
   void ApplyRandomChance();
 
-  int CurrentPhase() const { return static_cast<int>(phase_); }
+  Phase CurrentPhase() const { return phase_; }
 
   std::vector<BridgeMove> LegalMoves(Player player) const;
 
@@ -95,7 +95,13 @@ class BridgeState2 {
 
   void SetDoubleDummyResults(const std::vector<int> &double_dummy_tricks);
 
+  void SetDoubleDummyResults(const std::array<int, kNumPlayers * kNumDenominations> &double_dummy_tricks);
+
   bool IsPlayerVulnerable(Player player) const;
+
+  std::unique_ptr<BridgeState2> Clone() const{
+    return std::make_unique<BridgeState2>(*this);
+  }
 
  private:
   BridgeDeck deck_;

@@ -52,8 +52,7 @@ CMAKE_CUDA_FLAGS_RELWITHDEBINFO:STRING=-Xcompiler="-MD  -Zi -O2 -Ob1" -DNDEBUG
 //Libraries linked by default with all CUDA applications.
 CMAKE_CUDA_STANDARD_LIBRARIES:STRING=kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
 
-//Flags used by the CXX compiler during all build types.
-CMAKE_CXX_FLAGS:STRING=/DWIN32 /D_WINDOWS /W3 /GR /EHsc
+CMAKE_CXX_FLAGS:STRING='/DWIN32 /D_WINDOWS  /GR /EHsc '
 
 //Flags used by the CXX compiler during DEBUG builds.
 CMAKE_CXX_FLAGS_DEBUG:STRING=/MDd /Zi /Ob0 /Od /RTC1
@@ -142,8 +141,11 @@ CMAKE_INSTALL_MANDIR:PATH=
 //C header files for non-gcc (/usr/include)
 CMAKE_INSTALL_OLDINCLUDEDIR:PATH=/usr/include
 
+//Directory to install pkgconfig files
+CMAKE_INSTALL_PKGCONFIGDIR:PATH=lib/pkgconfig
+
 //Install path prefix, prepended onto install directories.
-CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/bridge_lib
+CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/bridge_learning
 
 //Run-time variable data (LOCALSTATEDIR/run)
 CMAKE_INSTALL_RUNSTATEDIR:PATH=
@@ -156,6 +158,9 @@ CMAKE_INSTALL_SHAREDSTATEDIR:PATH=com
 
 //Read-only single-machine data (etc)
 CMAKE_INSTALL_SYSCONFDIR:PATH=etc
+
+//Directory to install Z3 CMake package files
+CMAKE_INSTALL_Z3_CMAKE_PACKAGE_DIR:PATH=lib/cmake/z3
 
 //Path to a program.
 CMAKE_LINKER:FILEPATH=D:/Program Files (x86)/vs22/VC/Tools/MSVC/14.37.32822/bin/Hostx64/x64/link.exe
@@ -400,9 +405,6 @@ CUDA_VERBOSE_BUILD:BOOL=OFF
 //Version of CUDA as computed from nvcc.
 CUDA_VERSION:STRING=11.7
 
-//"cublasLt" library
-CUDA_cublasLt_LIBRARY:FILEPATH=D:/cuda-11.7/lib/x64/cublasLt.lib
-
 //"cublas" library
 CUDA_cublas_LIBRARY:FILEPATH=D:/cuda-11.7/lib/x64/cublas.lib
 
@@ -469,6 +471,24 @@ CUDA_nvcuvenc_LIBRARY:FILEPATH=CUDA_nvcuvenc_LIBRARY-NOTFOUND
 //"nvcuvid" library
 CUDA_nvcuvid_LIBRARY:FILEPATH=CUDA_nvcuvid_LIBRARY-NOTFOUND
 
+//Folder containing NVIDIA cuDNN header files
+CUDNN_INCLUDE_DIR:PATH=
+
+//Path to a file.
+CUDNN_INCLUDE_PATH:PATH=D:/cuda-11.7/include
+
+//Path to the cudnn library file (e.g., libcudnn.so)
+CUDNN_LIBRARY:PATH=
+
+//Path to a library.
+CUDNN_LIBRARY_PATH:FILEPATH=D:/cuda-11.7/lib/x64/cudnn.lib
+
+//Folder containing NVIDIA cuDNN
+CUDNN_ROOT:PATH=
+
+//Look for static CUDNN
+CUDNN_STATIC:BOOL=OFF
+
 //The directory containing a CMake configuration file for Caffe2.
 Caffe2_DIR:PATH=D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-packages/torch/share/cmake/Caffe2
 
@@ -477,6 +497,9 @@ DART_TESTING_TIMEOUT:STRING=1500
 
 //Path to a program.
 GITCOMMAND:FILEPATH=D:/Git/cmd/git.exe
+
+//Git command line client
+GIT_EXECUTABLE:FILEPATH=D:/Git/cmd/git.exe
 
 //Command to build the project
 MAKECOMMAND:STRING="D:\Program Files (x86)\CLion\bin\cmake\win\x64\bin\cmake.exe" --build . --config "${CTEST_CONFIGURATION_TYPE}"
@@ -540,6 +563,67 @@ TORCH_LIBRARY:FILEPATH=D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-pac
 //The directory containing a CMake configuration file for Torch.
 Torch_DIR:PATH=D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-packages/torch/share/cmake/Torch
 
+//Treat warnings as errors. ON, OFF, or SERIOUS_ONLY
+WARNINGS_AS_ERRORS:STRING=SERIOUS_ONLY
+
+//Use locking when logging Z3 API calls (experimental)
+Z3_API_LOG_SYNC:BOOL=OFF
+
+//Value Computed by CMake
+Z3_BINARY_DIR:STATIC=D:/Projects/bridge/build/rlcc/third_party/z3
+
+//Build API documentation
+Z3_BUILD_DOCUMENTATION:BOOL=OFF
+
+//Build .NET bindings for Z3
+Z3_BUILD_DOTNET_BINDINGS:BOOL=OFF
+
+//Build Java bindings for Z3
+Z3_BUILD_JAVA_BINDINGS:BOOL=OFF
+
+//Build Julia bindings for Z3
+Z3_BUILD_JULIA_BINDINGS:BOOL=OFF
+
+//Build libz3 as a statically-linked runtime library
+Z3_BUILD_LIBZ3_MSVC_STATIC:BOOL=OFF
+
+//Build libz3 as a shared library if true, otherwise build a static
+// library
+Z3_BUILD_LIBZ3_SHARED:BOOL=ON
+
+//Build Python bindings for Z3
+Z3_BUILD_PYTHON_BINDINGS:BOOL=OFF
+
+//Enable control flow integrity checking
+Z3_ENABLE_CFI:BOOL=OFF
+
+//Enable tracing in non-debug builds.
+Z3_ENABLE_TRACING_FOR_NON_DEBUG:BOOL=OFF
+
+//Include git describe output in version output
+Z3_INCLUDE_GIT_DESCRIBE:BOOL=ON
+
+//Include git hash in version output
+Z3_INCLUDE_GIT_HASH:BOOL=ON
+
+//Value Computed by CMake
+Z3_IS_TOP_LEVEL:STATIC=OFF
+
+//Use link time optimiziation
+Z3_LINK_TIME_OPTIMIZATION:BOOL=OFF
+
+//Enable saving Clang optimization records.
+Z3_SAVE_CLANG_OPTIMIZATION_RECORDS:BOOL=OFF
+
+//Non-thread-safe build
+Z3_SINGLE_THREADED:BOOL=OFF
+
+//Value Computed by CMake
+Z3_SOURCE_DIR:STATIC=D:/Projects/bridge/rlcc/third_party/z3
+
+//Use GNU Multiple Precision Library
+Z3_USE_LIB_GMP:BOOL=OFF
+
 //Dependencies for the target
 _bridgelearn_LIB_DEPENDS:STATIC=general;bridge_lib;general;rela_lib;
 
@@ -551,15 +635,6 @@ bridge_learning_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 bridge_learning_SOURCE_DIR:STATIC=D:/Projects/bridge
-
-//Value Computed by CMake
-bridge_lib_BINARY_DIR:STATIC=D:/Projects/bridge/build
-
-//Value Computed by CMake
-bridge_lib_IS_TOP_LEVEL:STATIC=ON
-
-//Value Computed by CMake
-bridge_lib_SOURCE_DIR:STATIC=D:/Projects/bridge
 
 //Path to a library.
 c10_LIBRARY:FILEPATH=D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-packages/torch/lib/c10.lib
@@ -584,6 +659,8 @@ rela_lib_LIB_DEPENDS:STATIC=general;torch;general;D:/ProgramData/Anaconda/envs/b
 # INTERNAL cache entries
 ########################
 
+//Test BUILTIN_ATOMIC
+BUILTIN_ATOMIC:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
 CMAKE_AR-ADVANCED:INTERNAL=1
 //This is the directory where this CMakeCache.txt was created
@@ -660,6 +737,12 @@ CMAKE_GENERATOR_INSTANCE:INTERNAL=D:/Program Files (x86)/vs22
 CMAKE_GENERATOR_PLATFORM:INTERNAL=
 //Name of generator toolset.
 CMAKE_GENERATOR_TOOLSET:INTERNAL=
+//Test CMAKE_HAVE_LIBC_PTHREAD
+CMAKE_HAVE_LIBC_PTHREAD:INTERNAL=
+//Have library pthreads
+CMAKE_HAVE_PTHREADS_CREATE:INTERNAL=
+//Have library pthread
+CMAKE_HAVE_PTHREAD_CREATE:INTERNAL=
 //Source directory with the top level CMakeLists.txt file for this
 // project
 CMAKE_HOME_DIRECTORY:INTERNAL=D:/Projects/bridge
@@ -831,8 +914,6 @@ CUDA_TOOLKIT_TARGET_DIR_INTERNAL:INTERNAL=D:/cuda-11.7
 CUDA_VERBOSE_BUILD-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CUDA_VERSION
 CUDA_VERSION-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: CUDA_cublasLt_LIBRARY
-CUDA_cublasLt_LIBRARY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CUDA_cublas_LIBRARY
 CUDA_cublas_LIBRARY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CUDA_cudadevrt_LIBRARY
@@ -883,10 +964,20 @@ CUDA_nvcuvid_LIBRARY-ADVANCED:INTERNAL=1
 CUDA_parse_cubin:INTERNAL=D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-packages/torch/share/cmake/Caffe2/Modules_CUDA_fix/upstream/FindCUDA/parse_cubin.cmake
 //Location of run_nvcc.cmake
 CUDA_run_nvcc:INTERNAL=D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-packages/torch/share/cmake/Caffe2/Modules_CUDA_fix/upstream/FindCUDA/run_nvcc.cmake
+//ADVANCED property for variable: CUDNN_INCLUDE_DIR
+CUDNN_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDNN_LIBRARY
+CUDNN_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDNN_ROOT
+CUDNN_ROOT-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: DART_TESTING_TIMEOUT
 DART_TESTING_TIMEOUT-ADVANCED:INTERNAL=1
 //Details about finding CUDA
 FIND_PACKAGE_MESSAGE_DETAILS_CUDA:INTERNAL=[D:/cuda-11.7][D:/cuda-11.7/bin/nvcc.exe][D:/cuda-11.7/include][D:/cuda-11.7/lib/x64/cudart_static.lib][v11.7()]
+//Details about finding CUDNN
+FIND_PACKAGE_MESSAGE_DETAILS_CUDNN:INTERNAL=[D:/cuda-11.7/lib/x64/cudnn.lib][D:/cuda-11.7/include][v()]
+//Details about finding Git
+FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[D:/Git/cmd/git.exe][v2.33.0.windows.2()]
 //Details about finding PYTHON
 FIND_PACKAGE_MESSAGE_DETAILS_PYTHON:INTERNAL=D:/ProgramData/Anaconda/envs/bridge_research/python.exe3.8.17
 //Details about finding Python
@@ -895,12 +986,26 @@ FIND_PACKAGE_MESSAGE_DETAILS_Python:INTERNAL=[C:/Program Files (x86)/Microsoft V
 FIND_PACKAGE_MESSAGE_DETAILS_PythonInterp:INTERNAL=[D:/ProgramData/Anaconda/envs/bridge_research/python.exe][v3.8.17()]
 //Details about finding PythonLibs
 FIND_PACKAGE_MESSAGE_DETAILS_PythonLibs:INTERNAL=[D:/ProgramData/Anaconda/envs/bridge_research/libs/python38.lib][D:/ProgramData/Anaconda/envs/bridge_research/include][v3.8.17()]
+//Details about finding Threads
+FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding Torch
 FIND_PACKAGE_MESSAGE_DETAILS_Torch:INTERNAL=[D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-packages/torch/lib/torch.lib][D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-packages/torch/include;D:/ProgramData/Anaconda/envs/bridge_research/Lib/site-packages/torch/include/torch/csrc/api/include;C:\Program Files\NVIDIA Corporation\NvToolsExt\/include][v()]
 //ADVANCED property for variable: GITCOMMAND
 GITCOMMAND-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: GIT_EXECUTABLE
+GIT_EXECUTABLE-ADVANCED:INTERNAL=1
 //Test HAS_MSVC_GL_LTCG
 HAS_MSVC_GL_LTCG:INTERNAL=1
+//Test HAS_MSVC_NO_OMIT_FRAME_POINTER
+HAS_MSVC_NO_OMIT_FRAME_POINTER:INTERNAL=1
+//Test HAS_SSE2
+HAS_SSE2:INTERNAL=
+//Test HAS__EHsc
+HAS__EHsc:INTERNAL=1
+//Test HAS__Gd
+HAS__Gd:INTERNAL=1
+//Test HAS__W3
+HAS__W3:INTERNAL=1
 //ADVANCED property for variable: MAKECOMMAND
 MAKECOMMAND-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: MEMORYCHECK_COMMAND
@@ -927,8 +1032,10 @@ PYTHON_VERSION_MINOR:INTERNAL=8
 Python_ADDITIONAL_VERSIONS:INTERNAL=3.11;3.10;3.9;3.8;3.7;3.6
 //ADVANCED property for variable: SITE
 SITE-ADVANCED:INTERNAL=1
+//STRINGS property for variable: WARNINGS_AS_ERRORS
+WARNINGS_AS_ERRORS-STRINGS:INTERNAL=ON;OFF;SERIOUS_ONLY
 //CMAKE_INSTALL_PREFIX during last run
-_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/bridge_lib
+_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/bridge_learning
 _Python:INTERNAL=PYTHON
 //Compiler reason failure
 _Python_Compiler_REASON_FAILURE:INTERNAL=

@@ -6,7 +6,7 @@
 #include "utils.h"
 #include <cassert>
 
-namespace bridge {
+namespace bridge_learning_env {
 
 bool BridgeMove::IsBid() const {
   return denomination_ >= Denomination::kClubsTrump && level_ >= 1;
