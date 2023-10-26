@@ -86,5 +86,8 @@ std::string OtherCallsToString(OtherCalls call) {
     return "I";
   }
 }
+int RankToDDSRank(int rank) {
+  return rank + 2;
+}
 
 } // namespace bridge

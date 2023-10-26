@@ -7,6 +7,7 @@ enable_testing()
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
+
 add_library(double_dummy_solver OBJECT
         bridge_lib/third_party/dds/include/dll.h
         bridge_lib/third_party/dds/include/portab.h
@@ -65,10 +66,6 @@ add_library(double_dummy_solver OBJECT
         bridge_lib/third_party/dds/src/TransTableL.h
         bridge_lib/third_party/dds/src/TransTableS.cpp
         bridge_lib/third_party/dds/src/TransTableS.h)
-
-
-
-
 
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
@@ -137,6 +134,7 @@ add_library(bridge_lib bridge_lib/bridge_utils.cc bridge_lib/bridge_game.cc brid
         bridge_lib/auction_tracker.cc
         bridge_lib/auction_tracker.h
         bridge_lib/observation_encoder.h
+        bridge_lib/bridge_deck.cc
 )
 target_link_libraries(bridge_lib PUBLIC double_dummy_solver)
 
@@ -186,6 +184,9 @@ add_library(_bridgelearn
         rlcc/supervise_data_generator.h
         playcc/utils.h
         playcc/pimc.h
+        playcc/resampler.h
+        playcc/deck_sampler.h
+        playcc/play_bot.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

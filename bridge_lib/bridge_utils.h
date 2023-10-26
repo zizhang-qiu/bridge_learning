@@ -104,6 +104,7 @@ int OpponentPartnership(int partnership);
 int SuitToDDSSuit(Suit suit);
 Denomination DDSStrainToDenomination(int strain);
 int DenominationToDDSStrain(Denomination denomination);
+int RankToDDSRank(int rank);
 
 } // namespace bridge
 

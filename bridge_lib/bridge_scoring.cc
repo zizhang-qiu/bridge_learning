@@ -77,6 +77,19 @@ int Score(Contract contract, int declarer_tricks, bool is_vulnerable) {
     return contract_score + bonuses;
   }
 }
+constexpr int kScoreTable[] = {15, 45, 85, 125, 165, 215, 265, 315,
+                               365, 425, 495, 595, 745, 895, 1095, 1295,
+                               1495, 1745, 1995, 2245, 2495, 2995, 3495, 3995};
+constexpr int kScoreTableSize = sizeof(kScoreTable) / sizeof(int);
+int GetImp(int score1, int score2) {
+  const int score = score1 - score2;
+  const int sign = score == 0 ? 0 : (score > 0 ? 1 : -1);
+  const int abs_score = std::abs(score);
+  const int p =
+      std::upper_bound(kScoreTable, kScoreTable + kScoreTableSize, abs_score) -
+          kScoreTable;
+  return sign * p;
+}
 
 std::string Contract::ToString() const {
   if (level == 0) return "Passed Out";

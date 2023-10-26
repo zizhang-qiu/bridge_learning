@@ -2,42 +2,15 @@
 // Created by qzz on 2023/9/23.
 //
 #include "bridge_state_2.h"
+#include "bridge_deck.h"
 #include <cstring>
 #include <algorithm>
 #include <utility>
-
 
 #ifndef DDS_EXTERNAL
 #define DDS_EXTERNAL(x) x
 #endif
 namespace bridge_learning_env {
-
-BridgeCard BridgeState2::BridgeDeck::DealCard(Suit suit,
-                                              int rank) {
-  int index = CardToIndex(suit, rank);
-  REQUIRE(card_in_deck_[index] == true);
-  card_in_deck_[index] = false;
-  --total_count_;
-  return {suit, rank};
-}
-BridgeCard BridgeState2::BridgeDeck::DealCard(int card_index) {
-  REQUIRE(card_in_deck_[card_index] == true);
-  card_in_deck_[card_index] = false;
-  --total_count_;
-  return {CardSuit(card_index), CardRank(card_index)};
-}
-BridgeCard BridgeState2::BridgeDeck::DealCard(std::mt19937 &rng) {
-  if (Empty()) {
-    return {};
-  }
-  std::discrete_distribution<std::mt19937::result_type> dist(
-      card_in_deck_.begin(), card_in_deck_.end());
-  int index = static_cast<int>(dist(rng));
-  REQUIRE(card_in_deck_[index] == true);
-  card_in_deck_[index] = false;
-  --total_count_;
-  return {IndexToSuit(index), IndexToRank(index)};
-}
 
 BridgeState2::BridgeState2(std::shared_ptr<BridgeGame> parent_game)
     : parent_game_(std::move(parent_game)), deck_(), hands_(kNumPlayers),
@@ -310,9 +283,12 @@ std::string BridgeState2::FormatDeal() const {
 
 std::string BridgeState2::FormatAuction() const {
   REQUIRE(move_history_.size() > ParentGame()->MaxChanceOutcomes());
-  std::string rv;
+  std::string rv = "\nWest  North East  South\n      ";
   for (int i = kNumCards; i < move_history_.size() - num_cards_played_; ++i) {
-    rv += move_history_[i].ToString();
+    if(i % kNumPlayers == kNumPlayers - 1 - dealer_){
+      rv.push_back('\n');
+    }
+    rv += StrFormat( "%-6s", move_history_[i].move.AuctionToString().c_str());
   }
   return rv;
 }
@@ -580,6 +556,45 @@ bool BridgeState2::IsPlayerVulnerable(Player player) const {
          ? is_dealer_vulnerable_
          : is_non_dealer_vulnerable_;
 }
+std::vector<int> BridgeState2::UidHistory() const {
+  std::vector<int> uid_history;
+  uid_history.reserve(move_history_.size());
+  for (const auto item : move_history_) {
+    if (item.move.MoveType() == BridgeMove::kDeal) {
+      uid_history.push_back(parent_game_->GetChanceOutComeUid(item.move));
+    } else {
+      uid_history.push_back(parent_game_->GetMoveUid(item.move));
+    }
+  }
+  return uid_history;
+}
+Player BridgeState2::CurrentPlayer() const {
+  switch (phase_) {
 
+    case Phase::kDeal:return kChancePlayerId;
+    case Phase::kAuction:return current_player_;
+    case Phase::kPlay:
+      if (Partnership(current_player_) == Partnership(contract_.declarer)) {
+        return contract_.declarer;
+      };
+      return current_player_;
+    case Phase::kGameOver:return kTerminalPlayerId;
+  }
+}
+bool BridgeState2::IsDummyActing() const {
+  if (phase_ != Phase::kPlay) {
+    return false;
+  }
+  if (current_player_ == Partner(contract_.declarer)) {
+    return true;
+  }
+  return false;
+}
+Player BridgeState2::GetDummy() const {
+  if (phase_ != Phase::kPlay) {
+    return kInvalidPlayer;
+  }
+  return Partner(contract_.declarer);
+}
 
 } // namespace bridge

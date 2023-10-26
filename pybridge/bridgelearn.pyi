@@ -89,3 +89,28 @@ class SuperviseDataGenerator:
     def next_batch(self, device: str) -> TensorDict: ...
 
     def all_data(self, device: str) -> TensorDict: ...
+
+
+class Resampler:
+    pass
+
+
+class UniformResampler(Resampler):
+    def __init__(self, seed: int):
+        ...
+
+    def resample(self) -> List[int]:
+        ...
+
+
+class SearchResult:
+    moves: List[bridge.BridgeMove]
+    scores: List[int]
+
+
+class PIMCBot:
+    def __init__(self, resampler: Resampler, num_sample: int):
+        ...
+
+    def search(self, state: bridge.BridgeState2) -> SearchResult:
+        ...

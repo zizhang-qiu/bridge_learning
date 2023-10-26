@@ -16,33 +16,11 @@
 #include "third_party/dds/src/Memory.h"
 #include "third_party/dds/src/SolverIF.h"
 #include "third_party/dds/src/TransTableL.h"
+#include "bridge_deck.h"
 namespace bridge_learning_env {
 class BridgeState2 {
  public:
-  class BridgeDeck {
-   public:
-    // The deck of bridge always contains 52 cards, no other arguments.
-    BridgeDeck() : total_count_(kNumCards), card_in_deck_(kNumCards, true) {}
-    BridgeCard DealCard(Suit suit, int rank);
-    BridgeCard DealCard(int card_index);
-    BridgeCard DealCard(std::mt19937 &rng);
-    int Size() const { return total_count_; }
-    bool Empty() const { return total_count_ == 0; }
-    bool CardInDeck(Suit suit, int rank) const {
-      return card_in_deck_[CardToIndex(suit, rank)];
-    }
 
-   private:
-    Suit IndexToSuit(int index) const { return Suit(index % kNumSuits); }
-    int IndexToRank(int index) const { return index / kNumSuits; }
-    int CardToIndex(Suit suit, int rank) const {
-      return rank * kNumSuits + suit;
-    }
-
-    std::vector<bool> card_in_deck_;
-    int total_count_;
-
-  };
   enum class Phase {
     kDeal,
     kAuction,
@@ -60,9 +38,20 @@ class BridgeState2 {
 
   const std::vector<BridgeHistoryItem> &History() const { return move_history_; }
 
+  std::vector<int> UidHistory() const;
+
   const std::vector<BridgeCard> &PlayedCard() const { return played_cards_; }
 
-  Player CurrentPlayer() const { return current_player_; }
+  Player CurrentPlayer() const;
+
+  bool IsDummyActing() const;
+
+  bool IsDummyCardShown() const {
+    // After the opening lead is faced, dummy spreads his hand in front of him on the table, face up.
+    return num_cards_played_ >= 1;
+  }
+
+  Player GetDummy() const;
 
   void ApplyMove(BridgeMove move);
 
@@ -99,9 +88,24 @@ class BridgeState2 {
 
   bool IsPlayerVulnerable(Player player) const;
 
-  std::unique_ptr<BridgeState2> Clone() const{
+  std::unique_ptr<BridgeState2> Clone() const {
     return std::make_unique<BridgeState2>(*this);
   }
+
+  int NumTricksPlayed() const { return num_cards_played_ / kNumPlayers; }
+
+  Trick &CurrentTrick() { return tricks_[num_cards_played_ / kNumPlayers]; }
+  const Trick &CurrentTrick() const {
+    return tricks_[num_cards_played_ / kNumPlayers];
+  }
+
+  int NumCardsPlayed() const { return num_cards_played_; }
+
+  std::vector<BridgeHand> OriginalDeal() const;
+
+  bool IsChanceNode() const { return CurrentPlayer() == kChancePlayerId; }
+
+  std::vector<int> Scores() const { return scores_; }
 
  private:
   BridgeDeck deck_;
@@ -123,18 +127,11 @@ class BridgeState2 {
   bool is_non_dealer_vulnerable_;
   mutable std::optional<ddTableResults> double_dummy_results_{};
 
-  Trick &CurrentTrick() { return tricks_[num_cards_played_ / kNumPlayers]; }
-  const Trick &CurrentTrick() const {
-    return tricks_[num_cards_played_ / kNumPlayers];
-  }
-
-
   void AdvanceToNextPlayer();
   bool DealIsLegal(BridgeMove move) const;
   bool AuctionIsLegal(BridgeMove move) const;
   bool PlayIsLegal(BridgeMove move) const;
 
-  std::vector<BridgeHand> OriginalDeal() const;
   std::string FormatVulnerability() const;
   std::string FormatDeal() const;
   std::string FormatAuction() const;

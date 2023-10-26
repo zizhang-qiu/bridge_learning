@@ -43,6 +43,9 @@
     <ClCompile Include="D:\Projects\bridge\bridge_lib\auction_tracker.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\bridge_deck.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D:\Projects\bridge\bridge_lib\canonical_encoder.h">

@@ -37,6 +37,8 @@ constexpr std::array<Contract, kNumContracts> AllContracts() {
 
 inline constexpr std::array<Contract, kNumContracts> kAllContracts =
     AllContracts();
+
+int GetImp(int score1, int score2);
 }  // namespace bridge
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_SCORING_H

@@ -3,9 +3,11 @@
 //
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+
 #include "bridge_env.h"
 #include "bridge_dataset.h"
 #include "supervise_data_generator.h"
+#include "playcc/pimc.h"
 namespace py = pybind11;
 using namespace rlcc;
 
@@ -69,4 +71,18 @@ PYBIND11_MODULE(bridgelearn, m
                     int>())
       .def("next_batch", &SuperviseDataGenerator::NextBatch)
       .def("all_data", &SuperviseDataGenerator::AllData);
+
+  py::class_<Resampler, std::shared_ptr<Resampler>>(m, "Resampler");
+
+  py::class_<UniformResampler, Resampler, std::shared_ptr<UniformResampler>>(m, "UniformResampler")
+      .def(py::init<int>())
+      .def("resample", &UniformResampler::Resample);
+
+  py::class_<SearchResult>(m, "SearchResult")
+      .def_readonly("moves", &SearchResult::moves)
+      .def_readonly("scores", &SearchResult::scores);
+
+  py::class_<PIMCBot, std::shared_ptr<PIMCBot>>(m, "PIMCBot")
+      .def(py::init<std::shared_ptr<Resampler>, int>())
+      .def("search", &PIMCBot::Search);
 }

@@ -19,7 +19,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
-    parser.add_argument("--model_dir", type=str, default="sl/exp1")
+    parser.add_argument("--model_dir", type=str, default="sl/exp6")
     return parser.parse_args()
 
 

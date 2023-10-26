@@ -298,6 +298,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\Projects\bridge\bridge_lib\auction_tracker.cc" />
     <ClInclude Include="D:\Projects\bridge\bridge_lib\auction_tracker.h" />
     <ClInclude Include="D:\Projects\bridge\bridge_lib\observation_encoder.h" />
+    <ClCompile Include="D:\Projects\bridge\bridge_lib\bridge_deck.cc" />
     <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\ABsearch.obj" />
     <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\ABstats.obj" />
     <Object Include="D:\Projects\bridge\build\double_dummy_solver.dir\$(Configuration)\CalcTables.obj" />

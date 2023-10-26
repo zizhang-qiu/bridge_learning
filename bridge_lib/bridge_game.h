@@ -52,6 +52,8 @@ class BridgeGame {
                  int level,
                  OtherCalls other_call) const;
 
+  int GetChanceOutComeUid(BridgeMove move) const;
+
   BridgeMove PickRandomChance(const std::pair<std::vector<BridgeMove>, std::vector<double>> &chance_outcomes) const;
 
  private:

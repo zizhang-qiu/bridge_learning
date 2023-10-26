@@ -55,6 +55,7 @@ int BridgeGame::GetMoveUid(BridgeMove::Type move_type, Suit suit, int rank,
     default:return -1;
   }
 }
+
 BridgeMove BridgeGame::ConstructMove(int uid) const {
   if (uid < 0 || uid > MaxMoves()) {
     return {BridgeMove::kInvalid,
@@ -126,6 +127,12 @@ bool BridgeGame::IsPlayerVulnerable(Player player) const {
 bool BridgeGame::IsPartnershipVulnerable(int partnership) const {
   return partnership == Partnership(dealer_) ? is_dealer_vulnerable_
                                              : is_non_dealer_vulnerable_;
+}
+int BridgeGame::GetChanceOutComeUid(BridgeMove move) const {
+  if (move.MoveType() != BridgeMove::kDeal) {
+    return -1;
+  }
+  return CardIndex(move.CardSuit(), move.CardRank());
 }
 
 } // namespace bridge

@@ -35,7 +35,7 @@ class BridgeMove {
 
   OtherCalls OtherCall() const{return other_call_;}
 
-
+  std::string AuctionToString() const;
 
  private:
   Suit suit_ = kInvalidSuit;
@@ -45,7 +45,7 @@ class BridgeMove {
   OtherCalls other_call_ = OtherCalls::kNotOtherCall;
   Type move_type_ = kInvalid;
 
-  std::string AuctionToString() const;
+
 };
 
 } // namespace bridge

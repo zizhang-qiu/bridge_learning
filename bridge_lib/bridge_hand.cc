@@ -71,12 +71,13 @@ bool BridgeHand::IsCardInHand(BridgeCard card) const {
   auto card_it = std::find(cards_.begin(), cards_.end(), card);
   return card_it != cards_.end();
 }
-int BridgeHand::CardIndex(BridgeCard card) const {
-  auto card_it = std::find(cards_.begin(), cards_.end(), card);
-  if (card_it == cards_.end()) {
-    return -1;
+std::array<int, kNumSuits> BridgeHand::SuitLength() const {
+  std::array<int, kNumSuits> res{};
+  res.fill(0);
+  for(const auto card:cards_){
+    res[card.CardSuit()] += 1;
   }
-  return static_cast<int>(card_it - cards_.begin());
+  return res;
 }
 
 } // bridge

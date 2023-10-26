@@ -32,7 +32,7 @@ class BridgeHand {
 
   bool IsCardInHand(BridgeCard card) const;
 
-  int CardIndex(BridgeCard card) const;
+  std::array<int, kNumSuits> SuitLength() const;
 
  private:
   std::vector<BridgeCard> cards_;
