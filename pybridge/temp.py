@@ -1,8 +1,10 @@
+import copy
 import pickle
 from math import floor
 from typing import Dict, List
 
 import torch
+import numpy as np
 from tqdm import tqdm
 from agent import BridgeAgent
 
@@ -61,11 +63,29 @@ bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_
 # runner = rela.BatchRunner(agent, "cuda", 10, ["act"])
 # runner.set_log_freq(2)
 # runner.start()
-game = bridge.BridgeGame(params)
+# game = bridge.BridgeGame(params)
+#
+# with open(r"D:\Projects\bridge_research\expert\train.pkl", "rb") as fp:
+#     trajectories = pickle.load(fp)
+# generator = bridgelearn.SuperviseDataGenerator(trajectories, 16, game, 1)
+# for i in range(100):
+#     batch = generator.next_batch("cuda")
+#     print(batch)
+teams = [1, 2, 3, 4, 5, 6, 7, 8]
 
-with open(r"D:\Projects\bridge_research\expert\train.pkl", "rb") as fp:
-    trajectories = pickle.load(fp)
-generator = bridgelearn.SuperviseDataGenerator(trajectories, 16, game, 1)
-for i in range(100):
-    batch = generator.next_batch("cuda")
-    print(batch)
+
+def allocate_once(items: List[int]):
+    np.random.shuffle(items)
+    result = []
+    for i in range(len(items) // 2):
+        pair = items[2 * i: 2 * i + 2]
+        result.append(sorted(pair))
+    return sorted(result, key=lambda x: x[0])
+
+
+all_res = []
+while True:
+    res = allocate_once(items=teams)
+    if res not in all_res:
+        all_res.append(res)
+    print(len(all_res))

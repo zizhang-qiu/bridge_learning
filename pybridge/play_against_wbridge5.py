@@ -142,7 +142,7 @@ if __name__ == '__main__':
             if state_0.get_contract().index() == state_1.get_contract().index():
                 same_contract_results.append(imp)
             i_deal += 1
-        except Exception:
+        except socket.timeout or ValueError:
             continue
 
     stats = np.array(results)

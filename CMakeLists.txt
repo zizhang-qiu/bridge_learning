@@ -74,13 +74,13 @@ include(CPack)
 
 set(CONDA_PREFIX "D:/ProgramData/Anaconda/envs/bridge_research")
 if (WIN32)
-    MESSAGE("Compiling on Windows")
+    message("Compiling on Windows")
 
     set(PYTHON_EXECUTABLE "${CONDA_PREFIX}/python.exe")
     set(PYTHON_INCLUDE_DIR "${CONDA_PREFIX}/include")
     set(PYTHON_LIBRARIES "${CONDA_PREFIX}/libs/python38.lib")
 else ()
-    MESSAGE("Compiling on Linux")
+    message("Compiling on Linux")
     set(CMAKE_CXX_FLAGS
             "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -Wno-register -fPIC -march=native -Wfatal-errors")
 
@@ -94,8 +94,9 @@ else ()
     set(CMAKE_CUDA_EXTENSIONS ON)
     set(PYTHON_EXECUTABLE /home/work/miniconda3/envs/bridge_research/bin/python)
 endif ()
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs REQUIRED)
+set(PYBIND11_FINDPYTHON ON)
+#find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+#find_package(PythonLibs REQUIRED)
 
 execute_process(
         COMMAND ${PYTHON_EXECUTABLE} -c "import torch; import os; print(os.path.dirname(torch.__file__), end='')"
