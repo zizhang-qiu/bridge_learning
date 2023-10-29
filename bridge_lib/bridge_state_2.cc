@@ -576,7 +576,7 @@ Player BridgeState2::CurrentPlayer() const {
     case Phase::kPlay:
       if (Partnership(current_player_) == Partnership(contract_.declarer)) {
         return contract_.declarer;
-      };
+      }
       return current_player_;
     case Phase::kGameOver:return kTerminalPlayerId;
     default: return kInvalidPlayer;

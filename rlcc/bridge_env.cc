@@ -7,7 +7,7 @@ using Phase = ble::BridgeState2::Phase;
 
 namespace rlcc {
 
-BridgeEnv::BridgeEnv(const ble::GameParameters params, bool verbose)
+BridgeEnv::BridgeEnv(const ble::GameParameters& params, bool verbose)
     : params_(params), game_(params_), state_(nullptr), verbose_(verbose),
       last_active_player_(ble::kChancePlayerId),
       last_move_(ble::BridgeMove::kInvalid,
@@ -33,7 +33,7 @@ bool BridgeEnv::Terminated() const {
 }
 
 void BridgeEnv::Reset() {
-  RELA_CHECK(Terminated());
+  RELA_CHECK(Terminated())
   state_ = std::make_unique<ble::BridgeState2>(std::make_shared<ble::BridgeGame>(game_));
   while (state_->CurrentPhase() == ble::BridgeState2::Phase::kDeal) {
     state_->ApplyRandomChance();
@@ -64,7 +64,7 @@ void BridgeEnv::ResetWithDeck(const std::vector<int> &cards) {
   }
 }
 void BridgeEnv::Step(const ble::BridgeMove move) {
-  RELA_CHECK(!Terminated());
+  RELA_CHECK(!Terminated())
   last_active_player_ = state_->CurrentPlayer();
   last_move_ = move;
   state_->ApplyMove(move);

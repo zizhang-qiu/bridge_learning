@@ -46,10 +46,8 @@ bool ParameterValue<bool>(const GameParameters& params, const std::string& key,
     return default_value;
   }
 
-  return (iter->second == "1" || iter->second == "true" ||
-                  iter->second == "True"
-              ? true
-              : false);
+  return iter->second == "1" || iter->second == "true" ||
+      iter->second == "True";
 }
 
 std::vector<int> Arange(int start, int end) {

@@ -31,8 +31,8 @@ class BridgeGame {
   int MaxUtility() const { return kMaxUtility; }
   int MinUtility() const { return kMinUtility; }
   bridge_learning_env::GameParameters Parameters() const;
-  std::string Name() const { return "Contract Bridge"; }
-  std::string ShortName() const { return "bridge"; }
+  std::string Name() const { return kGameName; }
+  std::string ShortName() const { return kShortName; }
 
   int HandSize() const { return hand_size; }
 

@@ -29,8 +29,8 @@ class SuperviseDataGenerator {
     for (int i = 0; i < batch_size_; ++i) {
       auto current_trajectory = trajectories_[index_];
       assert(current_trajectory.size()>= ble::kNumCards + ble::kNumPlayers);
-      index_ = (index_ + 1) % trajectories_.size();
-      auto dis = std::uniform_int_distribution<int>(ble::kNumCards, current_trajectory.size() - 1);
+      index_ = (index_ + 1) % static_cast<int>(trajectories_.size());
+      auto dis = std::uniform_int_distribution<int>(ble::kNumCards, static_cast<int>(current_trajectory.size() - 1));
       auto random_index = dis(rng_);
       auto state = std::make_unique<ble::BridgeState2>(game_);
       for (int j = 0; j < ble::kNumCards; ++j) {
@@ -55,8 +55,7 @@ class SuperviseDataGenerator {
   rela::TensorDict AllData(std::string &device){
     std::vector<rela::TensorDict> obs_labels;
     torch::Device d{device};
-    for(int idx=0; idx < trajectories_.size(); ++idx){
-      auto current_trajectory = trajectories_[idx];
+    for(auto current_trajectory : trajectories_){
       assert(current_trajectory.size()>= ble::kNumCards + ble::kNumPlayers);
       auto state = std::make_unique<ble::BridgeState2>(game_);
       for (int j = 0; j < ble::kNumCards; ++j) {

@@ -58,50 +58,56 @@ int BridgeGame::GetMoveUid(BridgeMove::Type move_type, Suit suit, int rank,
 
 BridgeMove BridgeGame::ConstructMove(int uid) const {
   if (uid < 0 || uid > MaxMoves()) {
+    // Invalid move.
     return {BridgeMove::kInvalid,
         /*suit=*/kInvalidSuit,
-        /*rank=*/-1, /*denomination=*/
-            kInvalidDenomination,
+        /*rank=*/-1,
+        /*denomination=*/kInvalidDenomination,
         /*level=*/-1,
         /*other_call=*/kNotOtherCall};
   }
   if (uid < MaxPlayMoves()) {
+    // Play move.
     return {BridgeMove::kPlay,
-        /*suit=*/Suit(uid % kNumSuits), /*rank=*/
-            uid / kNumSuits,                /*denomination=*/
-            kInvalidDenomination,
+        /*suit=*/Suit(uid % kNumSuits),
+        /*rank=*/uid / kNumSuits,
+        /*denomination=*/kInvalidDenomination,
         /*level=*/-1,
         /*other_call=*/kNotOtherCall};
   }
   uid -= MaxPlayMoves();
   if (uid < kNumOtherCalls) {
+    // An other call, pass, double or redouble.
     return {BridgeMove::kAuction,
         /*suit=*/kInvalidSuit,
-        /*rank=*/-1, /*denomination=*/
-            kInvalidDenomination,
+        /*rank=*/-1,
+        /*denomination=*/kInvalidDenomination,
         /*level=*/-1,
         /*other_call=*/OtherCalls(uid)};
   }
+  // A bid.
   return {BridgeMove::kAuction,
       /*suit=*/kInvalidSuit,
-      /*rank=*/-1, /*denomination=*/
-          Denomination((uid - kNumOtherCalls) % kNumDenominations), /*level=*/
+      /*rank=*/-1,
+      /*denomination=*/Denomination((uid - kNumOtherCalls) % kNumDenominations), /*level=*/
           1 + (uid - kNumOtherCalls) / kNumDenominations,
       /*other_call=*/kNotOtherCall};
 }
 BridgeMove BridgeGame::ConstructChanceMove(int uid) const {
   if (uid < 0 || uid > MaxChanceOutcomes()) {
+    // Invalid.
     return {BridgeMove::kInvalid,
         /*suit=*/kInvalidSuit,
-        /*rank=*/-1, /*denomination=*/
-            kInvalidDenomination,
+        /*rank=*/-1,
+        /*denomination=*/kInvalidDenomination,
         /*level=*/-1,
         /*other_call=*/kNotOtherCall};
   }
+  // Deal.
   return {BridgeMove::kDeal,
-      /*suit=*/Suit(uid % kNumSuits), /*rank=*/
-          uid / kNumSuits,                /*denomination=*/
-          kInvalidDenomination,
+      /*suit=*/Suit(uid % kNumSuits),
+      /*rank=*/uid / kNumSuits,
+      /*denomination=*/kInvalidDenomination,
       /*level=*/-1,
       /*other_call=*/kNotOtherCall};
 }

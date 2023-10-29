@@ -38,6 +38,10 @@ constexpr char kRankChar[] = "23456789TJQKA";
 constexpr char kLevelChar[] = "-1234567";
 constexpr char kDenominationChar[] = "CDHSN";
 constexpr char kPlayerChar[] = "NESW";
+
+const std::string kInvalidStr = "INVALID";
+const std::string kGameName = "Contract Bridge";
+const std::string kShortName = "bridge";
 // constexpr char kSuitUnicode[][4] = {"\u2663", "\u2666", "\u2665", "\u2660"};
 
 enum Denomination {
@@ -57,8 +61,8 @@ enum Suit {
   kSpadesSuit
 };
 
-enum Vulnerability{kNorthSouth, kEastWest, kAll, kNone };
-enum OtherCalls { kNotOtherCall=-1, kPass = 0, kDouble, kRedouble };
+enum Vulnerability { kNorthSouth, kEastWest, kAll, kNone };
+enum OtherCalls { kNotOtherCall = -1, kPass = 0, kDouble, kRedouble };
 enum DoubleStatus { kUndoubled = 1, kDoubled = 2, kRedoubled = 4 };
 inline constexpr int kNumDoubleStatus = 3;
 

@@ -17,7 +17,7 @@ namespace rlcc {
 
 class BridgeEnv {
  public:
-  BridgeEnv(ble::GameParameters params, bool verbose);
+  BridgeEnv(const ble::GameParameters& params, bool verbose);
 
   void SetBridgeDataset(std::shared_ptr<BridgeDataset> bridge_dataset) {
     bridge_dataset_ = std::move(bridge_dataset);

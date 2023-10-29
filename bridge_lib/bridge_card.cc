@@ -8,7 +8,7 @@ namespace bridge_learning_env {
 
 std::string BridgeCard::ToString() const {
   if (!IsValid()) {
-    return {"Invalid"};
+    return kInvalidStr;
   }
   return {kSuitChar[suit_], kRankChar[rank_]};
 }
