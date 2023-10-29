@@ -1,3 +1,7 @@
 [submodule "pybind11"]
 	path = pybind11
 	url = https://github.com/pybind/pybind11.git
+
+[submodule "dds"]
+    path = bridge_lib/third_party/dds
+    url = https://github.com/dds-bridge/dds.git
