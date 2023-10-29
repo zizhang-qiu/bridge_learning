@@ -187,6 +187,7 @@ add_library(_bridgelearn
         playcc/resampler.h
         playcc/deck_sampler.h
         playcc/play_bot.h
+        playcc/cheat_bot.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

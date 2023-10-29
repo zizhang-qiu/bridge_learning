@@ -76,18 +76,20 @@ char LevelIndexToChar(int level) {
 
 std::string OtherCallsToString(OtherCalls call) {
   switch (call) {
-  case kPass:
-    return "Pass";
-  case kDouble:
-    return "Dbl";
-  case kRedouble:
-    return "RDbl";
-  default:
-    return "I";
+    case kPass:return "Pass";
+    case kDouble:return "Dbl";
+    case kRedouble:return "RDbl";
+    default:return "I";
   }
 }
 int RankToDDSRank(int rank) {
   return rank + 2;
+}
+Suit DDSSuitToSuit(int suit) {
+  return Suit(3 - suit);
+}
+int DDSRankToRank(int dds_rank) {
+  return dds_rank - 2;
 }
 
 } // namespace bridge

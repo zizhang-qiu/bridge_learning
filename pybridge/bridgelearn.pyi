@@ -108,9 +108,21 @@ class SearchResult:
     scores: List[int]
 
 
-class PIMCBot:
+class PlayBot: ...
+
+
+class CheatBot(PlayBot):
+    def __init__(self):
+        ...
+
+    def act(self, state: bridge.BridgeState2) -> bridge.BridgeMove: ...
+
+
+class PIMCBot(PlayBot):
     def __init__(self, resampler: Resampler, num_sample: int):
         ...
 
     def search(self, state: bridge.BridgeState2) -> SearchResult:
         ...
+
+    def act(self, state: bridge.BridgeState2) -> bridge.BridgeMove: ...

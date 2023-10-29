@@ -8,74 +8,11 @@
 
 #include "bridge_lib/bridge_state_2.h"
 #include "resampler.h"
+#include "play_bot.h"
 //#include "rela/logging.h"
 #include "bridge_lib/third_party/dds/include/dll.h"
 namespace ble = bridge_learning_env;
-deal StateToDeal(const ble::BridgeState2 &state) {
-  if (state.CurrentPhase() != ble::BridgeState2::Phase::kPlay) {
-    std::cerr << "Should be play phase." << std::endl;
-    std::abort();
-  }
-  deal dl{};
-  const ble::Contract contract = state.GetContract();
-  dl.trump = ble::DenominationToDDSStrain(contract.denomination);
-//  std::cout << "dl.trump: " << dl.trump << std::endl;
-  const ble::Trick current_trick = state.CurrentTrick();
-  dl.first = current_trick.Leader() != ble::kInvalidPlayer ? current_trick.Leader() : state.CurrentPlayer();
-//  std::cout << "dl.first: " << dl.first << std::endl;
 
-  const auto &history = state.History();
-  std::vector<ble::BridgeHistoryItem> play_history;
-  for (const auto move : history) {
-    if (move.move.MoveType() == ble::BridgeMove::Type::kPlay) {
-      play_history.push_back(move);
-    }
-  }
-
-  int num_tricks_played = static_cast<int>(play_history.size()) / ble::kNumPlayers;
-  int num_card_played_current_trick = static_cast<int>(play_history.size()) - num_tricks_played * ble::kNumPlayers;
-  memset(dl.currentTrickSuit, 0, 3 * sizeof(dl.currentTrickSuit));
-  memset(dl.currentTrickRank, 0, 3 * sizeof(dl.currentTrickSuit));
-  for (int i = 0; i < num_card_played_current_trick; ++i) {
-    ble::BridgeHistoryItem item = play_history[num_tricks_played * ble::kNumPlayers + i];
-    dl.currentTrickSuit[i] = ble::SuitToDDSSuit(item.suit);
-    dl.currentTrickRank[i] = ble::RankToDDSRank(item.rank);
-  }
-
-//  std::cout << "currentTrickSuit: ";
-//  for(int i : dl.currentTrickSuit){
-//    std::cout << i << std::endl;
-//  }
-//
-//  std::cout << "currentTrickRank: ";
-//  for(int i : dl.currentTrickRank){
-//    std::cout << i << std::endl;
-//  }
-
-  const auto &hands = state.Hands();
-  for (ble::Player pl : ble::kAllSeats) {
-    for (const auto card : hands[pl].Cards()) {
-      dl.remainCards[pl][SuitToDDSSuit(card.CardSuit())] += 1
-          << (2 + card.Rank());
-    }
-  }
-
-//  futureTricks fut{};
-//  const int res = SolveBoard(
-//      dl,
-//      /*target=*/-1,
-//      /*solutions=*/1,
-//      /*mode=*/2,
-//      &fut,
-//      /*threadIndex=*/0);
-//  if (res != RETURN_NO_FAULT){
-//    char error_message[80];
-//    ErrorMessage(res, error_message);
-//    std::cerr << "double dummy solver: " << error_message << std::endl;
-//    std::exit(1);
-//  }
-  return dl;
-}
 
 int Rollout(const ble::BridgeState2 &state, ble::BridgeMove move) {
   auto cloned = state.Clone();
@@ -96,14 +33,8 @@ int Rollout(const ble::BridgeState2 &state, ble::BridgeMove move) {
     std::cerr << "double dummy solver: " << error_message << std::endl;
     std::exit(1);
   }
-//  std::cout << fut.nodes << std::endl;
-//  std::cout << fut.cards << std::endl;
-//  std::cout << fut.rank[0] << std::endl;
-//  std::cout << fut.suit[0] << std::endl;
-//  std::cout << fut.score[0] << std::endl;
   int num_tricks_left = 13 - state.NumTricksPlayed();
   return num_tricks_left - fut.score[0];
-//  return fut.score[0];
 }
 
 struct SearchResult {
@@ -117,11 +48,17 @@ std::pair<ble::BridgeMove, int> GetBestAction(const SearchResult &res) {
   return std::make_pair(res.moves[index], res.scores[index]);
 }
 
-class PIMCBot {
+class PIMCBot : public PlayBot{
  public:
   PIMCBot(std::shared_ptr<Resampler> resampler, int num_sample)
       : resampler_(std::move(resampler)), num_sample_(num_sample) {
     SetMaxThreads(0);
+  }
+
+  ble::BridgeMove Act(const ble::BridgeState2 &state) override{
+    const SearchResult res = Search(state);
+    auto [move, score] = GetBestAction(res);
+    return move;
   }
 
   SearchResult Search(const ble::BridgeState2 &state) {

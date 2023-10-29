@@ -285,10 +285,10 @@ std::string BridgeState2::FormatAuction() const {
   REQUIRE(move_history_.size() > ParentGame()->MaxChanceOutcomes());
   std::string rv = "\nWest  North East  South\n      ";
   for (int i = kNumCards; i < move_history_.size() - num_cards_played_; ++i) {
-    if(i % kNumPlayers == kNumPlayers - 1 - dealer_){
+    if (i % kNumPlayers == kNumPlayers - 1 - dealer_) {
       rv.push_back('\n');
     }
-    rv += StrFormat( "%-6s", move_history_[i].move.AuctionToString().c_str());
+    rv += StrFormat("%-6s", move_history_[i].move.AuctionToString().c_str());
   }
   return rv;
 }
@@ -579,6 +579,7 @@ Player BridgeState2::CurrentPlayer() const {
       };
       return current_player_;
     case Phase::kGameOver:return kTerminalPlayerId;
+    default: return kInvalidPlayer;
   }
 }
 bool BridgeState2::IsDummyActing() const {

@@ -100,11 +100,13 @@ int OpponentPartnership(int partnership);
 // Double Dummy Solver encodes the suit and denomination as
 // Spades=0, Heart, Diamonds, Clubs, NoTrump
 // These functions converts the suit and denomination between this library and
-// DDS
+// DDS.
+Suit DDSSuitToSuit(int suit);
 int SuitToDDSSuit(Suit suit);
 Denomination DDSStrainToDenomination(int strain);
 int DenominationToDDSStrain(Denomination denomination);
 int RankToDDSRank(int rank);
+int DDSRankToRank(int dds_rank);
 
 } // namespace bridge
 

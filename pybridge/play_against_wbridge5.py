@@ -1,4 +1,4 @@
-import argparse
+import socket
 from typing import List, Optional, Union
 
 import numpy as np
@@ -15,16 +15,6 @@ from agent import BridgeAgent, DEFAULT_POLICY_CONF, DEFAULT_VALUE_CONF, SimpleAg
 append_sys_path()
 import bridge
 import bridgelearn
-
-bot_cmd = "D:/wbridge5/Wbridge5.exe Autoconnect {port}"
-timeout_secs = 60
-num_deals = 10
-
-
-def controller_factory() -> Controller:
-    client = WBridge5Client(bot_cmd, timeout_secs)
-    client.start()
-    return client
 
 
 def make_obs_tensor_dict(state: bridge.BridgeState2):
@@ -45,7 +35,7 @@ def make_obs_tensor_dict(state: bridge.BridgeState2):
 
 
 def _bid_and_play(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], agent: SimpleAgent,
-                  pimc_bot: bridgelearn.PIMCBot, agent_seats: List[int], device="cuda"):
+                  play_bot: bridgelearn.PlayBot, agent_seats: List[int], device="cuda"):
     while state.current_phase() == bridge.Phase.AUCTION:
         if state.current_player() in agent_seats:
             obs = make_obs_tensor_dict(state)
@@ -61,9 +51,9 @@ def _bid_and_play(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], age
         # play phase
         if state.current_player() in agent_seats:
             # print(state.legal_moves())
-            search_result = pimc_bot.search(state)
+            move = play_bot.act(state)
+            # print(move)
             # print(search_result.moves, search_result.scores)
-            move = search_result.moves[np.argmax(search_result.scores)]
             state.apply_move(move)
         else:
             result = bots[state.current_player()].step(state)
@@ -72,7 +62,7 @@ def _bid_and_play(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], age
 
 
 def _run_once(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], agent: SimpleAgent,
-              pimc_bot: bridgelearn.PIMCBot, deal: Optional[Union[List[int], np.ndarray]] = None):
+              pimc_bot: bridgelearn.PlayBot, deal: Optional[Union[List[int], np.ndarray]] = None):
     for bot in bots:
         bot.restart()
 
@@ -94,6 +84,17 @@ def _run_once(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], agent: 
 
 
 if __name__ == '__main__':
+    bot_cmd = "D:/wbridge5/Wbridge5.exe Autoconnect {port}"
+    timeout_secs = 120
+    num_deals = 500
+
+
+    def controller_factory() -> Controller:
+        client = WBridge5Client(bot_cmd, timeout_secs)
+        client.start()
+        return client
+
+
     params = create_params(seed=23)
     game = create_bridge_game(params)
     bots = [
@@ -124,14 +125,33 @@ if __name__ == '__main__':
     agent.to("cuda")
     resampler = bridgelearn.UniformResampler(23)
     pimc_bot = bridgelearn.PIMCBot(resampler, 200)
+    cheat_bot = bridgelearn.CheatBot()
     results = []
-    for i_deal in range(num_deals):
-        state_0, state_1 = _run_once(bridge.BridgeState2(game), bots, agent, pimc_bot)
-        print("Deal #{}; final state:\n{}\n{}".format(i_deal, state_0, state_1))
-        results.append(bridge.get_imp(state_0.scores()[0], state_1.scores()[0]))
+    same_contract_results = []
+    i_deal = 0
+    while i_deal < num_deals:
+        try:
+            state_0, state_1 = _run_once(bridge.BridgeState2(game),
+                                         bots,
+                                         agent,
+                                         cheat_bot)
+            imp = bridge.get_imp(state_0.scores()[0], state_1.scores()[0])
+            print(f"Deal #{i_deal}; final state:\n{state_0}\n{state_1}\nimp: {imp}")
+
+            results.append(imp)
+            if state_0.get_contract().index() == state_1.get_contract().index():
+                same_contract_results.append(imp)
+            i_deal += 1
+        except Exception:
+            continue
 
     stats = np.array(results)
-    print(stats)
+    print(stats, len(stats))
     mean = np.mean(stats, axis=0)
     stderr = np.std(stats, axis=0, ddof=1) / np.sqrt(num_deals)
-    print(u"Absolute score: {:+.1f}\u00b1{:.1f}".format(mean, stderr))
+    print(u"Imp: {:+.1f}\u00b1{:.1f}".format(mean, stderr))
+    stats = np.array(same_contract_results)
+    print(stats, len(stats))
+    mean = np.mean(stats, axis=0)
+    stderr = np.std(stats, axis=0, ddof=1) / np.sqrt(num_deals)
+    print(u"Same contract imp: {:+.1f}\u00b1{:.1f}".format(mean, stderr))

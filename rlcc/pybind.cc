@@ -7,7 +7,10 @@
 #include "bridge_env.h"
 #include "bridge_dataset.h"
 #include "supervise_data_generator.h"
+#include "playcc/play_bot.h"
 #include "playcc/pimc.h"
+#include "playcc/cheat_bot.h"
+
 namespace py = pybind11;
 using namespace rlcc;
 
@@ -82,7 +85,14 @@ PYBIND11_MODULE(bridgelearn, m
       .def_readonly("moves", &SearchResult::moves)
       .def_readonly("scores", &SearchResult::scores);
 
-  py::class_<PIMCBot, std::shared_ptr<PIMCBot>>(m, "PIMCBot")
+  py::class_<PlayBot>(m, "PlayBot");
+
+  py::class_<CheatBot, PlayBot>(m, "CheatBot")
+      .def(py::init<>())
+      .def("act", &CheatBot::Act);
+
+  py::class_<PIMCBot, PlayBot>(m, "PIMCBot")
       .def(py::init<std::shared_ptr<Resampler>, int>())
+      .def("act", &PIMCBot::Act)
       .def("search", &PIMCBot::Search);
 }
