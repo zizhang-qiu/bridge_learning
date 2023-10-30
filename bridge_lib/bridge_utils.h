@@ -11,6 +11,12 @@ struct PlayerAction {
   Player player;
   Action action;
 };
+enum class Phase {
+  kDeal,
+  kAuction,
+  kPlay,
+  kGameOver
+};
 
 inline constexpr int kChancePlayerId = -1;
 inline constexpr int kInvalidPlayer = -3;

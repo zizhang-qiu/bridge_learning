@@ -21,12 +21,7 @@ namespace bridge_learning_env {
 class BridgeState2 {
  public:
 
-  enum class Phase {
-    kDeal,
-    kAuction,
-    kPlay,
-    kGameOver
-  };
+
 
   explicit BridgeState2(std::shared_ptr<BridgeGame> parent_game);
 

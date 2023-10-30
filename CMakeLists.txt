@@ -164,7 +164,7 @@ target_include_directories(rela_lib PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(rela_lib PUBLIC ${TORCH_LIBRARIES})
 target_link_libraries(rela_lib PUBLIC ${TORCH_PYTHON_LIBRARIES})
 
-find_package(Python COMPONENTS Interpreter Development)
+#find_package(Python COMPONENTS Interpreter Development)
 #pybind11_add_module(rela rela/pybind.cc)
 pybind11_add_module(rela SHARED rela/pybind.cc)
 target_include_directories(rela PUBLIC "pybind11/include")

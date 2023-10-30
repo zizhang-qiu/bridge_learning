@@ -3,7 +3,7 @@
 //
 
 #include "bridge_env.h"
-using Phase = ble::BridgeState2::Phase;
+using Phase = ble::Phase;
 
 namespace rlcc {
 
@@ -35,7 +35,7 @@ bool BridgeEnv::Terminated() const {
 void BridgeEnv::Reset() {
   RELA_CHECK(Terminated())
   state_ = std::make_unique<ble::BridgeState2>(std::make_shared<ble::BridgeGame>(game_));
-  while (state_->CurrentPhase() == ble::BridgeState2::Phase::kDeal) {
+  while (state_->CurrentPhase() == ble::Phase::kDeal) {
     state_->ApplyRandomChance();
   }
 }
