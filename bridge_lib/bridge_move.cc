@@ -4,7 +4,6 @@
 
 #include "bridge_move.h"
 #include "utils.h"
-#include <cassert>
 
 namespace bridge_learning_env {
 

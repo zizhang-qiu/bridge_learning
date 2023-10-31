@@ -10,7 +10,7 @@ namespace bridge_learning_env {
 
 class BridgeMove {
  public:
-  enum Type { kInvalid=-1, kAuction, kPlay, kDeal };
+  enum Type { kInvalid = -1, kAuction, kPlay, kDeal };
   BridgeMove(Type move_type, Suit suit, int rank,
              Denomination denomination, int level, OtherCalls other_call)
       : move_type_(move_type), suit_(suit),
@@ -19,32 +19,31 @@ class BridgeMove {
 
   bool operator==(const BridgeMove &other_move) const;
 
-  Type MoveType() const { return move_type_; }
+  [[nodiscard]] Type MoveType() const { return move_type_; }
 
-  std::string ToString() const;
+  [[nodiscard]] std::string ToString() const;
 
-  bool IsBid() const;
+  [[nodiscard]] bool IsBid() const;
 
-  int BidLevel() const;
+  [[nodiscard]] int BidLevel() const;
 
-  Denomination BidDenomination() const;
+  [[nodiscard]] Denomination BidDenomination() const;
 
-  Suit CardSuit() const{return suit_;}
+  [[nodiscard]] Suit CardSuit() const { return suit_; }
 
-  int CardRank() const{return rank_;}
+  [[nodiscard]] int CardRank() const { return rank_; }
 
-  OtherCalls OtherCall() const{return other_call_;}
+  [[nodiscard]] OtherCalls OtherCall() const { return other_call_; }
 
-  std::string AuctionToString() const;
+  [[nodiscard]] std::string AuctionToString() const;
 
  private:
-  Suit suit_ = kInvalidSuit;
-  int rank_ = -1;
-  Denomination denomination_ = kInvalidDenomination;
-  int level_ = -1;
-  OtherCalls other_call_ = OtherCalls::kNotOtherCall;
-  Type move_type_ = kInvalid;
-
+  Suit suit_;
+  int rank_;
+  Denomination denomination_;
+  int level_;
+  OtherCalls other_call_;
+  Type move_type_;
 
 };
 
