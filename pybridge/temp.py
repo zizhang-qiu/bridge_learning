@@ -31,6 +31,8 @@ params = create_params()
 # env.reset_with_deck_and_double_dummy_results(deal, ddt)
 #
 bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_ddts)
+
+
 # print(bridge_dataset.size())
 # data = bridge_dataset.next()
 # print(data.deal, data.ddt)
@@ -71,21 +73,4 @@ bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_
 # for i in range(100):
 #     batch = generator.next_batch("cuda")
 #     print(batch)
-teams = [1, 2, 3, 4, 5, 6, 7, 8]
-
-
-def allocate_once(items: List[int]):
-    np.random.shuffle(items)
-    result = []
-    for i in range(len(items) // 2):
-        pair = items[2 * i: 2 * i + 2]
-        result.append(sorted(pair))
-    return sorted(result, key=lambda x: x[0])
-
-
-all_res = []
-while True:
-    res = allocate_once(items=teams)
-    if res not in all_res:
-        all_res.append(res)
-    print(len(all_res))
+print( (1+21+48+56+89) * (1+21+48+56+89+21+48+56+89+1) - (21+48+56+89) * (21+48+56+89+1+21+48+56+89+1) )

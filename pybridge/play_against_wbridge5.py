@@ -68,6 +68,7 @@ def _run_once(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], agent: 
 
     state_0 = state.clone()
     state_1 = state.clone()
+    game = state_0.parent_game()
     if deal is not None:
         assert_eq(len(deal), bridge.NUM_CARDS)
     else:
@@ -83,18 +84,7 @@ def _run_once(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], agent: 
     return state_0, state_1
 
 
-if __name__ == '__main__':
-    bot_cmd = "D:/wbridge5/Wbridge5.exe Autoconnect {port}"
-    timeout_secs = 120
-    num_deals = 500
-
-
-    def controller_factory() -> Controller:
-        client = WBridge5Client(bot_cmd, timeout_secs)
-        client.start()
-        return client
-
-
+def play():
     params = create_params(seed=23)
     game = create_bridge_game(params)
     bots = [
@@ -142,7 +132,9 @@ if __name__ == '__main__':
             if state_0.get_contract().index() == state_1.get_contract().index():
                 same_contract_results.append(imp)
             i_deal += 1
-        except socket.timeout or ValueError:
+        except socket.timeout:
+            continue
+        except ValueError:
             continue
 
     stats = np.array(results)
@@ -155,3 +147,18 @@ if __name__ == '__main__':
     mean = np.mean(stats, axis=0)
     stderr = np.std(stats, axis=0, ddof=1) / np.sqrt(num_deals)
     print(u"Same contract imp: {:+.1f}\u00b1{:.1f}".format(mean, stderr))
+
+
+if __name__ == '__main__':
+    bot_cmd = "D:/wbridge5/Wbridge5.exe Autoconnect {port}"
+    timeout_secs = 120
+    num_deals = 500
+
+
+    def controller_factory() -> Controller:
+        client = WBridge5Client(bot_cmd, timeout_secs)
+        client.start()
+        return client
+
+
+    play()

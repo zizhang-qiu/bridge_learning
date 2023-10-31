@@ -5,7 +5,7 @@
 namespace bridge_learning_env {
 BridgeCard BridgeDeck::DealCard(Suit suit,
                                 int rank) {
-  int index = CardToIndex(suit, rank);
+  int index = CardIndex(suit, rank);
   REQUIRE(card_in_deck_[index] == true);
   card_in_deck_[index] = false;
   --total_count_;
@@ -27,7 +27,7 @@ BridgeCard BridgeDeck::DealCard(std::mt19937 &rng) {
   REQUIRE(card_in_deck_[index] == true);
   card_in_deck_[index] = false;
   --total_count_;
-  return {IndexToSuit(index), IndexToRank(index)};
+  return {CardSuit(index), CardRank(index)};
 }
 std::vector<BridgeCard> BridgeDeck::Cards() const {
   std::vector<BridgeCard> cards;
