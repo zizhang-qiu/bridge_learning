@@ -115,7 +115,7 @@ else ()
 endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-add_subdirectory(pybind11)
+add_subdirectory(third_party/pybind11)
 add_library(bridge_lib bridge_lib/bridge_utils.cc bridge_lib/bridge_game.cc bridge_lib/utils.cc bridge_lib/bridge_scoring.cc bridge_lib/bridge_state.cc bridge_lib/trick.cc
         bridge_lib/canonical_encoder.h
         bridge_lib/example_cards_ddts.h
@@ -140,7 +140,7 @@ add_library(bridge_lib bridge_lib/bridge_utils.cc bridge_lib/bridge_game.cc brid
 target_link_libraries(bridge_lib PUBLIC double_dummy_solver)
 
 pybind11_add_module(bridge SHARED bridge_lib/pybind.cc)
-target_include_directories(bridge PUBLIC "pybind11/include")
+target_include_directories(bridge PUBLIC "third_party/pybind11/include")
 target_link_libraries(bridge PUBLIC bridge_lib)
 set_target_properties(bridge PROPERTIES OUTPUT_NAME "bridge")
 
@@ -167,7 +167,7 @@ target_link_libraries(rela_lib PUBLIC ${TORCH_PYTHON_LIBRARIES})
 #find_package(Python COMPONENTS Interpreter Development)
 #pybind11_add_module(rela rela/pybind.cc)
 pybind11_add_module(rela SHARED rela/pybind.cc)
-target_include_directories(rela PUBLIC "pybind11/include")
+target_include_directories(rela PUBLIC "third_party/pybind11/include")
 target_include_directories(rela PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(rela PUBLIC ${TORCH_INCLUDE_DIRS})
 target_include_directories(rela PUBLIC ${PYTHON_INCLUDE_DIRS})
@@ -189,6 +189,8 @@ add_library(_bridgelearn
         playcc/deck_sampler.h
         playcc/play_bot.h
         playcc/cheat_bot.h
+        playcc/vector_utils.h
+        playcc/outcome_vector.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

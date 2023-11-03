@@ -55,18 +55,21 @@ char SuitIndexToChar(Suit suit) {
   // 'I' for Invalid.
   return 'I';
 }
+
 char RankIndexToChar(int rank) {
   if (rank >= 0 && rank < kNumCardsPerSuit) {
     return kRankChar[rank];
   }
   return 'I';
 }
+
 char DenominationIndexToChar(Denomination denomination) {
   if (denomination >= kClubsTrump && denomination <= kNoTrump) {
     return kDenominationChar[denomination];
   }
   return 'I';
 }
+
 char LevelIndexToChar(int level) {
   if (level >= 1 && level <= kNumBidLevels) {
     return kLevelChar[level];
@@ -82,6 +85,7 @@ std::string OtherCallsToString(OtherCalls call) {
     default:return "I";
   }
 }
+
 int RankToDDSRank(int rank) {
   return rank + 2;
 }
