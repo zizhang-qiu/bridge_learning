@@ -6,6 +6,7 @@
 #define BRIDGE_LEARNING_PLAYCC_UTILS_H_
 #include <vector>
 #include <string>
+#include <cstring>
 #include <sstream>
 #include "bridge_lib/bridge_state.h"
 namespace ble = bridge_learning_env;
