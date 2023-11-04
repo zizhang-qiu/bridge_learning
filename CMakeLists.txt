@@ -11,9 +11,10 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
-set(Python3_ROOT_DIR D:/ProgramData/Anaconda/envs/bridge_research)
+
 set(Python3_FIND_VIRTUALENV ONLY)
 if (WIN32)
+
     message("Compiling on Windows")
 #
 #    set(PYTHON_EXECUTABLE "${CONDA_PREFIX}/python.exe")
@@ -32,6 +33,7 @@ else ()
     #    set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES /usr/local/cuda-11.8)
     set(CUDA_NVCC_EXECUTABLE /usr/local/cuda-11.6/bin/nvcc)
     set(CMAKE_CUDA_EXTENSIONS ON)
+    set(Python3_ROOT_DIR /home/work/miniconda3/envs/bridge_research/bin)
     set(PYTHON_EXECUTABLE /home/work/miniconda3/envs/bridge_research/bin/python)
 endif ()
 
