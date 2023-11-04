@@ -16,7 +16,6 @@ class BridgeGame {
   // "dealer": The dealer of the game, first player to make a call in auction phase.
   // "seed": Pseudo-random number generator seed. (default -1)
   explicit BridgeGame(const GameParameters &params);
-  std::shared_ptr<BridgeState> NewInitialState() const;
   int NumDistinctActions() const { return kNumCards + kNumCalls; }
   int MaxChanceOutcomes() const { return kNumCards; }
   // Four player passes.

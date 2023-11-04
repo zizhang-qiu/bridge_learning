@@ -14,8 +14,7 @@
 namespace py = pybind11;
 using namespace rlcc;
 
-PYBIND11_MODULE(bridgelearn, m
-) {
+PYBIND11_MODULE(bridgelearn, m) {
 
   py::class_<BridgeData>(m, "BridgeData")
       .def(py::init<>())

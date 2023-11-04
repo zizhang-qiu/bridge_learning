@@ -9,11 +9,6 @@ inline constexpr bool kIsNonDealerVulnerable = false;
 inline constexpr int kDefaultSeed = -1;
 inline constexpr Player kDefaultDealer = kNorth;
 
-std::shared_ptr<BridgeState> BridgeGame::NewInitialState() const {
-  return std::make_shared<BridgeState>(IsDealerVulnerable(),
-                                       IsNonDealerVulnerable());
-}
-
 BridgeGame::BridgeGame(const GameParameters &params) {
   params_ = params;
   is_dealer_vulnerable_ =

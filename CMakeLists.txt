@@ -8,64 +8,64 @@ enable_testing()
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
 
-add_library(double_dummy_solver OBJECT
-        bridge_lib/third_party/dds/include/dll.h
-        bridge_lib/third_party/dds/include/portab.h
-        bridge_lib/third_party/dds/src/ABsearch.cpp
-        bridge_lib/third_party/dds/src/ABsearch.h
-        bridge_lib/third_party/dds/src/ABstats.cpp
-        bridge_lib/third_party/dds/src/ABstats.h
-        bridge_lib/third_party/dds/src/CalcTables.cpp
-        bridge_lib/third_party/dds/src/CalcTables.h
-        bridge_lib/third_party/dds/src/dds.cpp
-        bridge_lib/third_party/dds/src/dds.h
-        bridge_lib/third_party/dds/src/DealerPar.cpp
-        bridge_lib/third_party/dds/src/debug.h
-        bridge_lib/third_party/dds/src/dump.cpp
-        bridge_lib/third_party/dds/src/dump.h
-        bridge_lib/third_party/dds/src/File.cpp
-        bridge_lib/third_party/dds/src/File.h
-        bridge_lib/third_party/dds/src/Init.cpp
-        bridge_lib/third_party/dds/src/Init.h
-        bridge_lib/third_party/dds/src/LaterTricks.cpp
-        bridge_lib/third_party/dds/src/LaterTricks.h
-        bridge_lib/third_party/dds/src/Memory.cpp
-        bridge_lib/third_party/dds/src/Memory.h
-        bridge_lib/third_party/dds/src/Moves.cpp
-        bridge_lib/third_party/dds/src/Moves.h
-        bridge_lib/third_party/dds/src/Par.cpp
-        bridge_lib/third_party/dds/src/parallel.h
-        bridge_lib/third_party/dds/src/PBN.cpp
-        bridge_lib/third_party/dds/src/PBN.h
-        bridge_lib/third_party/dds/src/PlayAnalyser.cpp
-        bridge_lib/third_party/dds/src/PlayAnalyser.h
-        bridge_lib/third_party/dds/src/QuickTricks.cpp
-        bridge_lib/third_party/dds/src/QuickTricks.h
-        bridge_lib/third_party/dds/src/Scheduler.cpp
-        bridge_lib/third_party/dds/src/Scheduler.h
-        bridge_lib/third_party/dds/src/SolveBoard.cpp
-        bridge_lib/third_party/dds/src/SolveBoard.h
-        bridge_lib/third_party/dds/src/SolverIF.cpp
-        bridge_lib/third_party/dds/src/SolverIF.h
-        bridge_lib/third_party/dds/src/System.cpp
-        bridge_lib/third_party/dds/src/System.h
-        bridge_lib/third_party/dds/src/ThreadMgr.cpp
-        bridge_lib/third_party/dds/src/ThreadMgr.h
-        bridge_lib/third_party/dds/src/Timer.cpp
-        bridge_lib/third_party/dds/src/Timer.h
-        bridge_lib/third_party/dds/src/TimerGroup.cpp
-        bridge_lib/third_party/dds/src/TimerGroup.h
-        bridge_lib/third_party/dds/src/TimerList.cpp
-        bridge_lib/third_party/dds/src/TimerList.h
-        bridge_lib/third_party/dds/src/TimeStat.cpp
-        bridge_lib/third_party/dds/src/TimeStat.h
-        bridge_lib/third_party/dds/src/TimeStatList.cpp
-        bridge_lib/third_party/dds/src/TimeStatList.h
-        bridge_lib/third_party/dds/src/TransTable.h
-        bridge_lib/third_party/dds/src/TransTableL.cpp
-        bridge_lib/third_party/dds/src/TransTableL.h
-        bridge_lib/third_party/dds/src/TransTableS.cpp
-        bridge_lib/third_party/dds/src/TransTableS.h)
+#add_library(double_dummy_solver OBJECT
+#        bridge_lib/third_party/dds/include/dll.h
+#        bridge_lib/third_party/dds/include/portab.h
+#        bridge_lib/third_party/dds/src/ABsearch.cpp
+#        bridge_lib/third_party/dds/src/ABsearch.h
+#        bridge_lib/third_party/dds/src/ABstats.cpp
+#        bridge_lib/third_party/dds/src/ABstats.h
+#        bridge_lib/third_party/dds/src/CalcTables.cpp
+#        bridge_lib/third_party/dds/src/CalcTables.h
+#        bridge_lib/third_party/dds/src/dds.cpp
+#        bridge_lib/third_party/dds/src/dds.h
+#        bridge_lib/third_party/dds/src/DealerPar.cpp
+#        bridge_lib/third_party/dds/src/debug.h
+#        bridge_lib/third_party/dds/src/dump.cpp
+#        bridge_lib/third_party/dds/src/dump.h
+#        bridge_lib/third_party/dds/src/File.cpp
+#        bridge_lib/third_party/dds/src/File.h
+#        bridge_lib/third_party/dds/src/Init.cpp
+#        bridge_lib/third_party/dds/src/Init.h
+#        bridge_lib/third_party/dds/src/LaterTricks.cpp
+#        bridge_lib/third_party/dds/src/LaterTricks.h
+#        bridge_lib/third_party/dds/src/Memory.cpp
+#        bridge_lib/third_party/dds/src/Memory.h
+#        bridge_lib/third_party/dds/src/Moves.cpp
+#        bridge_lib/third_party/dds/src/Moves.h
+#        bridge_lib/third_party/dds/src/Par.cpp
+#        bridge_lib/third_party/dds/src/parallel.h
+#        bridge_lib/third_party/dds/src/PBN.cpp
+#        bridge_lib/third_party/dds/src/PBN.h
+#        bridge_lib/third_party/dds/src/PlayAnalyser.cpp
+#        bridge_lib/third_party/dds/src/PlayAnalyser.h
+#        bridge_lib/third_party/dds/src/QuickTricks.cpp
+#        bridge_lib/third_party/dds/src/QuickTricks.h
+#        bridge_lib/third_party/dds/src/Scheduler.cpp
+#        bridge_lib/third_party/dds/src/Scheduler.h
+#        bridge_lib/third_party/dds/src/SolveBoard.cpp
+#        bridge_lib/third_party/dds/src/SolveBoard.h
+#        bridge_lib/third_party/dds/src/SolverIF.cpp
+#        bridge_lib/third_party/dds/src/SolverIF.h
+#        bridge_lib/third_party/dds/src/System.cpp
+#        bridge_lib/third_party/dds/src/System.h
+#        bridge_lib/third_party/dds/src/ThreadMgr.cpp
+#        bridge_lib/third_party/dds/src/ThreadMgr.h
+#        bridge_lib/third_party/dds/src/Timer.cpp
+#        bridge_lib/third_party/dds/src/Timer.h
+#        bridge_lib/third_party/dds/src/TimerGroup.cpp
+#        bridge_lib/third_party/dds/src/TimerGroup.h
+#        bridge_lib/third_party/dds/src/TimerList.cpp
+#        bridge_lib/third_party/dds/src/TimerList.h
+#        bridge_lib/third_party/dds/src/TimeStat.cpp
+#        bridge_lib/third_party/dds/src/TimeStat.h
+#        bridge_lib/third_party/dds/src/TimeStatList.cpp
+#        bridge_lib/third_party/dds/src/TimeStatList.h
+#        bridge_lib/third_party/dds/src/TransTable.h
+#        bridge_lib/third_party/dds/src/TransTableL.cpp
+#        bridge_lib/third_party/dds/src/TransTableL.h
+#        bridge_lib/third_party/dds/src/TransTableS.cpp
+#        bridge_lib/third_party/dds/src/TransTableS.h)
 
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
@@ -116,31 +116,35 @@ endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 add_subdirectory(third_party/pybind11)
-add_library(bridge_lib bridge_lib/bridge_utils.cc bridge_lib/bridge_game.cc bridge_lib/utils.cc bridge_lib/bridge_scoring.cc bridge_lib/bridge_state.cc bridge_lib/trick.cc
-        bridge_lib/canonical_encoder.h
-        bridge_lib/example_cards_ddts.h
-        bridge_lib/canonical_encoder.cc
-        bridge_lib/bridge_observation.cc
-        bridge_lib/bridge_observation.h
-        bridge_lib/bridge_card.cc
-        bridge_lib/bridge_card.h
-        bridge_lib/bridge_hand.cc
-        bridge_lib/bridge_hand.h
-        bridge_lib/bridge_move.cc
-        bridge_lib/bridge_move.h
-        bridge_lib/bridge_state_2.cc
-        bridge_lib/bridge_state_2.h
-        bridge_lib/bridge_history_item.cc
-        bridge_lib/bridge_history_item.h
-        bridge_lib/auction_tracker.cc
-        bridge_lib/auction_tracker.h
-        bridge_lib/observation_encoder.h
-        bridge_lib/bridge_deck.cc
-)
-target_link_libraries(bridge_lib PUBLIC double_dummy_solver)
 
-pybind11_add_module(bridge SHARED bridge_lib/pybind.cc)
+add_subdirectory(bridge_lib)
+
+#add_library(bridge_lib bridge_lib/bridge_utils.cc bridge_lib/bridge_game.cc bridge_lib/utils.cc bridge_lib/bridge_scoring.cc bridge_lib/bridge_state.cc bridge_lib/trick.cc
+#        bridge_lib/canonical_encoder.h
+#        bridge_lib/example_cards_ddts.h
+#        bridge_lib/canonical_encoder.cc
+#        bridge_lib/bridge_observation.cc
+#        bridge_lib/bridge_observation.h
+#        bridge_lib/bridge_card.cc
+#        bridge_lib/bridge_card.h
+#        bridge_lib/bridge_hand.cc
+#        bridge_lib/bridge_hand.h
+#        bridge_lib/bridge_move.cc
+#        bridge_lib/bridge_move.h
+#        bridge_lib/bridge_state_2.cc
+#        bridge_lib/bridge_state_2.h
+#        bridge_lib/bridge_history_item.cc
+#        bridge_lib/bridge_history_item.h
+#        bridge_lib/auction_tracker.cc
+#        bridge_lib/auction_tracker.h
+#        bridge_lib/observation_encoder.h
+#        bridge_lib/bridge_deck.cc
+#)
+#target_link_libraries(bridge_lib PUBLIC double_dummy_solver)
+
+pybind11_add_module(bridge SHARED pybridge/pybind.cc)
 target_include_directories(bridge PUBLIC "third_party/pybind11/include")
+target_include_directories(bridge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(bridge PUBLIC bridge_lib)
 set_target_properties(bridge PROPERTIES OUTPUT_NAME "bridge")
 
