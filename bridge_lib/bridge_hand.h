@@ -5,6 +5,7 @@
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HAND_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HAND_H_
 #include <vector>
+#include <array>
 #include "bridge_card.h"
 namespace bridge_learning_env {
 
