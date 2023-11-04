@@ -1,130 +1,142 @@
-#ifndef BRIDGE_STATE
-#define BRIDGE_STATE
-#include <array>
-#include <memory>
-#include <optional>
-#include <vector>
-#include <mutex>
+//
+// Created by qzz on 2023/9/23.
+//
 
-// #include "bridge_game.h"
-#include "bridge_scoring.h"
+#ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
+#define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
+#include <random>
+#include <set>
+#include "bridge_game.h"
 #include "bridge_utils.h"
+#include "bridge_card.h"
+#include "bridge_hand.h"
+#include "bridge_history_item.h"
+#include "auction_tracker.h"
 #include "trick.h"
 
-#include "third_party/dds/include/dll.h"
-
+#include "third_party/dds/src/Memory.h"
+#include "third_party/dds/src/SolverIF.h"
+#include "third_party/dds/src/TransTableL.h"
+#include "bridge_deck.h"
 namespace bridge_learning_env {
 class BridgeState {
  public:
 
-  enum class Phase {
-    kDeal,
-    kAuction,
-    kPlay,
-    kGameOver
-  };
+  explicit BridgeState(std::shared_ptr<BridgeGame> parent_game);
 
-  BridgeState(bool is_dealer_vulnerable, bool is_non_dealer_vulnerable);
+  bridge_learning_env::Contract GetContract() const { return contract_; }
 
-  std::vector<std::pair<Action, double>> ChanceOutcomes() const;
+  const BridgeDeck &Deck() const { return deck_; }
 
-  bool IsDealPhase() const { return phase_ == Phase::kDeal; }
+  const std::vector<BridgeHand> &Hands() const { return hands_; }
 
-  bool IsAuctionPhase() const { return phase_ == Phase::kAuction; }
+  const std::vector<BridgeHistoryItem> &History() const { return move_history_; }
 
-  bool IsPlayPhase() const { return phase_ == Phase::kPlay; }
+  std::vector<int> UidHistory() const;
 
-  bool IsTerminal() const { return phase_ == Phase::kGameOver; }
-
-  int CurrentPhase() const { return static_cast<int>(phase_); }
-
-  Contract CurrentContract() const { return contract_; }
-
-  int ContractIndex() const;
+  const std::vector<BridgeCard> &PlayedCard() const { return played_cards_; }
 
   Player CurrentPlayer() const;
 
-  std::string ActionToString(Player player, Action action) const;
+  bool IsDummyActing() const;
 
-  void ApplyAction(Action action);
+  bool IsDummyCardShown() const {
+    // After the opening lead is faced, dummy spreads his hand in front of him on the table, face up.
+    return num_cards_played_ >= 1;
+  }
 
-  std::vector<Action> LegalActions() const;
+  Player GetDummy() const;
+
+  void ApplyMove(BridgeMove move);
+
+  bool MoveIsLegal(BridgeMove move) const;
+
+  bool IsTerminal() const { return phase_ == Phase::kGameOver; }
+
+  std::shared_ptr<BridgeGame> ParentGame() const { return parent_game_; }
 
   std::string ToString() const;
 
-  std::vector<Action> History() const;
+  double ChanceOutcomeProb(BridgeMove move) const;
 
-  std::vector<PlayerAction> FullHistory() const { return history_; }
+  // Get the valid chance moves, and associated probabilities.
+  // Guaranteed that moves.size() == probabilities.size().
+  std::pair<std::vector<BridgeMove>, std::vector<double>> ChanceOutcomes() const;
 
-  std::array<std::optional<Player>, kNumCards> Holder() const { return holder_; }
+  void ApplyRandomChance();
+
+  Phase CurrentPhase() const { return phase_; }
+
+  std::vector<BridgeMove> LegalMoves(Player player) const;
+
+  std::vector<BridgeMove> LegalMoves() const;
 
   std::vector<int> ScoreForContracts(Player player,
                                      const std::vector<int> &contracts) const;
 
   std::array<std::array<int, kNumPlayers>, kNumDenominations> DoubleDummyResults(bool dds_order = false) const;
 
-  void SetDoubleDummyResults(const std::vector<int>& double_dummy_tricks);
+  void SetDoubleDummyResults(const std::vector<int> &double_dummy_tricks);
 
- private:
-  // Format a player's hand
-  std::array<std::string, kNumSuits> FormatHand(
-      Player player, bool mark_voids,
-      const std::array<std::optional<Player>, kNumCards> &deal) const;
+  void SetDoubleDummyResults(const std::array<int, kNumPlayers * kNumDenominations> &double_dummy_tricks);
 
-  // Get original deal if any cards are played
-  std::array<std::optional<Player>, kNumCards> OriginalDeal() const;
-  std::string FormatDeal() const;
-  std::string FormatVulnerability() const;
-  std::string FormatAuction(bool trailing_query) const;
-  std::string FormatPlay() const;
-  std::string FormatResult() const;
+  bool IsPlayerVulnerable(Player player) const;
+
+  std::unique_ptr<BridgeState> Clone() const {
+    return std::make_unique<BridgeState>(*this);
+  }
+
+  int NumTricksPlayed() const { return num_cards_played_ / kNumPlayers; }
 
   Trick &CurrentTrick() { return tricks_[num_cards_played_ / kNumPlayers]; }
   const Trick &CurrentTrick() const {
     return tricks_[num_cards_played_ / kNumPlayers];
   }
 
-  std::vector<Action> DealLegalActions() const;
-  std::vector<Action> BiddingLegalActions() const;
-  std::vector<Action> PlayLegalActions() const;
+  int NumCardsPlayed() const { return num_cards_played_; }
 
-  void DoApplyAction(Action action);
-  void ApplyDealAction(Action card);
-  void ApplyBiddingAction(Action call);
-  void ApplyPlayAction(Action card);
+  std::vector<BridgeHand> OriginalDeal() const;
 
+  bool IsChanceNode() const { return CurrentPlayer() == kChancePlayerId; }
+
+  std::vector<int> Scores() const { return scores_; }
+
+ private:
+  BridgeDeck deck_;
+  Phase phase_;
+  std::array<Trick, kNumTricks> tricks_;
+  Player dealer_;
+  Player current_player_ = kChancePlayerId;
+  std::shared_ptr<BridgeGame> parent_game_ = nullptr;
+  std::vector<BridgeHand> hands_;
+  std::vector<BridgeHistoryItem> move_history_;
+  std::vector<BridgeCard> played_cards_;
+  AuctionTracker auction_tracker_;
+  Contract contract_;
+  Player last_round_winner_;
+  int num_cards_played_;
+  int num_declarer_tricks_;
+  std::vector<int> scores_;
+  bool is_dealer_vulnerable_;
+  bool is_non_dealer_vulnerable_;
+  mutable std::optional<ddTableResults> double_dummy_results_{};
+
+  void AdvanceToNextPlayer();
+  bool DealIsLegal(BridgeMove move) const;
+  bool AuctionIsLegal(BridgeMove move) const;
+  bool PlayIsLegal(BridgeMove move) const;
+
+  std::string FormatVulnerability() const;
+  std::string FormatDeal() const;
+  std::string FormatAuction() const;
+  std::string FormatPlay() const;
+  std::string FormatResult() const;
+
+  Player PlayerToDeal() const;
   void ScoreUp();
-
   void ComputeDoubleDummyTricks() const;
 
-  Phase phase_;
-  Player cur_player_;
-  std::vector<PlayerAction> history_;
-  bool is_vulnerable_[kNumPartnerships];
-
-  // Tracks number of consecutive passes.
-  int num_passes_;
-  int num_declarer_tricks_;
-  int num_cards_played_;
-  Contract contract_;
-
-  // Tracks for each denomination and partnership, who bid first, in order to
-  // determine the declarer.
-  std::array<std::array<std::optional<Player>, kNumDenominations>,
-             kNumPartnerships>
-      first_bidder_;
-
-  // Tracks holder for each card.
-  std::array<std::optional<Player>, kNumCards> holder_;
-
-  std::array<bool, kNumContracts> possible_contracts_{};
-
-  std::array<Trick, kNumTricks> tricks_;
-
-  std::vector<double> returns_;
-
-  mutable std::optional<ddTableResults> double_dummy_results_{};
 };
-}  // namespace bridge
+}
 
-#endif /* BRIDGE_STATE */
+#endif //BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_

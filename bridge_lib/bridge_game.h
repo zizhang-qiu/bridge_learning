@@ -2,7 +2,6 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_GAME_H_
 #include "bridge_card.h"
 #include "bridge_move.h"
-#include "bridge_state.h"
 #include "bridge_utils.h"
 #include "utils.h"
 
@@ -26,7 +25,7 @@ class BridgeGame {
         + 9 * kNumBids // In auction, each bid can lead a sequence like 1C-pass-pass-double-pass-pass-redouble-pass-pass
         + kNumCards; // 52 card for play
   }
-  int MaxMoves() const;
+  int MaxMoves() const {return MaxAuctionMoves() + MaxPlayMoves();}
   int MaxUtility() const { return kMaxUtility; }
   int MinUtility() const { return kMinUtility; }
   bridge_learning_env::GameParameters Parameters() const;

@@ -6,7 +6,7 @@
 #define BRIDGE_LEARNING_PLAYCC_PIMC_H_
 #include <utility>
 
-#include "bridge_lib/bridge_state_2.h"
+#include "bridge_lib/bridge_state.h"
 #include "resampler.h"
 #include "play_bot.h"
 //#include "rela/logging.h"
@@ -14,7 +14,7 @@
 namespace ble = bridge_learning_env;
 
 
-int Rollout(const ble::BridgeState2 &state, ble::BridgeMove move) {
+int Rollout(const ble::BridgeState &state, ble::BridgeMove move) {
   auto cloned = state.Clone();
   cloned->ApplyMove(move);
   auto dl = StateToDeal(*cloned);
@@ -55,13 +55,13 @@ class PIMCBot : public PlayBot{
     SetMaxThreads(0);
   }
 
-  ble::BridgeMove Act(const ble::BridgeState2 &state) override{
+  ble::BridgeMove Act(const ble::BridgeState &state) override{
     const SearchResult res = Search(state);
     auto [move, score] = GetBestAction(res);
     return move;
   }
 
-  SearchResult Search(const ble::BridgeState2 &state) {
+  SearchResult Search(const ble::BridgeState &state) {
 
     auto legal_moves = state.LegalMoves();
     int num_legal_moves = static_cast<int>(legal_moves.size());

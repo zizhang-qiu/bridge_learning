@@ -6,14 +6,14 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_OBSERVATION_H_
 #include "bridge_game.h"
 #include "bridge_hand.h"
-#include "bridge_state_2.h"
+#include "bridge_state.h"
 namespace bridge_learning_env {
 int PlayerToOffset(Player pid, Player observer_pid);
 
 class BridgeObservation {
 
 public:
-  BridgeObservation(const BridgeState2 &state, Player observing_player);
+  BridgeObservation(const BridgeState &state, Player observing_player);
   // offset of current player from observing player.
   int CurPlayerOffset() const { return cur_player_offset_; }
 

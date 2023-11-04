@@ -34,7 +34,7 @@ bool BridgeEnv::Terminated() const {
 
 void BridgeEnv::Reset() {
   RELA_CHECK(Terminated())
-  state_ = std::make_unique<ble::BridgeState2>(std::make_shared<ble::BridgeGame>(game_));
+  state_ = std::make_unique<ble::BridgeState>(std::make_shared<ble::BridgeGame>(game_));
   while (state_->CurrentPhase() == ble::Phase::kDeal) {
     state_->ApplyRandomChance();
   }
@@ -57,7 +57,7 @@ std::vector<int> BridgeEnv::Returns() const {
 
 void BridgeEnv::ResetWithDeck(const std::vector<int> &cards) {
   RELA_CHECK_EQ(cards.size(), ble::kNumCards);
-  state_ = std::make_unique<ble::BridgeState2>(std::make_shared<bridge_learning_env::BridgeGame>(game_));
+  state_ = std::make_unique<ble::BridgeState>(std::make_shared<bridge_learning_env::BridgeGame>(game_));
   for (const int card : cards) {
     const ble::BridgeMove move = game_.GetChanceOutcome(card);
     state_->ApplyMove(move);
@@ -100,7 +100,7 @@ rela::TensorDict BridgeEnv::Feature() const {
 }
 void BridgeEnv::ResetWithDeckAndDoubleDummyResults(const vector<int> &cards, const vector<int> &double_dummy_results) {
   RELA_CHECK_EQ(cards.size(), ble::kNumCards);
-  state_ = std::make_unique<ble::BridgeState2>(std::make_shared<bridge_learning_env::BridgeGame>(game_));
+  state_ = std::make_unique<ble::BridgeState>(std::make_shared<bridge_learning_env::BridgeGame>(game_));
   for (const int card : cards) {
     const ble::BridgeMove move = game_.GetChanceOutcome(card);
     state_->ApplyMove(move);
@@ -111,7 +111,7 @@ void BridgeEnv::ResetWithDeckAndDoubleDummyResults(const vector<int> &cards, con
 void BridgeEnv::ResetWithBridgeData() {
   RELA_CHECK_NOTNULL(bridge_dataset_);
   const BridgeData bridge_data = bridge_dataset_->Next();
-  state_ = std::make_unique<ble::BridgeState2>(std::make_shared<bridge_learning_env::BridgeGame>(game_));
+  state_ = std::make_unique<ble::BridgeState>(std::make_shared<bridge_learning_env::BridgeGame>(game_));
   for (const int card : bridge_data.deal) {
     const ble::BridgeMove move = game_.GetChanceOutcome(card);
     state_->ApplyMove(move);

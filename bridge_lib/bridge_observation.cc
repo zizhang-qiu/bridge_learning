@@ -23,7 +23,7 @@ void ChangeHistoryItemToObserverRelative(Player observer_player,
   }
 }
 
-BridgeObservation::BridgeObservation(const BridgeState2 &state,
+BridgeObservation::BridgeObservation(const BridgeState &state,
                                      Player observing_player)
     : observing_player_(observing_player),
       cur_player_offset_(

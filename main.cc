@@ -14,7 +14,7 @@ namespace ble = bridge_learning_env;
 int main() {
 //  const ble::GameParameters params = {};
 //  const auto game = std::make_shared<ble::BridgeGame>(params);
-//  auto state = ble::BridgeState2(game);
+//  auto state = ble::BridgeState(game);
 //
 //  // Deal
 //  const auto &deal = ble::example_deals[0];

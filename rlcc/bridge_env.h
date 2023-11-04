@@ -8,7 +8,7 @@
 
 #include "rela/logging.h"
 #include "rela/tensor_dict.h"
-#include "bridge_lib/bridge_state_2.h"
+#include "bridge_lib/bridge_state.h"
 #include "bridge_lib/bridge_game.h"
 #include "bridge_lib/canonical_encoder.h"
 #include "bridge_dataset.h"
@@ -47,7 +47,7 @@ class BridgeEnv {
 
   ble::Player CurrentPlayer() const;
 
-  ble::BridgeState2 BleState() const {
+  ble::BridgeState BleState() const {
     RELA_CHECK_NOTNULL(state_);
     return *state_;
   }
@@ -76,7 +76,7 @@ class BridgeEnv {
   rela::TensorDict TerminalFeature() const;
   const ble::GameParameters params_;
   const ble::BridgeGame game_;
-  std::unique_ptr<ble::BridgeState2> state_;
+  std::unique_ptr<ble::BridgeState> state_;
   const bool verbose_;
   const ble::CanonicalEncoder encoder_;
 

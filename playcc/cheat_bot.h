@@ -4,7 +4,7 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_CHEAT_BOT_H_
 #define BRIDGE_LEARNING_PLAYCC_CHEAT_BOT_H_
-#include "../bridge_lib/bridge_state_2.h"
+#include "../bridge_lib/bridge_state.h"
 #include "play_bot.h"
 #include "utils.h"
 
@@ -16,7 +16,7 @@ class CheatBot : public PlayBot {
     SetMaxThreads(0);
   }
 
-  ble::BridgeMove Act(const ble::BridgeState2 &state) override {
+  ble::BridgeMove Act(const ble::BridgeState &state) override {
     auto legal_moves = state.LegalMoves();
     int num_legal_moves = static_cast<int>(legal_moves.size());
     if (num_legal_moves == 1) {

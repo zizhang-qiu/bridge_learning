@@ -6,7 +6,7 @@
 #define BRIDGE_LEARNING_PLAYCC_RESAMPLER_H_
 #include <algorithm>
 #include <array>
-#include "bridge_lib/bridge_state_2.h"
+#include "bridge_lib/bridge_state.h"
 #include "bridge_lib/utils.h"
 #include "rela/utils.h"
 #include "utils.h"
@@ -17,7 +17,7 @@ class Resampler {
  public:
   Resampler() = default;
   virtual ~Resampler() = default;
-  virtual std::array<int, ble::kNumCards> Resample(const ble::BridgeState2 &state) = 0;
+  virtual std::array<int, ble::kNumCards> Resample(const ble::BridgeState &state) = 0;
 };
 
 const std::vector<int> all_cards = ble::Arange(0, ble::kNumCards);
@@ -28,7 +28,7 @@ const std::vector<int> all_cards = ble::Arange(0, ble::kNumCards);
 using ResampleConstraints = std::array<std::array<int, ble::kNumSuits>, ble::kNumPlayers>;
 
 std::tuple<ResampleConstraints,
-           std::vector<ble::BridgeHand>> GetKnownCardsAndConstraintsFromState(const ble::BridgeState2 &state) {
+           std::vector<ble::BridgeHand>> GetKnownCardsAndConstraintsFromState(const ble::BridgeState &state) {
   ResampleConstraints constraints{};
   std::fill(constraints.begin(), constraints.end(), std::array<int, ble::kNumSuits>{-1, -1, -1, -1});
   const std::vector<ble::BridgeHand> hands = state.OriginalDeal();
@@ -88,7 +88,7 @@ class UniformResampler : public Resampler {
  public:
   explicit UniformResampler(int seed) : rng_(seed), deck_sampler_() {}
 
-  std::array<int, ble::kNumCards> Resample(const ble::BridgeState2 &state) override {
+  std::array<int, ble::kNumCards> Resample(const ble::BridgeState &state) override {
     deck_sampler_.Reset();
 
     const ble::Player current_player = state.CurrentPlayer();

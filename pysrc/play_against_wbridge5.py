@@ -17,7 +17,7 @@ import bridge
 import bridgelearn
 
 
-def make_obs_tensor_dict(state: bridge.BridgeState2):
+def make_obs_tensor_dict(state: bridge.BridgeState):
     parent_game = state.parent_game()
     observation = bridge.BridgeObservation(state, state.current_player())
     encoder = bridge.CanonicalEncoder(state.parent_game())
@@ -34,7 +34,7 @@ def make_obs_tensor_dict(state: bridge.BridgeState2):
     return obs
 
 
-def _bid_and_play(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], agent: SimpleAgent,
+def _bid_and_play(state: bridge.BridgeState, bots: List[BlueChipBridgeBot], agent: SimpleAgent,
                   play_bot: bridgelearn.PlayBot, agent_seats: List[int], device="cuda"):
     while state.current_phase() == bridge.Phase.AUCTION:
         if state.current_player() in agent_seats:
@@ -61,7 +61,7 @@ def _bid_and_play(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], age
     return state
 
 
-def _run_once(state: bridge.BridgeState2, bots: List[BlueChipBridgeBot], agent: SimpleAgent,
+def _run_once(state: bridge.BridgeState, bots: List[BlueChipBridgeBot], agent: SimpleAgent,
               pimc_bot: bridgelearn.PlayBot, deal: Optional[Union[List[int], np.ndarray]] = None):
     for bot in bots:
         bot.restart()
@@ -121,7 +121,7 @@ def play():
     i_deal = 0
     while i_deal < num_deals:
         try:
-            state_0, state_1 = _run_once(bridge.BridgeState2(game),
+            state_0, state_1 = _run_once(bridge.BridgeState(game),
                                          bots,
                                          agent,
                                          cheat_bot)

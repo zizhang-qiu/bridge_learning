@@ -84,8 +84,8 @@ add_library(bridge_lib
         bridge_history_item.h
         trick.cc
         trick.h
-        bridge_state_2.cc
-        bridge_state_2.h
+        bridge_state.cc
+        bridge_state.h
         bridge_observation.cc
         bridge_observation.h
         observation_encoder.h

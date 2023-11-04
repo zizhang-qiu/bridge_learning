@@ -23,7 +23,7 @@ class BlueChipBridgeBot:
         self.is_play_phase = False
         self.cards_played = 0
         self._num_actions = bridge.NUM_CARDS
-        self._state = bridge.BridgeState2(self._game)
+        self._state = bridge.BridgeState(self._game)
         self._board = 0
 
     def restart(self):
@@ -38,9 +38,9 @@ class BlueChipBridgeBot:
         if not self._state.is_terminal():
             self._controller.terminate()
             self._controller = None
-        self._state = bridge.BridgeState2(self._game)
+        self._state = bridge.BridgeState(self._game)
 
-    def inform_state(self, state: bridge.BridgeState2):
+    def inform_state(self, state: bridge.BridgeState):
         # Connect if we need to.
         if self._controller is None:
             self._controller = self._controller_factory()

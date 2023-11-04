@@ -32,7 +32,7 @@ class SuperviseDataGenerator {
       index_ = (index_ + 1) % static_cast<int>(trajectories_.size());
       auto dis = std::uniform_int_distribution<int>(ble::kNumCards, static_cast<int>(current_trajectory.size() - 1));
       auto random_index = dis(rng_);
-      auto state = std::make_unique<ble::BridgeState2>(game_);
+      auto state = std::make_unique<ble::BridgeState>(game_);
       for (int j = 0; j < ble::kNumCards; ++j) {
         auto move = game_->GetChanceOutcome(current_trajectory[j]);
         state->ApplyMove(move);
@@ -57,7 +57,7 @@ class SuperviseDataGenerator {
     torch::Device d{device};
     for(auto current_trajectory : trajectories_){
       assert(current_trajectory.size()>= ble::kNumCards + ble::kNumPlayers);
-      auto state = std::make_unique<ble::BridgeState2>(game_);
+      auto state = std::make_unique<ble::BridgeState>(game_);
       for (int j = 0; j < ble::kNumCards; ++j) {
         auto move = game_->GetChanceOutcome(current_trajectory[j]);
         state->ApplyMove(move);

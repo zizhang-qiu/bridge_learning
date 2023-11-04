@@ -11,10 +11,8 @@ inline constexpr Player kDefaultDealer = kNorth;
 
 BridgeGame::BridgeGame(const GameParameters &params) {
   params_ = params;
-  is_dealer_vulnerable_ =
-      ParameterValue(params_, "is_dealer_vulnerable", kIsDealerVulnerable);
-  is_non_dealer_vulnerable_ = ParameterValue(
-      params_, "is_non_dealer_vulnerable", kIsNonDealerVulnerable);
+  is_dealer_vulnerable_ = ParameterValue(params_, "is_dealer_vulnerable", kIsDealerVulnerable);
+  is_non_dealer_vulnerable_ = ParameterValue(params_, "is_non_dealer_vulnerable", kIsNonDealerVulnerable);
   dealer_ = ParameterValue(params_, "dealer", kDefaultDealer);
   seed_ = ParameterValue(params_, "seed", kDefaultSeed);
   while (seed_ == -1) {
@@ -30,8 +28,6 @@ BridgeGame::BridgeGame(const GameParameters &params) {
     chance_outcomes_.push_back(ConstructChanceMove(uid));
   }
 }
-
-int BridgeGame::MaxMoves() const { return MaxAuctionMoves() + MaxPlayMoves(); }
 
 int BridgeGame::GetMoveUid(BridgeMove move) const {
   return GetMoveUid(move.MoveType(), move.CardSuit(), move.CardRank(),
@@ -121,11 +117,14 @@ BridgeMove BridgeGame::PickRandomChance(
   return chance_outcomes.first[index];
 }
 bool BridgeGame::IsPlayerVulnerable(Player player) const {
+  REQUIRE(player >= 0);
+  REQUIRE(player < kNumPlayers);
   return Partnership(player) == Partnership(dealer_)
          ? is_dealer_vulnerable_
          : is_non_dealer_vulnerable_;
 }
 bool BridgeGame::IsPartnershipVulnerable(int partnership) const {
+  REQUIRE(partnership == 0 || partnership == 1);
   return partnership == Partnership(dealer_) ? is_dealer_vulnerable_
                                              : is_non_dealer_vulnerable_;
 }
