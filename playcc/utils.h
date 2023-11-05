@@ -11,24 +11,6 @@
 #include "bridge_lib/bridge_state.h"
 namespace ble = bridge_learning_env;
 
-template<typename T>
-std::string VectorToString(const std::vector<T> &vec) {
-  std::ostringstream oss;
-
-  // Use an iterator to traverse the vector and append elements to the string stream
-  for (auto it = vec.begin(); it != vec.end(); ++it) {
-    oss << *it;
-
-    // Add a comma and space if it's not the last element
-    if (std::next(it) != vec.end()) {
-      oss << ", ";
-    }
-  }
-
-  return oss.str();
-
-}
-
 std::vector<ble::BridgeHistoryItem> GetPlayHistory(const std::vector<ble::BridgeHistoryItem> &history) {
 
   std::vector<ble::BridgeHistoryItem> play_history;

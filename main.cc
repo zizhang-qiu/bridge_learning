@@ -9,7 +9,8 @@
 #include "playcc/resampler.h"
 #include "playcc/pimc.h"
 #include "rela/utils.h"
-#include "playcc/outcome_vector.h"
+//#include "playcc/outcome_vector.h"
+#include "playcc/pareto_front.h"
 namespace ble = bridge_learning_env;
 int main() {
 //  const ble::GameParameters params = {};
@@ -97,6 +98,10 @@ int main() {
   const OutcomeVector vec2{{1, 0, 1}, {true, true, true}};
   bool dominate = OutcomeVectorDominate(vec1, vec2);
   std::cout << std::boolalpha << dominate << std::endl;
+  ParetoFront pf;
+  pf.Insert(vec1);
+  pf.Insert(vec2);
+  std::cout << pf.ToString() << std::endl;
   return 0;
 
 }

@@ -6,6 +6,7 @@
 #define BRIDGE_LEARNING_PLAYCC_VECTOR_UTILS_H_
 #include <vector>
 #include <iostream>
+#include <sstream>
 template<typename T>
 void CheckVectorSize(const std::vector<T> &lhs, const std::vector<T> &rhs) {
   if (lhs.size() != rhs.size()) {
@@ -36,11 +37,11 @@ std::vector<T> VectorMin(const std::vector<T> &lhs, const std::vector<T> &rhs) {
 }
 
 template<typename T>
-bool VectorGreaterEqual(const std::vector<T> &lhs, const std::vector<T> &rhs){
+bool VectorGreaterEqual(const std::vector<T> &lhs, const std::vector<T> &rhs) {
   CheckVectorSize(lhs, rhs);
   size_t size = lhs.size();
-  for (size_t i = 0; i < size; ++i){
-    if (lhs[i] < rhs[i]){
+  for (size_t i = 0; i < size; ++i) {
+    if (lhs[i] < rhs[i]) {
       return false;
     }
   }
@@ -48,14 +49,31 @@ bool VectorGreaterEqual(const std::vector<T> &lhs, const std::vector<T> &rhs){
 }
 
 template<typename T>
-bool VectorDominate(const std::vector<T> &lhs, const std::vector<T> &rhs){
+bool VectorDominate(const std::vector<T> &lhs, const std::vector<T> &rhs) {
   CheckVectorSize(lhs, rhs);
   size_t size = lhs.size();
-  for (size_t i = 0; i < size; ++i){
-    if (lhs[i] < rhs[i]){
+  for (size_t i = 0; i < size; ++i) {
+    if (lhs[i] < rhs[i]) {
       return false;
     }
   }
   return true;
+}
+
+template<typename T>
+std::string VectorToString(const std::vector<T> &vec) {
+  std::ostringstream oss;
+
+  // Use an iterator to traverse the vector and append elements to the string stream
+  for (auto it = vec.begin(); it != vec.end(); ++it) {
+    oss << *it;
+
+    // Add a comma and space if it's not the last element
+    if (std::next(it) != vec.end()) {
+      oss << ", ";
+    }
+  }
+
+  return oss.str();
 }
 #endif //BRIDGE_LEARNING_PLAYCC_VECTOR_UTILS_H_

@@ -113,6 +113,9 @@ add_library(_bridgelearn
         playcc/cheat_bot.h
         playcc/vector_utils.h
         playcc/outcome_vector.h
+        playcc/pareto_front.h
+        playcc/pareto_front.cc
+        playcc/outcome_vector.cc
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
