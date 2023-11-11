@@ -11,9 +11,12 @@ struct OutcomeVector {
   std::vector<bool> possible_world;
 };
 
-//bool operator==(const OutcomeVector &lhs, const OutcomeVector &rhs) {
-//  return (lhs.game_status == rhs.game_status) && (lhs.possible_world == rhs.possible_world);
-//}
+bool operator==(const OutcomeVector &lhs, const OutcomeVector &rhs);
+
+// These operators are just for sorting.
+bool operator<(const OutcomeVector &lhs, const OutcomeVector &rhs);
+
+bool operator>(const OutcomeVector &lhs, const OutcomeVector &rhs);
 
 bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs);
 

@@ -2,6 +2,7 @@
 // Created by qzz on 2023/11/5.
 //
 #include "outcome_vector.h"
+#include <algorithm>
 bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
   if (lhs.possible_world != rhs.possible_world) {
     return false;
@@ -17,4 +18,15 @@ bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
     }
   }
   return false;
+}
+bool operator==(const OutcomeVector &lhs, const OutcomeVector &rhs) {
+  return (lhs.game_status == rhs.game_status) && (lhs.possible_world == rhs.possible_world);
+}
+bool operator<(const OutcomeVector &lhs, const OutcomeVector &rhs) {
+  return std::lexicographical_compare(lhs.game_status.begin(), lhs.game_status.end(),
+                                      rhs.game_status.begin(), rhs.game_status.end());
+}
+bool operator>(const OutcomeVector &lhs, const OutcomeVector &rhs) {
+  return std::lexicographical_compare(rhs.game_status.begin(), rhs.game_status.end(),
+                                      lhs.game_status.begin(), lhs.game_status.end());
 }

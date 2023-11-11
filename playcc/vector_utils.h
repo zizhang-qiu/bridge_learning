@@ -76,4 +76,15 @@ std::string VectorToString(const std::vector<T> &vec) {
 
   return oss.str();
 }
+
+// The dot product of 2 vectors.
+template<typename T>
+std::vector<T> VectorProduct(const std::vector<T> &lhs, const std::vector<T> &rhs) {
+  CheckVectorSize(lhs, rhs);
+  std::vector<T> res(lhs.size());
+  for (size_t i = 0; i < lhs.size(); ++i) {
+    res[i] = lhs[i] * rhs[i];
+  }
+  return res;
+}
 #endif //BRIDGE_LEARNING_PLAYCC_VECTOR_UTILS_H_

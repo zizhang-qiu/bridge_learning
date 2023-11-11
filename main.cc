@@ -94,14 +94,22 @@ int main() {
 ////  std::vector<int> a ={39, 27, 15, 30, 41, 17, 44, 40, 36, 28, 12, 4, 0};
 ////  std::sort(a.begin(), a.end());
 ////  rela::utils::printVector(a);
-  const OutcomeVector vec1{{1, 0, 1}, {true, true, true}};
-  const OutcomeVector vec2{{1, 0, 1}, {true, true, true}};
-  bool dominate = OutcomeVectorDominate(vec1, vec2);
-  std::cout << std::boolalpha << dominate << std::endl;
-  ParetoFront pf;
-  pf.Insert(vec1);
-  pf.Insert(vec2);
+  const OutcomeVector vec1{{0, 1, 1}, {true, true, true}};
+  const OutcomeVector vec2{{1, 1, 0}, {true, true, true}};
+//  bool dominate = OutcomeVectorDominate(vec1, vec2);
+//  std::cout << std::boolalpha << dominate << std::endl;
+  ParetoFront pf{{vec1, vec2}};
   std::cout << pf.ToString() << std::endl;
+
+  const OutcomeVector vec3{{1, 1, 0}, {true, true, true}};
+  const OutcomeVector vec4{{1, 0, 1}, {true, true, true}};
+//  bool dominate = OutcomeVectorDominate(vec1, vec2);
+//  std::cout << std::boolalpha << dominate << std::endl;
+  ParetoFront pf2{{vec3, vec4}};
+  std::cout << pf2.ToString() << std::endl;
+
+  ParetoFront product = pf * pf2;
+  std::cout << "product: " << product.ToString() << std::endl;
   return 0;
 
 }
