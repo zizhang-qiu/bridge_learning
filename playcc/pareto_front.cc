@@ -28,7 +28,6 @@ ParetoFront::ParetoFront(const std::vector<OutcomeVector> &outcome_vectors) {
       outcome_vectors_.push_back(outcome_vectors[i]);
     }
   }
-  Sort();
 }
 
 bool ParetoFront::Insert(const OutcomeVector &outcome_vector) {
@@ -46,22 +45,20 @@ bool ParetoFront::Insert(const OutcomeVector &outcome_vector) {
   size_t original_size = outcome_vectors_.size();
 
   outcome_vectors_.erase(
-      std::remove_if(outcome_vectors_.begin(), outcome_vectors_.end(), [outcome_vector](const OutcomeVector &vec) {
-        return OutcomeVectorDominate(outcome_vector, vec);
-      }), outcome_vectors_.end()
-  );
+      std::remove_if(outcome_vectors_.begin(),
+                     outcome_vectors_.end(),
+                     [outcome_vector](const OutcomeVector &vec) { return OutcomeVectorDominate(outcome_vector, vec); }),
+      outcome_vectors_.end());
 
   bool is_one_dominated = outcome_vectors_.size() < original_size;
   if (is_one_dominated) {
     outcome_vectors_.push_back(outcome_vector);
-    Sort();
     return true;
   }
 
   bool has_same_vector = HasSameVector(outcome_vector);
   if (!has_same_vector) {
     outcome_vectors_.push_back(outcome_vector);
-    Sort();
     return true;
   }
   return false;
@@ -89,10 +86,6 @@ bool ParetoFront::HasSameVector(const OutcomeVector &outcome_vector) const {
   }
   return false;
 }
-void ParetoFront::Sort() {
-  std::sort(outcome_vectors_.begin(), outcome_vectors_.end(), [](const OutcomeVector &lhs,
-                                                                 const OutcomeVector &rhs) { return lhs < rhs; });
-}
 
 ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {
   ParetoFront res{};
@@ -106,6 +99,32 @@ ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {
   }
   return res;
 }
-bool operator==(const ParetoFront &lhs, const ParetoFront &rhs) {
-  return lhs.OutcomeVectors() == rhs.OutcomeVectors();
+bool operator==(const ParetoFront &lhs, const ParetoFront &rhs) { return lhs.OutcomeVectors() == rhs.OutcomeVectors(); }
+
+bool operator<=(const ParetoFront &lhs, const ParetoFront &rhs) {
+  for (const auto &vec : lhs.OutcomeVectors()) {
+    bool one_greater_or_equal = false;
+    for (const auto &v : rhs.OutcomeVectors()) {
+      if (VectorGreaterEqual(v.game_status, vec.game_status)) {
+        one_greater_or_equal = true;
+        break;
+      }
+    }
+    if (!one_greater_or_equal) {
+      return false;
+    }
+  }
+  return true;
+}
+
+ParetoFront ParetoFrontJoin(const ParetoFront &lhs, const ParetoFront &rhs) {
+  ParetoFront result{};
+  for (const auto &vec : lhs.OutcomeVectors()) {
+    for (const auto &v : rhs.OutcomeVectors()) {
+      const auto r_vec = VectorMin(vec.game_status, v.game_status);
+      const OutcomeVector outcome_vector{r_vec, vec.possible_world};
+      result.Insert(outcome_vector);
+    }
+  }
+  return result;
 }

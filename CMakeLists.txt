@@ -116,6 +116,8 @@ add_library(_bridgelearn
         playcc/pareto_front.h
         playcc/pareto_front.cc
         playcc/outcome_vector.cc
+        playcc/alpha_mu_searcher.cc
+        playcc/alpha_mu_searcher.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

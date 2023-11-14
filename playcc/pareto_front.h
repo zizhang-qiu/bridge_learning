@@ -6,28 +6,29 @@
 #define BRIDGE_LEARNING_PLAYCC_PARETO_FRONT_H_
 #include "outcome_vector.h"
 class ParetoFront {
- public:
+  public:
   ParetoFront() = default;
-  explicit ParetoFront(const std::vector<OutcomeVector> &outcome_vectors);
+  explicit ParetoFront(const std::vector<OutcomeVector>& outcome_vectors);
 
   [[nodiscard]] int Size() const { return static_cast<int>(outcome_vectors_.size()); }
 
-  bool Insert(const OutcomeVector &outcome_vector);
+  bool Insert(const OutcomeVector& outcome_vector);
 
   [[nodiscard]] std::string ToString() const;
 
   [[nodiscard]] std::vector<OutcomeVector> OutcomeVectors() const { return outcome_vectors_; }
 
- private:
+  private:
   std::vector<OutcomeVector> outcome_vectors_;
 
-  [[nodiscard]] bool HasSameVector(const OutcomeVector &outcome_vector) const;
-
-  void Sort();
-
+  [[nodiscard]] bool HasSameVector(const OutcomeVector& outcome_vector) const;
 };
 
-ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs);
+ParetoFront operator*(const ParetoFront& lhs, const ParetoFront& rhs);
 
-bool operator==(const ParetoFront &lhs, const ParetoFront &rhs);
-#endif //BRIDGE_LEARNING_PLAYCC_PARETO_FRONT_H_
+bool operator==(const ParetoFront& lhs, const ParetoFront& rhs);
+
+bool operator<=(const ParetoFront& lhs, const ParetoFront& rhs);
+
+ParetoFront ParetoFrontJoin(const ParetoFront& lhs, const ParetoFront& rhs);
+#endif // BRIDGE_LEARNING_PLAYCC_PARETO_FRONT_H_

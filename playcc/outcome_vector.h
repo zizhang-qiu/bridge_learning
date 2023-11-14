@@ -7,6 +7,8 @@
 #include <vector>
 #include "vector_utils.h"
 struct OutcomeVector {
+
+
   std::vector<int> game_status;
   std::vector<bool> possible_world;
 };
