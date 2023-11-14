@@ -17,6 +17,7 @@ class ParetoFront {
   [[nodiscard]] std::string ToString() const;
 
   [[nodiscard]] std::vector<OutcomeVector> OutcomeVectors() const { return outcome_vectors_; }
+
  private:
   std::vector<OutcomeVector> outcome_vectors_;
 
@@ -27,4 +28,6 @@ class ParetoFront {
 };
 
 ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs);
+
+bool operator==(const ParetoFront &lhs, const ParetoFront &rhs);
 #endif //BRIDGE_LEARNING_PLAYCC_PARETO_FRONT_H_

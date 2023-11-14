@@ -131,3 +131,16 @@ add_executable(main main.cc)
 target_link_libraries(main PUBLIC bridge_lib)
 target_link_libraries(main PUBLIC rela_lib)
 target_link_libraries(main PUBLIC _bridgelearn)
+
+
+#if (WIN32)
+#    set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+#    set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+#    add_subdirectory(third_party/googletest)
+#    add_executable(pareto_front_test playcc/pareto_front_test.cc)
+#    target_include_directories(pareto_front_test PUBLIC GoogleTest)
+#    target_link_libraries(pareto_front_test _bridgelearn GTest::gtest_main)
+##    gtest_discover_tests(pareto_front_test)
+#endif ()
+
+

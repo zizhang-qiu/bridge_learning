@@ -46,18 +46,17 @@ bool ParetoFront::Insert(const OutcomeVector &outcome_vector) {
   size_t original_size = outcome_vectors_.size();
 
   outcome_vectors_.erase(
-      std::remove_if(outcome_vectors_.begin(), outcome_vectors_.end(), [outcome_vector](const OutcomeVector& vec){
-          return OutcomeVectorDominate(outcome_vector, vec);
+      std::remove_if(outcome_vectors_.begin(), outcome_vectors_.end(), [outcome_vector](const OutcomeVector &vec) {
+        return OutcomeVectorDominate(outcome_vector, vec);
       }), outcome_vectors_.end()
-      );
+  );
 
   bool is_one_dominated = outcome_vectors_.size() < original_size;
-  if (is_one_dominated){
+  if (is_one_dominated) {
     outcome_vectors_.push_back(outcome_vector);
     Sort();
     return true;
   }
-
 
   bool has_same_vector = HasSameVector(outcome_vector);
   if (!has_same_vector) {
@@ -106,4 +105,7 @@ ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {
     }
   }
   return res;
+}
+bool operator==(const ParetoFront &lhs, const ParetoFront &rhs) {
+  return lhs.OutcomeVectors() == rhs.OutcomeVectors();
 }
