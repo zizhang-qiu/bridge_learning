@@ -42,7 +42,7 @@ bool ParetoFront::Insert(const OutcomeVector &outcome_vector) {
     }
   }
 
-  size_t original_size = outcome_vectors_.size();
+  const size_t original_size = outcome_vectors_.size();
 
   outcome_vectors_.erase(
       std::remove_if(outcome_vectors_.begin(),
@@ -50,13 +50,13 @@ bool ParetoFront::Insert(const OutcomeVector &outcome_vector) {
                      [outcome_vector](const OutcomeVector &vec) { return OutcomeVectorDominate(outcome_vector, vec); }),
       outcome_vectors_.end());
 
-  bool is_one_dominated = outcome_vectors_.size() < original_size;
+  const bool is_one_dominated = outcome_vectors_.size() < original_size;
   if (is_one_dominated) {
     outcome_vectors_.push_back(outcome_vector);
     return true;
   }
 
-  bool has_same_vector = HasSameVector(outcome_vector);
+  const bool has_same_vector = HasSameVector(outcome_vector);
   if (!has_same_vector) {
     outcome_vectors_.push_back(outcome_vector);
     return true;
@@ -77,6 +77,13 @@ std::string ParetoFront::ToString() const {
     rv += "[" + VectorToString(outcome_vectors_[0].possible_world) + "]";
   }
   return rv;
+}
+ParetoFront ParetoFront::ParetoFrontWithOneOutcomeVector(const int num_worlds, const int fill_value) {
+  const std::vector<int> game_status(num_worlds, fill_value);
+  const std::vector<bool> possible_worlds(num_worlds, true);
+  const OutcomeVector outcome_vector{game_status, possible_worlds};
+  const std::vector<OutcomeVector> outcome_vectors = {outcome_vector};
+  return ParetoFront(outcome_vectors);
 }
 bool ParetoFront::HasSameVector(const OutcomeVector &outcome_vector) const {
   for (const auto &ov : outcome_vectors_) {

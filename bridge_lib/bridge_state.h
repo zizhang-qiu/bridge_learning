@@ -24,7 +24,7 @@ class BridgeState {
 
   explicit BridgeState(std::shared_ptr<BridgeGame> parent_game);
 
-  bridge_learning_env::Contract GetContract() const { return contract_; }
+  Contract GetContract() const { return contract_; }
 
   const BridgeDeck &Deck() const { return deck_; }
 
@@ -47,9 +47,9 @@ class BridgeState {
 
   Player GetDummy() const;
 
-  void ApplyMove(BridgeMove move);
+  void ApplyMove(const BridgeMove &move);
 
-  bool MoveIsLegal(BridgeMove move) const;
+  bool MoveIsLegal(const BridgeMove &move) const;
 
   bool IsTerminal() const { return phase_ == Phase::kGameOver; }
 
@@ -57,7 +57,7 @@ class BridgeState {
 
   std::string ToString() const;
 
-  double ChanceOutcomeProb(BridgeMove move) const;
+  double ChanceOutcomeProb(const BridgeMove &move) const;
 
   // Get the valid chance moves, and associated probabilities.
   // Guaranteed that moves.size() == probabilities.size().
@@ -76,9 +76,9 @@ class BridgeState {
 
   std::array<std::array<int, kNumPlayers>, kNumDenominations> DoubleDummyResults(bool dds_order = false) const;
 
-  void SetDoubleDummyResults(const std::vector<int> &double_dummy_tricks);
+  void SetDoubleDummyResults(const std::vector<int> &double_dummy_tricks) const;
 
-  void SetDoubleDummyResults(const std::array<int, kNumPlayers * kNumDenominations> &double_dummy_tricks);
+  void SetDoubleDummyResults(const std::array<int, kNumPlayers * kNumDenominations> &double_dummy_tricks) const;
 
   bool IsPlayerVulnerable(Player player) const;
 
@@ -101,12 +101,16 @@ class BridgeState {
 
   std::vector<int> Scores() const { return scores_; }
 
+  int NumDeclarerTricks() const{return num_declarer_tricks_;}
+
+  std::unique_ptr<BridgeState> Child(const BridgeMove& move) const;
+
  private:
   BridgeDeck deck_;
   Phase phase_;
   std::array<Trick, kNumTricks> tricks_;
   Player dealer_;
-  Player current_player_ = kChancePlayerId;
+  Player current_player_;
   std::shared_ptr<BridgeGame> parent_game_ = nullptr;
   std::vector<BridgeHand> hands_;
   std::vector<BridgeHistoryItem> move_history_;
@@ -122,9 +126,9 @@ class BridgeState {
   mutable std::optional<ddTableResults> double_dummy_results_{};
 
   void AdvanceToNextPlayer();
-  bool DealIsLegal(BridgeMove move) const;
-  bool AuctionIsLegal(BridgeMove move) const;
-  bool PlayIsLegal(BridgeMove move) const;
+  bool DealIsLegal(const BridgeMove &move) const;
+  bool AuctionIsLegal(const BridgeMove &move) const;
+  bool PlayIsLegal(const BridgeMove &move) const;
 
   std::string FormatVulnerability() const;
   std::string FormatDeal() const;

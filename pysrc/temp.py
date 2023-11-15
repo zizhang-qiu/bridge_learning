@@ -73,4 +73,6 @@ bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_
 # for i in range(100):
 #     batch = generator.next_batch("cuda")
 #     print(batch)
-print( (1+21+48+56+89) * (1+21+48+56+89+21+48+56+89+1) - (21+48+56+89) * (21+48+56+89+1+21+48+56+89+1) )
+
+a = {"1": 1}
+a.values()

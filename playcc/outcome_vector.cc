@@ -11,7 +11,7 @@ bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
   if (!VectorGreaterEqual(lhs.game_status, rhs.game_status)) {
     return false;
   }
-  size_t size = lhs.game_status.size();
+  const size_t size = lhs.game_status.size();
   for (size_t i = 0; i < size; ++i) {
     if (lhs.game_status[i] > rhs.game_status[i]) {
       return true;
@@ -19,7 +19,17 @@ bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
   }
   return false;
 }
+double OutcomeVector::Score() const {
+  double sum = 0;
+  int count = 0;
+  for (size_t i = 0; i < game_status.size(); ++i) {
+    if (possible_world[i]) {
+      sum += game_status[i];
+      count += 1;
+    }
+  }
+  return sum / count;
+}
 bool operator==(const OutcomeVector &lhs, const OutcomeVector &rhs) {
   return (lhs.game_status == rhs.game_status) && (lhs.possible_world == rhs.possible_world);
 }
-

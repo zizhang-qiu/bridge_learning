@@ -55,7 +55,7 @@ class BridgeGame {
   BridgeMove PickRandomChance(const std::pair<std::vector<BridgeMove>, std::vector<double>> &chance_outcomes) const;
 
  private:
-  bridge_learning_env::GameParameters params_;
+  GameParameters params_;
   bool is_dealer_vulnerable_;
   bool is_non_dealer_vulnerable_;
   Player dealer_;

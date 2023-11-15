@@ -8,6 +8,7 @@
 #include "vector_utils.h"
 struct OutcomeVector {
 
+  [[nodiscard]] double Score() const;
 
   std::vector<int> game_status;
   std::vector<bool> possible_world;

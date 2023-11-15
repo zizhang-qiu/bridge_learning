@@ -18,6 +18,8 @@ class ParetoFront {
 
   [[nodiscard]] std::vector<OutcomeVector> OutcomeVectors() const { return outcome_vectors_; }
 
+  static ParetoFront ParetoFrontWithOneOutcomeVector(int num_worlds, int fill_value);
+
   private:
   std::vector<OutcomeVector> outcome_vectors_;
 
