@@ -7,7 +7,7 @@ ParetoFront::ParetoFront(const std::vector<OutcomeVector> &outcome_vectors) {
   if (outcome_vectors.empty()) {
     outcome_vectors_ = outcome_vectors;
   }
-  size_t size = outcome_vectors.size();
+  const size_t size = outcome_vectors.size();
   // For each outcome vector, if another vector dominates it, it should be eliminated.
   for (size_t i = 0; i < size; ++i) {
     bool is_dominated = false;
@@ -134,6 +134,7 @@ ParetoFront ParetoFrontMin(const ParetoFront &lhs, const ParetoFront &rhs) {
   }
   return result;
 }
+
 ParetoFront ParetoFrontMax(const ParetoFront &lhs, const ParetoFront &rhs) {
   if (lhs.Empty()) {
     return rhs;

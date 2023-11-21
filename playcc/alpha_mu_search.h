@@ -10,7 +10,7 @@
 #include "utils.h"
 namespace ble = bridge_learning_env;
 
-bool DoubleDummyEvaluation(const std::unique_ptr<ble::BridgeState>& state);
+bool DoubleDummyEvaluation(const ble::BridgeState& state);
 
 ble::BridgeState ApplyMove(const ble::BridgeMove& move, ble::BridgeState state);
 
