@@ -20,27 +20,27 @@ std::array<int, ble::kNumCards> HandsToCardIndices(const std::vector<ble::Bridge
   }
   return res;
 }
-std::unique_ptr<ble::BridgeState> ConstructStateFromDeal(const std::array<int, ble::kNumCards> deal,
-                                                         const std::shared_ptr<ble::BridgeGame>& game) {
-  auto state = std::make_unique<ble::BridgeState>(game);
+ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> deal,
+                                        const std::shared_ptr<ble::BridgeGame>& game) {
+  auto state = ble::BridgeState(game);
   for (int i = 0; i < ble::kNumCards; ++i) {
     ble::BridgeMove move = game->GetChanceOutcome(deal[i]);
-    state->ApplyMove(move);
+    state.ApplyMove(move);
   }
   return state;
 }
-std::unique_ptr<ble::BridgeState> ConstructStateFromDeal(const std::array<int, ble::kNumCards> deal,
-                                                         const std::shared_ptr<ble::BridgeGame>& game,
-                                                         const ble::BridgeState& original_state) {
-  auto state = std::make_unique<ble::BridgeState>(game);
+ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> deal,
+                                        const std::shared_ptr<ble::BridgeGame>& game,
+                                        const ble::BridgeState& original_state) {
+  auto state = ble::BridgeState(game);
   for (int i = 0; i < ble::kNumCards; ++i) {
     ble::BridgeMove move = game->GetChanceOutcome(deal[i]);
-    state->ApplyMove(move);
+    state.ApplyMove(move);
   }
   const auto& history = original_state.History();
   for (int i = ble::kNumCards; i < history.size(); ++i) {
     ble::BridgeMove move = history[i].move;
-    state->ApplyMove(move);
+    state.ApplyMove(move);
   }
   return state;
 }
@@ -119,4 +119,9 @@ std::vector<int> MovesToUids(const std::vector<ble::BridgeMove>& moves, const bl
     uids.push_back(uid);
   }
   return uids;
+}
+bool IsActingPlayerDeclarerSide(const std::unique_ptr<ble::BridgeState>& state) {
+  const auto declarer = state->GetContract().declarer;
+  const auto cur_player = state->CurrentPlayer();
+  return ble::Partnership(declarer) == ble::Partnership(cur_player);
 }

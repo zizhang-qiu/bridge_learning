@@ -243,9 +243,10 @@ std::vector<BridgeHand> BridgeState::OriginalDeal() const {
   }
   return rv;
 }
-std::unique_ptr<BridgeState> BridgeState::Child(const BridgeMove &move) const {
-  std::unique_ptr<BridgeState> child = Clone();
-  child->ApplyMove(move);
+
+BridgeState BridgeState::Child(const BridgeMove &move) const {
+  BridgeState child(*this);
+  child.ApplyMove(move);
   return child;
 }
 

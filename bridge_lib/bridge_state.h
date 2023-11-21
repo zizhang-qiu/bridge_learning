@@ -5,22 +5,24 @@
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
 #include <random>
-#include <set>
-#include "bridge_game.h"
-#include "bridge_utils.h"
+#include "auction_tracker.h"
 #include "bridge_card.h"
+#include "bridge_game.h"
 #include "bridge_hand.h"
 #include "bridge_history_item.h"
-#include "auction_tracker.h"
+#include "bridge_utils.h"
 #include "trick.h"
 
+#include "bridge_deck.h"
 #include "third_party/dds/src/Memory.h"
 #include "third_party/dds/src/SolverIF.h"
 #include "third_party/dds/src/TransTableL.h"
-#include "bridge_deck.h"
 namespace bridge_learning_env {
 class BridgeState {
- public:
+  public:
+  ~BridgeState() = default;
+
+  BridgeState(const BridgeState &) = default;
 
   explicit BridgeState(std::shared_ptr<BridgeGame> parent_game);
 
@@ -71,8 +73,7 @@ class BridgeState {
 
   std::vector<BridgeMove> LegalMoves() const;
 
-  std::vector<int> ScoreForContracts(Player player,
-                                     const std::vector<int> &contracts) const;
+  std::vector<int> ScoreForContracts(Player player, const std::vector<int> &contracts) const;
 
   std::array<std::array<int, kNumPlayers>, kNumDenominations> DoubleDummyResults(bool dds_order = false) const;
 
@@ -82,16 +83,12 @@ class BridgeState {
 
   bool IsPlayerVulnerable(Player player) const;
 
-  std::unique_ptr<BridgeState> Clone() const {
-    return std::make_unique<BridgeState>(*this);
-  }
+  BridgeState Clone() const { return (*this); }
 
   int NumTricksPlayed() const { return num_cards_played_ / kNumPlayers; }
 
   Trick &CurrentTrick() { return tricks_[num_cards_played_ / kNumPlayers]; }
-  const Trick &CurrentTrick() const {
-    return tricks_[num_cards_played_ / kNumPlayers];
-  }
+  const Trick &CurrentTrick() const { return tricks_[num_cards_played_ / kNumPlayers]; }
 
   int NumCardsPlayed() const { return num_cards_played_; }
 
@@ -101,11 +98,11 @@ class BridgeState {
 
   std::vector<int> Scores() const { return scores_; }
 
-  int NumDeclarerTricks() const{return num_declarer_tricks_;}
+  int NumDeclarerTricks() const { return num_declarer_tricks_; }
 
-  std::unique_ptr<BridgeState> Child(const BridgeMove& move) const;
+  BridgeState Child(const BridgeMove &move) const;
 
- private:
+  private:
   BridgeDeck deck_;
   Phase phase_;
   std::array<Trick, kNumTricks> tricks_;
@@ -139,8 +136,7 @@ class BridgeState {
   Player PlayerToDeal() const;
   void ScoreUp();
   void ComputeDoubleDummyTricks() const;
-
 };
-}
+} // namespace bridge_learning_env
 
-#endif //BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
+#endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_

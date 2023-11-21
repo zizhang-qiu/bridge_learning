@@ -74,5 +74,5 @@ bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_
 #     batch = generator.next_batch("cuda")
 #     print(batch)
 
-a = {"1": 1}
-a.values()
+a = []
+a.copy()

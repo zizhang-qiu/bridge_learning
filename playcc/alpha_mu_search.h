@@ -10,17 +10,19 @@
 #include "utils.h"
 namespace ble = bridge_learning_env;
 
-bool DoubleDummyEvaluation(const ble::BridgeState& state);
+bool DoubleDummyEvaluation(const std::unique_ptr<ble::BridgeState>& state);
 
 ble::BridgeState ApplyMove(const ble::BridgeMove& move, ble::BridgeState state);
 
 bool StopSearch(const ble::BridgeState& state,
                 int num_max_moves,
                 const std::vector<ble::BridgeState>& worlds,
+                const std::vector<bool>& possible_worlds,
                 ParetoFront& result);
 
 ParetoFront VanillaAlphaMu(const ble::BridgeState& state,
-  int num_max_moves,
-  const std::vector<ble::BridgeState>& worlds);
+                           int num_max_moves,
+                           const std::vector<ble::BridgeState>& worlds,
+                           const std::vector<bool>& possible_worlds);
 
 #endif // ALPHA_MU_SEARCHER_H

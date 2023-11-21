@@ -78,9 +78,8 @@ std::string ParetoFront::ToString() const {
   }
   return rv;
 }
-ParetoFront ParetoFront::ParetoFrontWithOneOutcomeVector(const int num_worlds, const int fill_value) {
-  const std::vector<int> game_status(num_worlds, fill_value);
-  const std::vector<bool> possible_worlds(num_worlds, true);
+ParetoFront ParetoFront::ParetoFrontWithOneOutcomeVector(const std::vector<bool>& possible_worlds, const int fill_value) {
+  const std::vector<int> game_status(possible_worlds.size(), fill_value);
   const OutcomeVector outcome_vector{game_status, possible_worlds};
   const std::vector<OutcomeVector> outcome_vectors = {outcome_vector};
   return ParetoFront(outcome_vectors);
@@ -99,7 +98,7 @@ ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {
   for (const auto &ov_l : lhs.OutcomeVectors()) {
     for (const auto &ov_r : rhs.OutcomeVectors()) {
       auto product = VectorProduct(ov_l.game_status, ov_r.game_status);
-      std::cout << VectorToString(product) << std::endl;
+      // std::cout << VectorToString(product) << std::endl;
       const OutcomeVector outcome_vector{product, ov_l.possible_world};
       res.Insert(outcome_vector);
     }
@@ -124,11 +123,25 @@ bool operator<=(const ParetoFront &lhs, const ParetoFront &rhs) {
   return true;
 }
 
-ParetoFront ParetoFrontJoin(const ParetoFront &lhs, const ParetoFront &rhs) {
+ParetoFront ParetoFrontMin(const ParetoFront &lhs, const ParetoFront &rhs) {
   ParetoFront result{};
   for (const auto &vec : lhs.OutcomeVectors()) {
     for (const auto &v : rhs.OutcomeVectors()) {
       const auto r_vec = VectorMin(vec.game_status, v.game_status);
+      const OutcomeVector outcome_vector{r_vec, vec.possible_world};
+      result.Insert(outcome_vector);
+    }
+  }
+  return result;
+}
+ParetoFront ParetoFrontMax(const ParetoFront &lhs, const ParetoFront &rhs) {
+  if (lhs.Empty()) {
+    return rhs;
+  }
+  ParetoFront result{};
+  for (const auto &vec : lhs.OutcomeVectors()) {
+    for (const auto &v : rhs.OutcomeVectors()) {
+      const auto r_vec = VectorMax(vec.game_status, v.game_status);
       const OutcomeVector outcome_vector{r_vec, vec.possible_world};
       result.Insert(outcome_vector);
     }

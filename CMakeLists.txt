@@ -119,6 +119,8 @@ add_library(_bridgelearn
         playcc/alpha_mu_search.cc
         playcc/alpha_mu_search.h
         playcc/utils.cc
+        playcc/pimc.cc
+        playcc/resampler.cc
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

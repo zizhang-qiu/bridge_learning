@@ -76,9 +76,9 @@ PYBIND11_MODULE(bridgelearn, m) {
 
   py::class_<Resampler, std::shared_ptr<Resampler>>(m, "Resampler");
 
-  py::class_<UniformResampler, Resampler, std::shared_ptr<UniformResampler>>(m, "UniformResampler")
-      .def(py::init<int>())
-      .def("resample", &UniformResampler::Resample);
+  // py::class_<UniformResampler, Resampler, std::shared_ptr<UniformResampler>>(m, "UniformResampler")
+  //     .def(py::init<int>())
+  //     .def("resample", &UniformResampler::Resample);
 
   py::class_<SearchResult>(m, "SearchResult")
       .def_readonly("moves", &SearchResult::moves)
@@ -86,12 +86,12 @@ PYBIND11_MODULE(bridgelearn, m) {
 
   py::class_<PlayBot>(m, "PlayBot");
 
-  py::class_<CheatBot, PlayBot>(m, "CheatBot")
-      .def(py::init<>())
-      .def("act", &CheatBot::Act);
-
-  py::class_<PIMCBot, PlayBot>(m, "PIMCBot")
-      .def(py::init<std::shared_ptr<Resampler>, int>())
-      .def("act", &PIMCBot::Act)
-      .def("search", &PIMCBot::Search);
+  // py::class_<CheatBot, PlayBot>(m, "CheatBot")
+  //     .def(py::init<>())
+  //     .def("act", &CheatBot::Act);
+  //
+  // py::class_<PIMCBot, PlayBot>(m, "PIMCBot")
+  //     .def(py::init<std::shared_ptr<Resampler>, int>())
+  //     .def("act", &PIMCBot::Act)
+  //     .def("search", &PIMCBot::Search);
 }

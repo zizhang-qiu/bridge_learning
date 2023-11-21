@@ -16,16 +16,16 @@ namespace ble = bridge_learning_env;
 int main() {
   const ble::GameParameters params = {};
   const auto game = std::make_shared<ble::BridgeGame>(params);
-  auto state = ble::BridgeState(game);
+  auto state = std::make_unique<ble::BridgeState>(game);
 
   // Deal
   const auto &deal = ble::example_deals[0];
   for (int i = 0; i < ble::kNumCards; ++i) {
     ble::BridgeMove move = game->GetChanceOutcome(deal[i]);
-    state.ApplyMove(move);
+    state->ApplyMove(move);
   }
 
-  std::cout << state.ToString() << std::endl;
+
 
   std::vector<int> bid_uid;
   bid_uid.push_back(ble::BidIndex(1, ble::kSpadesTrump) + ble::kBiddingActionBase);
@@ -46,47 +46,72 @@ int main() {
   // Bidding
   for (const int uid : bid_uid) {
     ble::BridgeMove move = game->GetMove(uid);
-    state.ApplyMove(move);
+    state->ApplyMove(move);
   }
-  std::cout << state.ToString() << std::endl;
 
-  auto s = ApplyMove(state.LegalMoves()[0], state);
+  std::cout << state->ToString() << std::endl;
 
-  std::cout << state.ToString() << std::endl;
-  std::cout << s.ToString() << std::endl;
+  const int num_max_moves = 1;
+  const int num_worlds = 20;
+  auto resampler = std::make_shared<UniformResampler>(1);
+  auto pimc_bot = PIMCBot(resampler, 20);
+  while (!state->IsTerminal()) {
+    if (IsActingPlayerDeclarerSide(state)) {
+      std::vector<bridge_learning_env::BridgeState> worlds;
+      worlds.reserve(num_worlds);
+      for (int i = 0; i < num_worlds; ++i) {
+        auto d = resampler->Resample(*state);
+        auto world = ConstructStateFromDeal(d, game, *state);
+        worlds.push_back(world);
+      }
+      const std::vector<bool> possible_worlds(num_worlds, true);
+      ParetoFront front = VanillaAlphaMu(*state, num_max_moves, worlds, possible_worlds);
+      std::cout << "front:\n" << front.ToString() << std::endl;
+      std::exit(1);
+    }
+    else {
+      const auto& move = pimc_bot.Act(*state);
+      std::cout << "pimc move: " << move.ToString() << std::endl;
+      state->ApplyMove(move);
+    }
+  }
+  std::cout << state->ToString() << std::endl;
 
-  // auto resampler = std::make_shared<UniformResampler>(21);
-  //
-  // std::vector<std::array<int, bridge_learning_env::kNumCards>> worlds;
+  // std::vector<bridge_learning_env::BridgeState> worlds;
   // worlds.reserve(20);
   // for (int i = 0; i < 20; ++i) {
-  //   auto world = resampler->Resample(state);
-  //   worlds.push_back(world);
+  //   auto d = resampler->Resample(state);
+  //   auto world = ConstructStateFromDeal(d, game, state);
+  //   worlds.push_back(*world);
   // }
-
   //
-  ////  std::vector<int> a ={39, 27, 15, 30, 41, 17, 44, 40, 36, 28, 12, 4, 0};
-  ////  std::sort(a.begin(), a.end());
-  ////  rela::utils::printVector(a);
-  const OutcomeVector vec1{{0, 1, 1}, {true, true, true}};
-  const OutcomeVector vec2{{1, 1, 0}, {true, true, true}};
-  //  bool dominate = OutcomeVectorDominate(vec1, vec2);
-  //  std::cout << std::boolalpha << dominate << std::endl;
-  const ParetoFront pf{{vec1, vec2}};
-  std::cout << pf.ToString() << std::endl;
+  // std::vector<bool> possible_worlds(20, true);
+  // possible_worlds[3] = false;
+  // ParetoFront result{};
+  // StopSearch(state, 0, worlds, possible_worlds, result);
+  // std::cout << result.ToString() << std::endl;
 
-  const OutcomeVector vec3{{1, 1, 0}, {true, true, true}};
-  const OutcomeVector vec4{{1, 0, 1}, {true, true, true}};
-  //  bool dominate = OutcomeVectorDominate(vec1, vec2);
-  //  std::cout << std::boolalpha << dominate << std::endl;
-  const ParetoFront pf2{{vec3, vec4}};
-  std::cout << pf2.ToString() << std::endl;
-
-  const ParetoFront product = pf * pf2;
-  std::cout << "product: " << product.ToString() << std::endl;
-  const ParetoFront join = ParetoFrontJoin(pf, pf2);
-  std::cout << "join: " << join.ToString() << std::endl;
-  bool is_less_equal = pf <= pf2;
-  std::cout << std::boolalpha << is_less_equal << std::endl;
+  // const OutcomeVector vec1{{0, 1, 1}, {true, true, true}};
+  // const OutcomeVector vec2{{1, 1, 0}, {true, true, true}};
+  // //  bool dominate = OutcomeVectorDominate(vec1, vec2);
+  // //  std::cout << std::boolalpha << dominate << std::endl;
+  // const ParetoFront pf{{vec1, vec2}};
+  // std::cout << pf.ToString() << std::endl;
+  //
+  // const OutcomeVector vec3{{1, 1, 0}, {true, true, true}};
+  // const OutcomeVector vec4{{1, 0, 1}, {true, true, true}};
+  // //  bool dominate = OutcomeVectorDominate(vec1, vec2);
+  // //  std::cout << std::boolalpha << dominate << std::endl;
+  // const ParetoFront pf2{{vec3, vec4}};
+  // std::cout << pf2.ToString() << std::endl;
+  //
+  // const ParetoFront product = pf * pf2;
+  // std::cout << "product: " << product.ToString() << std::endl;
+  // const ParetoFront join = ParetoFrontMin(pf, pf2);
+  // std::cout << "join: " << join.ToString() << std::endl;
+  // const ParetoFront m = ParetoFrontMax(pf, pf2);
+  // std::cout << "max: " << m.ToString() << std::endl;
+  // bool is_less_equal = pf <= pf2;
+  // std::cout << std::boolalpha << is_less_equal << std::endl;
   return 0;
 }
