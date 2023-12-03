@@ -81,7 +81,7 @@ std::string StrCat(const Args&... args) {
                              #expr2),                                                \
                      std::abort()))
 #else
-#define REQUIRE(expr) assert(expr)
+#define REQUIRE_EQ(expr1, expr2) assert(expr1 == expr2)
 #endif
 } // namespace bridge_learning_env
 
