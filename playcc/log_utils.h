@@ -4,6 +4,7 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_LOG_UTILS_H_
 #define BRIDGE_LEARNING_PLAYCC_LOG_UTILS_H_
+#include <cmath>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -180,19 +181,16 @@ inline constexpr float FloatingPointDefaultThresholdRatio() { return 1e-5; }
 
 // Returns whether the absolute difference between floating point values a and
 // b is less than or equal to FloatingPointThresholdRatio() * max(|a|, |b|).
-template <typename T>
+template<typename T>
 bool Near(T a, T b) {
-  static_assert(std::is_floating_point<T>::value,
-                "Near() is only for floating point args.");
-  return fabs(a - b) <=
-      (std::max(fabs(a), fabs(b)) * FloatingPointDefaultThresholdRatio());
+  static_assert(std::is_floating_point<T>::value, "Near() is only for floating point args.");
+  return fabs(a - b) <= (std::max(fabs(a), fabs(b)) * FloatingPointDefaultThresholdRatio());
 }
 
 // Returns whether |a - b| <= epsilon.
-template <typename T>
+template<typename T>
 bool Near(T a, T b, T epsilon) {
-  static_assert(std::is_floating_point<T>::value,
-                "Near() is only for floating point args.");
+  static_assert(std::is_floating_point<T>::value, "Near() is only for floating point args.");
   return fabs(a - b) <= epsilon;
 }
 #endif // BRIDGE_LEARNING_PLAYCC_LOG_UTILS_H_
