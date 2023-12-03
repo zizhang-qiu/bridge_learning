@@ -1,0 +1,21 @@
+//
+// Created by qzz on 2023/12/3.
+//
+#include "log_utils.h"
+
+int main(){
+  SPIEL_CHECK_GE(2, 1);
+  SPIEL_CHECK_GE(1, 1);
+  SPIEL_CHECK_GT(2, 1);
+  SPIEL_CHECK_LE(2, 2);
+  SPIEL_CHECK_LE(1, 2);
+  SPIEL_CHECK_LT(1, 2);
+  SPIEL_CHECK_EQ(1, 1);
+  SPIEL_CHECK_NE(1, 2);
+  SPIEL_CHECK_PROB(0.5);
+  SPIEL_CHECK_PROB_TOLERANCE(1.05, 0.1);
+  SPIEL_CHECK_FLOAT_EQ(0.5f, 0.5f);
+  SPIEL_CHECK_FLOAT_NEAR(0.5f, 0.51f, 0.02);
+  SPIEL_CHECK_TRUE(1==1);
+  SPIEL_CHECK_FALSE(1!=1);
+}

@@ -23,12 +23,13 @@ class BridgeDeck {
   BridgeDeck() : total_count_(kNumCards), card_in_deck_(kNumCards, true) {}
   BridgeCard DealCard(Suit suit, int rank);
   BridgeCard DealCard(int card_index);
-  BridgeCard DealCard(mt19937 &rng);
+  BridgeCard DealCard(std::mt19937 &rng);
   [[nodiscard]] int Size() const { return total_count_; }
   [[nodiscard]] bool Empty() const { return total_count_ == 0; }
   [[nodiscard]] bool CardInDeck(Suit suit, int rank) const {
     return card_in_deck_[CardIndex(suit, rank)];
   }
+
 
   [[nodiscard]] std::vector<BridgeCard> Cards() const;
   [[nodiscard]] std::array<std::vector<BridgeCard>, kNumSuits> CardsBySuits() const;

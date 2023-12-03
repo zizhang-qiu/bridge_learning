@@ -218,8 +218,8 @@ void BridgeState::ApplyRandomChance() {
 std::vector<BridgeMove> BridgeState::LegalMoves(const Player player) const {
   std::vector<BridgeMove> legal_moves;
   // kChancePlayer=-1 must be handled by ChanceOutcome.
-  REQUIRE(player >= 0 && player < kNumPlayers);
-  if (player != current_player_) {
+
+  if (player != current_player_ || phase_ == Phase::kGameOver) {
     return legal_moves;
   }
 
@@ -588,6 +588,15 @@ Player BridgeState::GetDummy() const {
     return kInvalidPlayer;
   }
   return Partner(contract_.declarer);
+}
+std::vector<BridgeHistoryItem> BridgeState::SpecifiedHistory(const BridgeMove::Type type) const{
+  std::vector<BridgeHistoryItem> specified_history;
+  for (const auto &item : move_history_) {
+    if (item.move.MoveType() == type) {
+      specified_history.push_back(item);
+    }
+  }
+  return specified_history;
 }
 
 } // namespace bridge_learning_env

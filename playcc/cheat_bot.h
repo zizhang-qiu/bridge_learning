@@ -22,7 +22,7 @@ class CheatBot : public PlayBot {
     if (num_legal_moves == 1) {
       return legal_moves[0];
     }
-    auto dl = StateToDeal(state);
+    auto dl = StateToDDSDeal(state);
     futureTricks fut{};
 
     const int res = SolveBoard(

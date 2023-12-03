@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "log_utils.h"
 #include "bridge_lib/bridge_state.h"
 namespace ble = bridge_learning_env;
 
@@ -29,13 +30,14 @@ std::array<int, ble::kNumCards> HandsToCardIndices(const std::vector<ble::Bridge
 ble::BridgeState ConstructStateFromDeal(std::array<int, ble::kNumCards> deal,
                                         const std::shared_ptr<ble::BridgeGame> &game);
 
-ble::BridgeState ConstructStateFromDeal(std::array<int, ble::kNumCards> deal,
+ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> &deal,
                                         const std::shared_ptr<ble::BridgeGame> &game,
                                         const ble::BridgeState &original_state);
 
-deal StateToDeal(const ble::BridgeState &state);
+// Convert a BridgeState to DDS deal
+deal StateToDDSDeal(const ble::BridgeState &state);
 
 std::vector<int> MovesToUids(const std::vector<ble::BridgeMove> &moves, const ble::BridgeGame &game);
 
-bool IsActingPlayerDeclarerSide(const std::unique_ptr<ble::BridgeState> &state);
+bool IsActingPlayerDeclarerSide(const ble::BridgeState &state);
 #endif // BRIDGE_LEARNING_PLAYCC_UTILS_H_

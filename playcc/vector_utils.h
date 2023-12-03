@@ -39,7 +39,7 @@ std::vector<T> VectorMin(const std::vector<T> &lhs, const std::vector<T> &rhs) {
 template<typename T>
 bool VectorGreaterEqual(const std::vector<T> &lhs, const std::vector<T> &rhs) {
   CheckVectorSize(lhs, rhs);
-  size_t size = lhs.size();
+  const size_t size = lhs.size();
   for (size_t i = 0; i < size; ++i) {
     if (lhs[i] < rhs[i]) {
       return false;
@@ -51,7 +51,7 @@ bool VectorGreaterEqual(const std::vector<T> &lhs, const std::vector<T> &rhs) {
 template<typename T>
 bool VectorDominate(const std::vector<T> &lhs, const std::vector<T> &rhs) {
   CheckVectorSize(lhs, rhs);
-  size_t size = lhs.size();
+  const size_t size = lhs.size();
   for (size_t i = 0; i < size; ++i) {
     if (lhs[i] < rhs[i]) {
       return false;

@@ -11,11 +11,17 @@ namespace bridge_learning_env {
 class BridgeMove {
  public:
   enum Type { kInvalid = -1, kAuction, kPlay, kDeal };
+
+  BridgeMove() : move_type_(kInvalid), suit_(kInvalidSuit), rank_(-1),
+                 denomination_(kInvalidDenomination), level_(-1), other_call_(kNotOtherCall) {}
+
   BridgeMove(Type move_type, Suit suit, int rank,
              Denomination denomination, int level, OtherCalls other_call)
       : move_type_(move_type), suit_(suit),
         rank_(rank), denomination_(denomination), level_(level),
         other_call_(other_call) {}
+
+  BridgeMove(const BridgeMove &) = default;
 
   bool operator==(const BridgeMove &other_move) const;
 

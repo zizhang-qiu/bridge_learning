@@ -30,6 +30,16 @@ double OutcomeVector::Score() const {
   }
   return sum / count;
 }
+std::string OutcomeVector::ToString() const {
+  std::string rv;
+  rv += "game_status:\n";
+  rv += VectorToString(game_status);
+  rv += "\npossible_worlds:\n";
+  rv += VectorToString(possible_world);
+  rv += "\nmove: ";
+  rv += move.ToString();
+  return rv;
+}
 bool operator==(const OutcomeVector &lhs, const OutcomeVector &rhs) {
   return (lhs.game_status == rhs.game_status) && (lhs.possible_world == rhs.possible_world);
 }

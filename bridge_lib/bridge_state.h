@@ -102,6 +102,12 @@ class BridgeState {
 
   BridgeState Child(const BridgeMove &move) const;
 
+  std::vector<BridgeHistoryItem> DealHistory() const{return SpecifiedHistory(BridgeMove::Type::kDeal);}
+
+  std::vector<BridgeHistoryItem> PlayHistory() const{return SpecifiedHistory(BridgeMove::Type::kPlay);}
+
+  std::vector<BridgeHistoryItem> AuctionHistory() const{return SpecifiedHistory(BridgeMove::Type::kAuction);}
+
   private:
   BridgeDeck deck_;
   Phase phase_;
@@ -136,6 +142,8 @@ class BridgeState {
   Player PlayerToDeal() const;
   void ScoreUp();
   void ComputeDoubleDummyTricks() const;
+
+  std::vector<BridgeHistoryItem> SpecifiedHistory(BridgeMove::Type type) const;
 };
 } // namespace bridge_learning_env
 

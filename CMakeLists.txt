@@ -121,10 +121,24 @@ add_library(_bridgelearn
         playcc/utils.cc
         playcc/pimc.cc
         playcc/resampler.cc
+        playcc/worlds.cc
+        playcc/worlds.h
+        playcc/bridge_state_without_hidden_info.cc
+        playcc/bridge_state_without_hidden_info.h
+        playcc/log_utils.cc
+        playcc/log_utils.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
 target_include_directories(_bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_executable(pareto_front_test playcc/pareto_front_test.cc)
+target_link_libraries(pareto_front_test PRIVATE _bridgelearn)
+add_test(pareto_front_test pareto_front_test)
+
+add_executable(log_utils_test playcc/log_utils_test.cc)
+target_link_libraries(log_utils_test PRIVATE _bridgelearn)
+add_test(log_utils_test log_utils_test)
 
 pybind11_add_module(bridgelearn rlcc/pybind.cc)
 target_link_libraries(bridgelearn PUBLIC _bridgelearn)
@@ -138,14 +152,5 @@ target_link_libraries(main PUBLIC rela_lib)
 target_link_libraries(main PUBLIC _bridgelearn)
 
 
-#if (WIN32)
-#    set(CMAKE_CXX_FLAGS_RELEASE "/MT")
-#    set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
-#    add_subdirectory(third_party/googletest)
-#    add_executable(pareto_front_test playcc/pareto_front_test.cc)
-#    target_include_directories(pareto_front_test PUBLIC GoogleTest)
-#    target_link_libraries(pareto_front_test _bridgelearn GTest::gtest_main)
-##    gtest_discover_tests(pareto_front_test)
-#endif ()
 
 

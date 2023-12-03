@@ -78,7 +78,8 @@ std::string ParetoFront::ToString() const {
   }
   return rv;
 }
-ParetoFront ParetoFront::ParetoFrontWithOneOutcomeVector(const std::vector<bool>& possible_worlds, const int fill_value) {
+ParetoFront ParetoFront::ParetoFrontWithOneOutcomeVector(const std::vector<bool> &possible_worlds,
+                                                         const int fill_value) {
   const std::vector<int> game_status(possible_worlds.size(), fill_value);
   const OutcomeVector outcome_vector{game_status, possible_worlds};
   const std::vector<OutcomeVector> outcome_vectors = {outcome_vector};
@@ -91,6 +92,31 @@ bool ParetoFront::HasSameVector(const OutcomeVector &outcome_vector) const {
     }
   }
   return false;
+}
+
+double ParetoFront::Score() const {
+  double max_score = 0;
+  for (const auto &ov : outcome_vectors_) {
+    max_score = std::max(ov.Score(), max_score);
+  }
+  return max_score;
+}
+
+OutcomeVector ParetoFront::BestOutcome() const {
+  double max_score = -1;
+  OutcomeVector result{};
+  for (const auto &ov : outcome_vectors_) {
+    if (double this_score = ov.Score(); this_score > max_score) {
+      result = ov;
+      max_score = this_score;
+    }
+  }
+  return result;
+}
+void ParetoFront::SetMove(const ble::BridgeMove& move) {
+  for (auto &ov : outcome_vectors_) {
+    ov.move = move;
+  }
 }
 
 ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {
@@ -124,6 +150,9 @@ bool operator<=(const ParetoFront &lhs, const ParetoFront &rhs) {
 }
 
 ParetoFront ParetoFrontMin(const ParetoFront &lhs, const ParetoFront &rhs) {
+  if(lhs.Empty()){
+    return rhs;
+  }
   ParetoFront result{};
   for (const auto &vec : lhs.OutcomeVectors()) {
     for (const auto &v : rhs.OutcomeVectors()) {
@@ -139,13 +168,9 @@ ParetoFront ParetoFrontMax(const ParetoFront &lhs, const ParetoFront &rhs) {
   if (lhs.Empty()) {
     return rhs;
   }
-  ParetoFront result{};
-  for (const auto &vec : lhs.OutcomeVectors()) {
-    for (const auto &v : rhs.OutcomeVectors()) {
-      const auto r_vec = VectorMax(vec.game_status, v.game_status);
-      const OutcomeVector outcome_vector{r_vec, vec.possible_world};
-      result.Insert(outcome_vector);
-    }
+  ParetoFront result(lhs);
+  for (const auto &ov : rhs.OutcomeVectors()) {
+    result.Insert(ov);
   }
   return result;
 }

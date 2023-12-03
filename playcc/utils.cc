@@ -2,6 +2,7 @@
 // Created by qzz on 2023/11/14.
 //
 #include "utils.h"
+#include "bridge_lib/bridge_utils.h"
 std::vector<ble::BridgeHistoryItem> GetPlayHistory(const std::vector<ble::BridgeHistoryItem>& history) {
   std::vector<ble::BridgeHistoryItem> play_history;
   for (const auto item : history) {
@@ -29,7 +30,7 @@ ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> de
   }
   return state;
 }
-ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> deal,
+ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards>& deal,
                                         const std::shared_ptr<ble::BridgeGame>& game,
                                         const ble::BridgeState& original_state) {
   auto state = ble::BridgeState(game);
@@ -44,20 +45,16 @@ ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> de
   }
   return state;
 }
-deal StateToDeal(const ble::BridgeState& state) {
-  if (state.CurrentPhase() != ble::Phase::kPlay) {
-    std::cerr << "Should be play phase." << std::endl;
-    std::abort();
-  }
+deal StateToDDSDeal(const ble::BridgeState& state) {
+  // Should be play phase or game over.
+  SPIEL_CHECK_GE(static_cast<int>(state.CurrentPhase()), static_cast<int>(ble::Phase::kPlay));
   deal dl{};
   const ble::Contract contract = state.GetContract();
   dl.trump = ble::DenominationToDDSStrain(contract.denomination);
-  //  std::cout << "dl.trump: " << dl.trump << std::endl;
   const ble::Trick current_trick = state.CurrentTrick();
   dl.first = current_trick.Leader() != ble::kInvalidPlayer ? current_trick.Leader()
       : state.IsDummyActing()                              ? state.GetDummy()
                                                            : state.CurrentPlayer();
-  //  std::cout << "dl.first: " << dl.first << std::endl;
 
   const auto& history = state.History();
   std::vector<ble::BridgeHistoryItem> play_history;
@@ -120,8 +117,13 @@ std::vector<int> MovesToUids(const std::vector<ble::BridgeMove>& moves, const bl
   }
   return uids;
 }
-bool IsActingPlayerDeclarerSide(const std::unique_ptr<ble::BridgeState>& state) {
-  const auto declarer = state->GetContract().declarer;
-  const auto cur_player = state->CurrentPlayer();
+bool IsActingPlayerDeclarerSide(const ble::BridgeState& state) {
+  const auto declarer = state.GetContract().declarer;
+  const auto cur_player = state.CurrentPlayer();
   return ble::Partnership(declarer) == ble::Partnership(cur_player);
+}
+
+void DefaultErrorHandler(const std::string& error_msg) {
+  std::cerr << "Spiel Fatal Error: " << error_msg << std::endl << std::endl << std::flush;
+  std::exit(1);
 }

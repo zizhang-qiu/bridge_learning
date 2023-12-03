@@ -5,7 +5,7 @@
 int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   auto cloned = state.Clone();
   cloned.ApplyMove(move);
-  auto dl = StateToDeal(cloned);
+  auto dl = StateToDDSDeal(cloned);
   futureTricks fut{};
 
   const int res = SolveBoard(dl,
