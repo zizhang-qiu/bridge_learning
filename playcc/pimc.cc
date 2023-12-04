@@ -21,14 +21,14 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
     std::exit(1);
   }
   const int num_tricks_left = 13 - state.NumTricksPlayed();
-  return num_tricks_left - fut.score[0];
+  return state.NumDeclarerTricks() + num_tricks_left - fut.score[0] >= 6 + state.GetContract().level;
 }
 std::pair<ble::BridgeMove, int> GetBestAction(const SearchResult& res) {
   const auto it = std::max_element(res.scores.begin(), res.scores.end());
   const int index = static_cast<int>(std::distance(res.scores.begin(), it));
   return std::make_pair(res.moves[index], res.scores[index]);
 }
-SearchResult PIMCBot::Search(const ble::BridgeState &state) const {
+SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
   const auto legal_moves = state.LegalMoves();
   const int num_legal_moves = static_cast<int>(legal_moves.size());
   //    std::cout << "num legal moves: " << num_legal_moves << std::endl;

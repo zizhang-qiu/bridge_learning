@@ -65,17 +65,21 @@ bool ParetoFront::Insert(const OutcomeVector &outcome_vector) {
 }
 
 std::string ParetoFront::ToString() const {
-  std::string rv = "Game status:\n{";
+  std::string rv;
+  int index = 0;
   for (auto it = outcome_vectors_.begin(); it != outcome_vectors_.end(); ++it) {
-    rv += "[" + VectorToString((*it).game_status) + "]";
+    rv += std::to_string(index) + ":\nGame status:\n{";
+    rv += "[" + VectorToString((*it).game_status) + "],\npossible worlds:\n";
+    rv += "[" + VectorToString((*it).possible_world) + "]";
+    ++index;
     if (std::next(it) != outcome_vectors_.end()) {
-      rv += ", ";
+      rv += ",\n";
     }
   }
-  rv += "}\npossible worlds:\n";
-  if (!outcome_vectors_.empty()) {
-    rv += "[" + VectorToString(outcome_vectors_[0].possible_world) + "]";
-  }
+  //  rv += "}\npossible worlds:\n";
+  //  if (!outcome_vectors_.empty()) {
+  //    rv += "[" + VectorToString(outcome_vectors_[0].possible_world) + "]";
+  //  }
   return rv;
 }
 ParetoFront ParetoFront::ParetoFrontWithOneOutcomeVector(const std::vector<bool> &possible_worlds,
@@ -113,7 +117,7 @@ OutcomeVector ParetoFront::BestOutcome() const {
   }
   return result;
 }
-void ParetoFront::SetMove(const ble::BridgeMove& move) {
+void ParetoFront::SetMove(const ble::BridgeMove &move) {
   for (auto &ov : outcome_vectors_) {
     ov.move = move;
   }
@@ -150,7 +154,7 @@ bool operator<=(const ParetoFront &lhs, const ParetoFront &rhs) {
 }
 
 ParetoFront ParetoFrontMin(const ParetoFront &lhs, const ParetoFront &rhs) {
-  if(lhs.Empty()){
+  if (lhs.Empty()) {
     return rhs;
   }
   ParetoFront result{};

@@ -29,13 +29,15 @@ bool DoubleDummyEvaluation(const ble::BridgeState &state) {
   if (res != RETURN_NO_FAULT) {
     char error_message[80];
     ErrorMessage(res, error_message);
-    std::cerr << "double dummy solver: " << error_message << std::endl;
-    std::exit(1);
+    SpielFatalError("double dummy solver:" + std::string(error_message));
   }
-  // std::cout << "fut.score[0]: " << fut.score[0] << std::endl;
-  // std::cout << "is max node: " << IsMaxNode(state) << std::endl;
+//   std::cout << "fut.score[0]: " << fut.score[0] << std::endl;
+//   std::cout << "is max node: " << IsMaxNode(state) << std::endl;
+//   std::cout << "num declarer tricks: " << state.NumDeclarerTricks() << std::endl;
 
   if (const bool is_max_node = IsMaxNode(state); is_max_node) {
+//    std::cout << "return evaluation at max node" << std::endl;
+//    std::cout << "contract level + 6: " << contract.level + 6 << std::endl;
     // Declarer side wins if future tricks + tricks win >= contract.level + 6
     return fut.score[0] + state.NumDeclarerTricks() >= (contract.level + 6);
   }
@@ -248,12 +250,13 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state,
       auto next_possible_worlds = GetPossibleWorlds(s, worlds, move);
       const auto next_worlds = GetNextWorlds(worlds, next_possible_worlds, move);
       ParetoFront f = VanillaAlphaMu(s, num_max_moves, next_worlds, next_possible_worlds);
-//      std::cout << "front at Min node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
-//                << front.ToString() << std::endl;
+      std::cout << "front at Min node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
+                << f.ToString() << std::endl;
       f.SetMove(move);
       front = ParetoFrontMin(front, f);
-      //      std::cout << "Min node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
+      std::cout << "Min node, move: " << move.ToString() << "\nfront after join:\n" << front.ToString() << std::endl;
     }
+    std::cout << "overall front at Min node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
   }
   else {
     // Max node.
@@ -273,10 +276,12 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state,
       //      std::cout << "Step Max node alphamu\n";
       ParetoFront f = VanillaAlphaMu(s, num_max_moves - 1, next_worlds, next_possible_worlds);
       f.SetMove(move);
-
+//      std::cout << "front at Max node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
+//                << f.ToString() << std::endl;
       front = ParetoFrontMax(front, f);
       //      std::cout << "Max node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
     }
+    std::cout << "overall front at Max node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
   }
   return front;
 }

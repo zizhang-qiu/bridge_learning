@@ -4,9 +4,9 @@
 #include "outcome_vector.h"
 #include <algorithm>
 bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
-  if (lhs.possible_world != rhs.possible_world) {
-    return false;
-  }
+//  if (lhs.possible_world != rhs.possible_world) {
+//    return false;
+//  }
   CheckVectorSize(lhs.game_status, rhs.game_status);
   if (!VectorGreaterEqual(lhs.game_status, rhs.game_status)) {
     return false;

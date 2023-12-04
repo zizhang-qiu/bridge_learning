@@ -1,6 +1,6 @@
 #include "bridge_scoring.h"
-#include <string>
 #include <algorithm>
+#include <string>
 
 namespace bridge_learning_env {
 constexpr int kBaseTrickScores[] = {20, 20, 30, 30, 30};
@@ -12,20 +12,22 @@ int ScoreContract(Contract contract, DoubleStatus double_status) {
 }
 
 // Score for failing to make the contract (will be negative).
-int ScoreUndertricks(int undertricks, bool is_vulnerable,
-                     DoubleStatus double_status) {
+int ScoreUndertricks(int undertricks, bool is_vulnerable, DoubleStatus double_status) {
   if (double_status == kUndoubled) {
     return (is_vulnerable ? -100 : -50) * undertricks;
   }
   int score = 0;
   if (is_vulnerable) {
     score = -200 - 300 * (undertricks - 1);
-  } else {
+  }
+  else {
     if (undertricks == 1) {
       score = -100;
-    } else if (undertricks == 2) {
+    }
+    else if (undertricks == 2) {
       score = -300;
-    } else {
+    }
+    else {
       // This takes into account the -100 for the fourth and subsequent tricks.
       score = -500 - 300 * (undertricks - 3);
     }
@@ -34,70 +36,66 @@ int ScoreUndertricks(int undertricks, bool is_vulnerable,
 }
 
 // Score for tricks made in excess of the bid.
-int ScoreOvertricks(Denomination trump_suit, int overtricks, bool is_vulnerable,
-                    DoubleStatus double_status) {
+int ScoreOvertricks(Denomination trump_suit, int overtricks, bool is_vulnerable, DoubleStatus double_status) {
   if (double_status == kUndoubled) {
     return overtricks * kBaseTrickScores[trump_suit];
-  } else {
+  }
+  else {
     return (is_vulnerable ? 100 : 50) * overtricks * double_status;
   }
 }
 
 // Bonus for making a doubled or redoubled contract.
-int ScoreDoubledBonus(DoubleStatus double_status) {
-  return 50 * (double_status / 2);
-}
+int ScoreDoubledBonus(DoubleStatus double_status) { return 50 * (double_status / 2); }
 
 // Bonuses for partscore, game, or slam.
 int ScoreBonuses(int level, int contract_score, bool is_vulnerable) {
-  if (level == 7) {  // 1500/1000 for grand slam + 500/300 for game
+  if (level == 7) { // 1500/1000 for grand slam + 500/300 for game
     return is_vulnerable ? 2000 : 1300;
-  } else if (level == 6) {  // 750/500 for small slam + 500/300 for game
+  }
+  else if (level == 6) { // 750/500 for small slam + 500/300 for game
     return is_vulnerable ? 1250 : 800;
-  } else if (contract_score >= 100) {  // game bonus
+  }
+  else if (contract_score >= 100) { // game bonus
     return is_vulnerable ? 500 : 300;
-  } else {  // partscore bonus
+  }
+  else { // partscore bonus
     return 50;
   }
 }
-
 
 int Score(Contract contract, int declarer_tricks, bool is_vulnerable) {
   if (contract.level == 0) return 0;
   int contracted_tricks = 6 + contract.level;
   int contract_result = declarer_tricks - contracted_tricks;
   if (contract_result < 0) {
-    return ScoreUndertricks(-contract_result, is_vulnerable,
-                            contract.double_status);
-  } else {
+    return ScoreUndertricks(-contract_result, is_vulnerable, contract.double_status);
+  }
+  else {
     int contract_score = ScoreContract(contract, contract.double_status);
     int bonuses = ScoreBonuses(contract.level, contract_score, is_vulnerable) +
-                  ScoreDoubledBonus(contract.double_status) +
-                  ScoreOvertricks(contract.denomination, contract_result,
-                                  is_vulnerable, contract.double_status);
+        ScoreDoubledBonus(contract.double_status) +
+        ScoreOvertricks(contract.denomination, contract_result, is_vulnerable, contract.double_status);
     return contract_score + bonuses;
   }
 }
-constexpr int kScoreTable[] = {15, 45, 85, 125, 165, 215, 265, 315,
-                               365, 425, 495, 595, 745, 895, 1095, 1295,
-                               1495, 1745, 1995, 2245, 2495, 2995, 3495, 3995};
+constexpr int kScoreTable[] = {15,  45,  85,   125,  165,  215,  265,  315,  365,  425,  495,  595,
+                               745, 895, 1095, 1295, 1495, 1745, 1995, 2245, 2495, 2995, 3495, 3995};
 constexpr int kScoreTableSize = sizeof(kScoreTable) / sizeof(int);
 int GetImp(int score1, int score2) {
   const int score = score1 - score2;
   const int sign = score == 0 ? 0 : (score > 0 ? 1 : -1);
   const int abs_score = std::abs(score);
-  const int p =
-      std::upper_bound(kScoreTable, kScoreTable + kScoreTableSize, abs_score) -
-          kScoreTable;
+  const int p = static_cast<int>(std::upper_bound(kScoreTable, kScoreTable + kScoreTableSize, abs_score) - kScoreTable);
   return sign * p;
 }
 
 std::string Contract::ToString() const {
   if (level == 0) return "Passed Out";
-  std::string str = std::to_string(level)+ std::string{kDenominationChar[denomination]};
-  if (double_status == kDoubled) str+="X";
-  if (double_status == kRedoubled) str+="XX";
-  str +=  " " + std::string{kPlayerChar[declarer]};
+  std::string str = std::to_string(level) + std::string{kDenominationChar[denomination]};
+  if (double_status == kDoubled) str += "X";
+  if (double_status == kRedoubled) str += "XX";
+  str += " " + std::string{kPlayerChar[declarer]};
   return str;
 }
 
@@ -113,4 +111,4 @@ int Contract::Index() const {
   if (double_status == kDoubled) index += 1;
   return index + 1;
 }
-}
+} // namespace bridge_learning_env

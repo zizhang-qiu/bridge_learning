@@ -16,10 +16,10 @@ set(Python3_FIND_VIRTUALENV ONLY)
 if (WIN32)
 
     message("Compiling on Windows")
-#
-#    set(PYTHON_EXECUTABLE "${CONDA_PREFIX}/python.exe")
-#    set(PYTHON_INCLUDE_DIR "${CONDA_PREFIX}/include")
-#    set(PYTHON_LIBRARIES "${CONDA_PREFIX}/libs/python38.lib")
+    #
+    #    set(PYTHON_EXECUTABLE "${CONDA_PREFIX}/python.exe")
+    #    set(PYTHON_INCLUDE_DIR "${CONDA_PREFIX}/include")
+    #    set(PYTHON_LIBRARIES "${CONDA_PREFIX}/libs/python38.lib")
 else ()
     message("Compiling on Linux")
     set(CMAKE_CXX_FLAGS
@@ -60,6 +60,11 @@ endif ()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 add_subdirectory(third_party/pybind11)
 #set(PYBIND11_FINDPYTHON ON)
+
+# We add the subdirectory here so open_spiel_core can #include absl.
+set(ABSL_PROPAGATE_CXX_STD ON)
+add_subdirectory(third_party/abseil-cpp)
+include_directories(third_party/abseil-cpp)
 
 add_subdirectory(bridge_lib)
 
@@ -131,6 +136,16 @@ add_library(_bridgelearn
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
 target_include_directories(_bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(_bridgelearn PUBLIC
+        absl::algorithm
+        absl::flags
+        absl::flags_parse
+        absl::flat_hash_map
+        absl::optional
+        absl::random_random
+        absl::str_format
+        absl::strings
+        absl::time)
 
 add_executable(pareto_front_test playcc/pareto_front_test.cc)
 target_link_libraries(pareto_front_test PRIVATE _bridgelearn)
