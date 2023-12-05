@@ -63,6 +63,7 @@ add_subdirectory(third_party/pybind11)
 
 # We add the subdirectory here so open_spiel_core can #include absl.
 set(ABSL_PROPAGATE_CXX_STD ON)
+set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lstdc++fs")
 add_subdirectory(third_party/abseil-cpp)
 include_directories(third_party/abseil-cpp)
 
