@@ -160,8 +160,8 @@ ParetoFront ParetoFrontMin(const ParetoFront &lhs, const ParetoFront &rhs) {
   ParetoFront result{};
   for (const auto &vec : lhs.OutcomeVectors()) {
     for (const auto &v : rhs.OutcomeVectors()) {
-      const auto r_vec = VectorMin(vec.game_status, v.game_status);
-      const OutcomeVector outcome_vector{r_vec, vec.possible_world};
+      //      const auto r_vec = VectorMin(vec.game_status, v.game_status);
+      const OutcomeVector outcome_vector = OutcomeVectorJoin(vec, v);
       result.Insert(outcome_vector);
     }
   }

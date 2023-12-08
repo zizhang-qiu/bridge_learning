@@ -2,6 +2,7 @@
 // Created by qzz on 2023/11/20.
 //
 #include "pimc.h"
+#include "absl/strings/str_cat.h"
 int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   auto cloned = state.Clone();
   cloned.ApplyMove(move);
@@ -17,10 +18,9 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   if (res != RETURN_NO_FAULT) {
     char error_message[80];
     ErrorMessage(res, error_message);
-    std::cerr << "double dummy solver: " << error_message << std::endl;
-    std::exit(1);
+    SpielFatalError(absl::StrCat("double dummy solver:", error_message));
   }
-  const int num_tricks_left = 13 - state.NumTricksPlayed();
+  const int num_tricks_left = ble::kNumTricks - state.NumTricksPlayed();
   return state.NumDeclarerTricks() + num_tricks_left - fut.score[0] >= 6 + state.GetContract().level;
 }
 std::pair<ble::BridgeMove, int> GetBestAction(const SearchResult& res) {
@@ -40,13 +40,13 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
     return res;
   }
   for (int i = 0; i < num_sample_; ++i) {
-    auto deal = resampler_->Resample(state);
-    if (deal[0] == -1) {
+    auto resample_result = resampler_->Resample(state);
+    if (!resample_result.success) {
       --i;
       continue;
     }
     //      std::cout << "sampled deal " << i << std::endl;
-    auto sampled_state = ConstructStateFromDeal(deal, state.ParentGame(), state);
+    auto sampled_state = ConstructStateFromDeal(resample_result.result, state.ParentGame(), state);
     //      std::cout << sampled_state->ToString() << std::endl;
     for (int j = 0; j < num_legal_moves; ++j) {
       const int score = Rollout(sampled_state, legal_moves[j]);

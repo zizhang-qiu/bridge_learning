@@ -13,11 +13,18 @@
 #include "utils.h"
 namespace ble = bridge_learning_env;
 
+struct ResampleResult {
+  // For some reason, the resample procedure may fail.
+  bool success;
+  std::array<int, ble::kNumCards> result;
+};
+
 class Resampler {
   public:
   Resampler() = default;
   virtual ~Resampler() = default;
-  virtual std::array<int, ble::kNumCards> Resample(const ble::BridgeState &state) = 0;
+  virtual ResampleResult Resample(const ble::BridgeState &state) = 0;
+
 };
 
 const std::vector<int> all_cards = ble::Arange(0, ble::kNumCards);
@@ -39,7 +46,7 @@ class UniformResampler final : public Resampler {
   public:
   explicit UniformResampler(const int seed) : rng_(seed), deck_sampler_() {}
 
-  std::array<int, ble::kNumCards> Resample(const ble::BridgeState &state) override;
+  ResampleResult Resample(const ble::BridgeState &state) override;
 
   private:
   std::mt19937 rng_;

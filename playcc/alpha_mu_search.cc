@@ -3,6 +3,7 @@
 //
 
 #include "alpha_mu_search.h"
+#include "absl/strings/str_cat.h"
 
 bool IsMaxNode(const ble::BridgeState &state) {
   const ble::Contract contract = state.GetContract();
@@ -29,15 +30,15 @@ bool DoubleDummyEvaluation(const ble::BridgeState &state) {
   if (res != RETURN_NO_FAULT) {
     char error_message[80];
     ErrorMessage(res, error_message);
-    SpielFatalError("double dummy solver:" + std::string(error_message));
+    SpielFatalError(absl::StrCat("double dummy solver:", error_message, "current state:\n", state.ToString()));
   }
-//   std::cout << "fut.score[0]: " << fut.score[0] << std::endl;
-//   std::cout << "is max node: " << IsMaxNode(state) << std::endl;
-//   std::cout << "num declarer tricks: " << state.NumDeclarerTricks() << std::endl;
+  //   std::cout << "fut.score[0]: " << fut.score[0] << std::endl;
+  //   std::cout << "is max node: " << IsMaxNode(state) << std::endl;
+  //   std::cout << "num declarer tricks: " << state.NumDeclarerTricks() << std::endl;
 
   if (const bool is_max_node = IsMaxNode(state); is_max_node) {
-//    std::cout << "return evaluation at max node" << std::endl;
-//    std::cout << "contract level + 6: " << contract.level + 6 << std::endl;
+    //    std::cout << "return evaluation at max node" << std::endl;
+    //    std::cout << "contract level + 6: " << contract.level + 6 << std::endl;
     // Declarer side wins if future tricks + tricks win >= contract.level + 6
     return fut.score[0] + state.NumDeclarerTricks() >= (contract.level + 6);
   }
@@ -250,13 +251,13 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state,
       auto next_possible_worlds = GetPossibleWorlds(s, worlds, move);
       const auto next_worlds = GetNextWorlds(worlds, next_possible_worlds, move);
       ParetoFront f = VanillaAlphaMu(s, num_max_moves, next_worlds, next_possible_worlds);
-      std::cout << "front at Min node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
-                << f.ToString() << std::endl;
+//      std::cout << "front at Min node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
+//                << f.ToString() << std::endl;
       f.SetMove(move);
       front = ParetoFrontMin(front, f);
-      std::cout << "Min node, move: " << move.ToString() << "\nfront after join:\n" << front.ToString() << std::endl;
+//      std::cout << "Min node, move: " << move.ToString() << "\nfront after join:\n" << front.ToString() << std::endl;
     }
-    std::cout << "overall front at Min node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
+//    std::cout << "overall front at Min node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
   }
   else {
     // Max node.
@@ -279,9 +280,9 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state,
 //      std::cout << "front at Max node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
 //                << f.ToString() << std::endl;
       front = ParetoFrontMax(front, f);
-      //      std::cout << "Max node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
+//      std::cout << "Max node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
     }
-    std::cout << "overall front at Max node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
+//    std::cout << "overall front at Max node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
   }
   return front;
 }
@@ -290,13 +291,13 @@ bool StopSearch(const ble::BridgeStateWithoutHiddenInfo &state,
                 const vector<ble::BridgeState> &worlds,
                 const vector<bool> &possible_worlds,
                 ParetoFront &result) {
-  if (state.NumDeclarerTricks() > state.GetContract().level + 6) {
+  if (state.NumDeclarerTricks() >= state.GetContract().level + 6) {
     result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 1);
     return true;
   }
   const auto contract = state.GetContract();
   const int defense_tricks = state.NumTricksPlayed() - state.NumDeclarerTricks();
-  if (defense_tricks > ble::kNumTricks - (contract.level + 6)) {
+  if (defense_tricks >= ble::kNumTricks - (contract.level + 6)) {
     result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 0);
     return true;
   }
@@ -308,6 +309,9 @@ bool StopSearch(const ble::BridgeStateWithoutHiddenInfo &state,
       if (possible_worlds[i]) {
         const bool double_dummy_evaluation = DoubleDummyEvaluation(worlds[i]);
         game_status[i] = double_dummy_evaluation;
+      }
+      else {
+        game_status[i] = 1;
       }
     }
     result.Insert({game_status, possible_worlds});

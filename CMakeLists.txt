@@ -11,6 +11,12 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
+# Set a default build type if none was specified
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
+endif ()
+
+message(STATUS CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
 
 set(Python3_FIND_VIRTUALENV ONLY)
 if (WIN32)
@@ -33,14 +39,14 @@ else ()
     #    set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES /usr/local/cuda-11.8)
     set(CUDA_NVCC_EXECUTABLE /usr/local/cuda-11.6/bin/nvcc)
     set(CMAKE_CUDA_EXTENSIONS ON)
-    set(Python3_ROOT_DIR /home/work/miniconda3/envs/bridge_research/bin)
-    set(PYTHON_EXECUTABLE /home/work/miniconda3/envs/bridge_research/bin/python)
+    #    set(Python3_ROOT_DIR /home/work/miniconda3/envs/bridge_research/bin)
+    #    set(PYTHON_EXECUTABLE /home/work/miniconda3/envs/bridge_research/bin/python)
 endif ()
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 #find_package(PythonLibs REQUIRED)
 
-message(STATUS ${Python3_EXECUTABLE})
+message(STATUS Python3_EXECUTABLE=${Python3_EXECUTABLE})
 execute_process(
         COMMAND ${Python3_EXECUTABLE} -c "import torch; import os; print(os.path.dirname(torch.__file__), end='')"
         OUTPUT_VARIABLE TorchPath
@@ -63,17 +69,19 @@ add_subdirectory(third_party/pybind11)
 
 # We add the subdirectory here so open_spiel_core can #include absl.
 set(ABSL_PROPAGATE_CXX_STD ON)
-set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lstdc++fs")
+#set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lstdc++fs")
 add_subdirectory(third_party/abseil-cpp)
 include_directories(third_party/abseil-cpp)
 
 add_subdirectory(bridge_lib)
 
-pybind11_add_module(bridge SHARED pybridge/pybind.cc)
-target_include_directories(bridge PUBLIC "third_party/pybind11/include")
-target_include_directories(bridge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(bridge PUBLIC bridge_lib)
-set_target_properties(bridge PROPERTIES OUTPUT_NAME "bridge")
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    pybind11_add_module(bridge SHARED pybridge/pybind.cc)
+    target_include_directories(bridge PUBLIC "third_party/pybind11/include")
+    target_include_directories(bridge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(bridge PUBLIC bridge_lib)
+    set_target_properties(bridge PROPERTIES OUTPUT_NAME "bridge")
+endif ()
 
 add_library(rela_lib rela/batcher.h
         rela/batcher.cc
@@ -95,12 +103,14 @@ target_include_directories(rela_lib PUBLIC ${Python3_INCLUDE_DIRS})
 target_link_libraries(rela_lib PUBLIC ${TORCH_LIBRARIES})
 target_link_libraries(rela_lib PUBLIC ${TORCH_PYTHON_LIBRARIES})
 
-pybind11_add_module(rela SHARED rela/pybind.cc)
-target_include_directories(rela PUBLIC "third_party/pybind11/include")
-target_include_directories(rela PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(rela PUBLIC ${TORCH_INCLUDE_DIRS})
-target_include_directories(rela PUBLIC ${Python3_INCLUDE_DIRS})
-target_link_libraries(rela PUBLIC rela_lib ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    pybind11_add_module(rela SHARED rela/pybind.cc)
+    target_include_directories(rela PUBLIC "third_party/pybind11/include")
+    target_include_directories(rela PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(rela PUBLIC ${TORCH_INCLUDE_DIRS})
+    target_include_directories(rela PUBLIC ${Python3_INCLUDE_DIRS})
+    target_link_libraries(rela PUBLIC rela_lib ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
+endif ()
 
 
 add_library(_bridgelearn
@@ -133,6 +143,8 @@ add_library(_bridgelearn
         playcc/bridge_state_without_hidden_info.h
         playcc/log_utils.cc
         playcc/log_utils.h
+        playcc/alpha_mu_bot.cc
+        playcc/alpha_mu_bot.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
@@ -156,11 +168,13 @@ add_executable(log_utils_test playcc/log_utils_test.cc)
 target_link_libraries(log_utils_test PRIVATE _bridgelearn)
 add_test(log_utils_test log_utils_test)
 
-pybind11_add_module(bridgelearn rlcc/pybind.cc)
-target_link_libraries(bridgelearn PUBLIC _bridgelearn)
-target_link_libraries(bridgelearn PUBLIC bridge_lib)
-target_link_libraries(bridgelearn PUBLIC rela_lib)
-target_include_directories(bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    pybind11_add_module(bridgelearn rlcc/pybind.cc)
+    target_link_libraries(bridgelearn PUBLIC _bridgelearn)
+    target_link_libraries(bridgelearn PUBLIC bridge_lib)
+    target_link_libraries(bridgelearn PUBLIC rela_lib)
+    target_include_directories(bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+endif ()
 
 add_executable(main main.cc)
 target_link_libraries(main PUBLIC bridge_lib)

@@ -54,7 +54,7 @@ std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndCo
   //  std::cout << "Get current player's hand" << std::endl;
   return std::make_tuple(constraints, known_cards);
 }
-std::array<int, ble::kNumCards> UniformResampler::Resample(const ble::BridgeState &state) {
+ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
   deck_sampler_.Reset();
 
   const ble::Player current_player = state.CurrentPlayer();
@@ -110,7 +110,7 @@ std::array<int, ble::kNumCards> UniformResampler::Resample(const ble::BridgeStat
         sampled_hands[pl].AddCard(sampled_card);
       }
       else {
-        return {-1};
+        return {false, {}};
       }
     }
   }
@@ -129,7 +129,7 @@ std::array<int, ble::kNumCards> UniformResampler::Resample(const ble::BridgeStat
         sampled_hands[pl].AddCard(sampled_card);
       }
       else {
-        return {-1};
+        return {false, {}};
       }
     }
   }
@@ -140,5 +140,5 @@ std::array<int, ble::kNumCards> UniformResampler::Resample(const ble::BridgeStat
   //      }
   //      std::cout << "\n";
   //    }
-  return HandsToCardIndices(sampled_hands);
+  return {true, HandsToCardIndices(sampled_hands)};
 }
