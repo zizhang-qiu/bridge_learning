@@ -102,11 +102,16 @@ class BridgeState {
 
   BridgeState Child(const BridgeMove &move) const;
 
-  std::vector<BridgeHistoryItem> DealHistory() const{return SpecifiedHistory(BridgeMove::Type::kDeal);}
+  std::vector<BridgeHistoryItem> DealHistory() const { return SpecifiedHistory(BridgeMove::Type::kDeal); }
 
-  std::vector<BridgeHistoryItem> PlayHistory() const{return SpecifiedHistory(BridgeMove::Type::kPlay);}
+  std::vector<BridgeHistoryItem> PlayHistory() const { return SpecifiedHistory(BridgeMove::Type::kPlay); }
 
-  std::vector<BridgeHistoryItem> AuctionHistory() const{return SpecifiedHistory(BridgeMove::Type::kAuction);}
+  std::vector<BridgeHistoryItem> AuctionHistory() const { return SpecifiedHistory(BridgeMove::Type::kAuction); }
+
+  const BridgeMove &LastMove() const {
+    REQUIRE(!move_history_.empty());
+    return move_history_.back().move;
+  }
 
   private:
   BridgeDeck deck_;

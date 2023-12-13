@@ -11,6 +11,16 @@ bool IsMaxNode(const ble::BridgeState &state) {
   return ble::Partnership(contract.declarer) == ble::Partnership(current_player);
 }
 
+bool IsPlayerDeclarerSide(const ble::BridgeState &state, ble::Player player) {
+  const ble::Player declarer = state.GetContract().declarer;
+  return ble::Partnership(player) == ble::Partnership(declarer);
+}
+
+bool IsPlayerDeclarerSide(const ble::BridgeStateWithoutHiddenInfo &state, ble::Player player) {
+  const ble::Player declarer = state.GetContract().declarer;
+  return ble::Partnership(player) == ble::Partnership(declarer);
+}
+
 ble::BridgeState ApplyMove(const ble::BridgeMove &move, ble::BridgeState state) {
   state.ApplyMove(move);
   return state;
@@ -50,9 +60,10 @@ bool DoubleDummyEvaluation(const ble::BridgeState &state) {
 std::vector<int> DoubleDummyEvaluation(const Worlds &worlds) {
   const auto &states = worlds.States();
   const size_t size = states.size();
+  const auto possible = worlds.Possible();
   std::vector<int> evaluation(size, 0);
   for (size_t i = 0; i < size; ++i) {
-    evaluation[i] = DoubleDummyEvaluation(states[i]);
+    evaluation[i] = possible[i] ? DoubleDummyEvaluation(states[i]) : 0;
   }
   return evaluation;
 }
@@ -169,123 +180,6 @@ std::vector<ble::BridgeState> GetNextWorlds(const std::vector<ble::BridgeState> 
   }
   return next_worlds;
 }
-
-// TODO: Find better methods to deal with possible_worlds.
-// ParetoFront VanillaAlphaMu(const ble::BridgeState &state,
-//                           const int num_max_moves,
-//                           const std::vector<ble::BridgeState> &worlds,
-//                           const std::vector<bool> &possible_worlds) {
-//  ParetoFront result{};
-//  const bool stop = StopSearch(state, num_max_moves, worlds, possible_worlds, result);
-//  std::cout << std::boolalpha << "stop: " << stop << "\n";
-//  std::cout << "result: \n" << result.ToString() << std::endl;
-//  if (stop) {
-//    return result;
-//  }
-//
-//  ParetoFront front{};
-//  if (const bool is_max_node = IsMaxNode(state); !is_max_node) {
-//    std::cout << "Min node, M = " << num_max_moves << std::endl;
-//    const auto legal_moves = state.LegalMoves();
-//    std::cout << "legal moves:\n";
-//    for (const auto &move : legal_moves) {
-//      std::cout << move.ToString() << std::endl;
-//    }
-//    const std::vector<ble::BridgeMove> all_moves = GetAllLegalMovesFromPossibleWorlds(worlds, possible_worlds);
-//    std::cout << "all moves:\n";
-//    for (const auto &move : all_moves) {
-//      std::cout << move.ToString() << std::endl;
-//    }
-//    for (const auto &move : all_moves) {
-//      auto s = state.Child(move);
-//      auto next_possible_worlds = GetPossibleWorlds(worlds, move);
-//      const auto next_worlds = GetNextWorlds(worlds, next_possible_worlds, move);
-//      //      std::cout << "Step Min node alpha_mu\n";
-//      ParetoFront f = VanillaAlphaMu(s, num_max_moves, next_worlds, next_possible_worlds);
-//      f.SetMove(move);
-//
-//      front = ParetoFrontMin(front, f);
-//    }
-//  }
-//  else {
-//    std::cout << "Max node, M = " << num_max_moves << std::endl;
-//    const std::vector<ble::BridgeMove> all_moves = GetAllLegalMovesFromPossibleWorlds(worlds, possible_worlds);
-//    for (const auto &move : all_moves) {
-//      auto s = state.Child(move);
-//      auto next_possible_worlds = GetPossibleWorlds(worlds, move);
-//      const auto next_worlds = GetNextWorlds(worlds, next_possible_worlds, move);
-//      //      std::cout << "Step Max node alphamu\n";
-//      ParetoFront f = VanillaAlphaMu(s, num_max_moves - 1, next_worlds, next_possible_worlds);
-//      f.SetMove(move);
-//      //      std::cout << "move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
-//      front = ParetoFrontMax(front, f);
-//    }
-//  }
-//  return front;
-//}
-ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state,
-                           int num_max_moves,
-                           const vector<ble::BridgeState> &worlds,
-                           const vector<bool> &possible_worlds) {
-  ParetoFront result{};
-  const bool stop = StopSearch(state, num_max_moves, worlds, possible_worlds, result);
-  //  std::cout << std::boolalpha << "stop: " << stop << "\n";
-  //  std::cout << "result: \n" << result.ToString() << std::endl;
-  if (stop) {
-    return result;
-  }
-
-  ParetoFront front{};
-  if (ble::Partnership(state.CurrentPlayer()) != ble::Partnership(state.GetContract().declarer)) {
-    // Min node.
-    //    std::cout << "Min node, M = " << num_max_moves << std::endl;
-    const std::vector<ble::BridgeMove> all_moves = GetAllLegalMovesFromPossibleWorlds(worlds, possible_worlds);
-    //    std::cout << "Current state: " << state.ToString() << std::endl;
-    //    std::cout << "all moves: \n";
-    //    for (const auto &move : all_moves) {
-    //      std::cout << move.ToString() << "\n";
-    //    }
-    for (const ble::BridgeMove &move : all_moves) {
-      //      std::cout << "Trying move " << move.ToString() << " in Min node, M = " << num_max_moves << std::endl;
-      const auto s = state.Child(move);
-      auto next_possible_worlds = GetPossibleWorlds(s, worlds, move);
-      const auto next_worlds = GetNextWorlds(worlds, next_possible_worlds, move);
-      ParetoFront f = VanillaAlphaMu(s, num_max_moves, next_worlds, next_possible_worlds);
-//      std::cout << "front at Min node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
-//                << f.ToString() << std::endl;
-      f.SetMove(move);
-      front = ParetoFrontMin(front, f);
-//      std::cout << "Min node, move: " << move.ToString() << "\nfront after join:\n" << front.ToString() << std::endl;
-    }
-//    std::cout << "overall front at Min node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
-  }
-  else {
-    // Max node.
-    //    std::cout << "Max node, M = " << num_max_moves << std::endl;
-    const std::vector<ble::BridgeMove> all_moves = GetAllLegalMovesFromPossibleWorlds(worlds, possible_worlds);
-    //    std::cout << "Current state: " << state.ToString() << std::endl;
-    //    std::cout << "all moves: \n";
-    //    for (const auto &move : all_moves) {
-    //      std::cout << move.ToString() << "\n";
-    //    }
-    for (const auto &move : all_moves) {
-      //      std::cout << "Trying move " << move.ToString() << " in Max node, M = " << num_max_moves << std::endl;
-
-      auto s = state.Child(move);
-      auto next_possible_worlds = GetPossibleWorlds(s, worlds, move);
-      const auto next_worlds = GetNextWorlds(worlds, next_possible_worlds, move);
-      //      std::cout << "Step Max node alphamu\n";
-      ParetoFront f = VanillaAlphaMu(s, num_max_moves - 1, next_worlds, next_possible_worlds);
-      f.SetMove(move);
-//      std::cout << "front at Max node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
-//                << f.ToString() << std::endl;
-      front = ParetoFrontMax(front, f);
-//      std::cout << "Max node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
-    }
-//    std::cout << "overall front at Max node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
-  }
-  return front;
-}
 bool StopSearch(const ble::BridgeStateWithoutHiddenInfo &state,
                 int num_max_moves,
                 const vector<ble::BridgeState> &worlds,
@@ -318,4 +212,95 @@ bool StopSearch(const ble::BridgeStateWithoutHiddenInfo &state,
     return true;
   }
   return false;
+}
+
+StopResult StopSearch(const ble::BridgeStateWithoutHiddenInfo &state, int num_max_moves, const Worlds &worlds) {
+  const ble::Contract contract = state.GetContract();
+  const auto possible_worlds = worlds.Possible();
+  const auto last_history = state.PlayHistory().back();
+
+  // Declarer side has already won.
+  if (state.NumDeclarerTricks() >= (6 + contract.level)) {
+    ParetoFront result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 1);
+    return {true, result};
+  }
+
+  // Declarer side has already lost.
+  const int defense_tricks = state.NumTricksPlayed() - state.NumDeclarerTricks();
+  if (defense_tricks > ble::kNumTricks - (contract.level + 6)) {
+    ParetoFront result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 0);
+    return {true, result};
+  }
+
+  if (num_max_moves == 0) {
+    // Reach leaf node.
+    const auto evaluation = DoubleDummyEvaluation(worlds);
+    ParetoFront result{};
+    result.Insert({evaluation, possible_worlds});
+    result.SetMove(last_history.move);
+    return {true, result};
+  }
+
+  return {false, {}};
+}
+
+ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state, int num_max_moves, const Worlds &worlds) {
+  auto [stop, result] = StopSearch(state, num_max_moves, worlds);
+  //  std::cout << std::boolalpha << "stop: " << stop << "\n";
+  //  std::cout << "result: \n" << result.ToString() << std::endl;
+  if (stop) {
+    return result;
+  }
+
+  ParetoFront front{};
+  if (ble::Partnership(state.CurrentPlayer()) != ble::Partnership(state.GetContract().declarer)) {
+    // Min node.
+    //    std::cout << "Min node, M = " << num_max_moves << std::endl;
+    const std::vector<ble::BridgeMove> all_moves = worlds.GetAllPossibleMoves();
+    //    std::cout << "Current state: " << state.ToString() << std::endl;
+    //    std::cout << "all moves: \n";
+    //    for (const auto &move : all_moves) {
+    //      std::cout << move.ToString() << "\n";
+    //    }
+    for (const ble::BridgeMove &move : all_moves) {
+      //      std::cout << "Trying move " << move.ToString() << " in Min node, M = " << num_max_moves << std::endl;
+      const auto s = state.Child(move);
+
+      const auto next_worlds = worlds.Child(move);
+      ParetoFront f = VanillaAlphaMu(s, num_max_moves, next_worlds);
+      //      std::cout << "front at Min node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
+      //                << f.ToString() << std::endl;
+      f.SetMove(move);
+      front = ParetoFrontMin(front, f);
+      //      std::cout << "Min node, move: " << move.ToString() << "\nfront after join:\n" << front.ToString() <<
+      //      std::endl;
+    }
+    //    std::cout << "overall front at Min node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
+  }
+  else {
+    // Max node.
+    //    std::cout << "Max node, M = " << num_max_moves << std::endl;
+    const std::vector<ble::BridgeMove> all_moves = worlds.GetAllPossibleMoves();
+    //    std::cout << "Current state: " << state.ToString() << std::endl;
+    //    std::cout << "all moves: \n";
+    //    for (const auto &move : all_moves) {
+    //      std::cout << move.ToString() << "\n";
+    //    }
+    for (const auto &move : all_moves) {
+      //      std::cout << "Trying move " << move.ToString() << " in Max node, M = " << num_max_moves << std::endl;
+
+      auto s = state.Child(move);
+
+      const auto next_worlds = worlds.Child(move);
+      //      std::cout << "Step Max node alphamu\n";
+      ParetoFront f = VanillaAlphaMu(s, num_max_moves - 1, next_worlds);
+      f.SetMove(move);
+      //      std::cout << "front at Max node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
+      //                << f.ToString() << std::endl;
+      front = ParetoFrontMax(front, f);
+      //      std::cout << "Max node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
+    }
+    //    std::cout << "overall front at Max node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
+  }
+  return front;
 }

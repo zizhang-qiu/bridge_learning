@@ -2,6 +2,7 @@
 // Created by qzz on 2023/11/20.
 //
 #include "resampler.h"
+#include "bridge_lib/utils.h"
 std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndConstraintsFromState(
     const ble::BridgeState &state) {
   ResampleConstraints constraints{};
@@ -53,6 +54,21 @@ std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndCo
   }
   //  std::cout << "Get current player's hand" << std::endl;
   return std::make_tuple(constraints, known_cards);
+}
+std::vector<std::array<int, ble::kNumCards>> ResampleMultipleDeals(const std::shared_ptr<Resampler> &resampler,
+                                                                   const ble::BridgeState &state,
+                                                                   int num_deals) {
+  std::vector<std::array<int, ble::kNumCards>> deals;
+  int num_sampled_deals = 0;
+  while (num_sampled_deals < num_deals) {
+    const ResampleResult result = resampler->Resample(state);
+    if (result.success) {
+      deals.push_back(result.result);
+      ++num_sampled_deals;
+    }
+  }
+  SPIEL_CHECK_EQ(num_sampled_deals, num_deals);
+  return deals;
 }
 ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
   deck_sampler_.Reset();
@@ -141,4 +157,8 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
   //      std::cout << "\n";
   //    }
   return {true, HandsToCardIndices(sampled_hands)};
+}
+void UniformResampler::ResetWithParams(const unordered_map<std::string, std::string> &params) {
+  auto seed = ble::ParameterValue<int>(params, "seed", 42);
+  rng_.seed(seed);
 }

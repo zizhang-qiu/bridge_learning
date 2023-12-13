@@ -13,6 +13,11 @@
 struct AlphaMuConfig {
   int num_max_moves;
   int num_worlds;
+  bool search_with_one_legal_move;
+  bool use_transportation_table;
+  bool root_cut;
+  bool early_cut;
+
 };
 class VanillaAlphaMuBot final : public PlayBot {
   public:

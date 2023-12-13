@@ -24,8 +24,12 @@ class Resampler {
   Resampler() = default;
   virtual ~Resampler() = default;
   virtual ResampleResult Resample(const ble::BridgeState &state) = 0;
-
+  virtual void ResetWithParams(const std::unordered_map<std::string, std::string>&){};
 };
+
+std::vector<std::array<int, ble::kNumCards>> ResampleMultipleDeals(const std::shared_ptr<Resampler> &resampler,
+                                                                   const ble::BridgeState &state,
+                                                                   int num_deals);
 
 const std::vector<int> all_cards = ble::Arange(0, ble::kNumCards);
 
@@ -47,6 +51,8 @@ class UniformResampler final : public Resampler {
   explicit UniformResampler(const int seed) : rng_(seed), deck_sampler_() {}
 
   ResampleResult Resample(const ble::BridgeState &state) override;
+
+  void ResetWithParams(const std::unordered_map<std::string, std::string>& params) override;
 
   private:
   std::mt19937 rng_;

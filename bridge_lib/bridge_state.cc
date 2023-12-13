@@ -282,7 +282,7 @@ std::string BridgeState::FormatVulnerability() const {
 }
 
 std::string BridgeState::FormatDeal() const {
-  std::string rv = StrCat("Dealer is ", ParentGame()->Dealer(), ".\n");
+  std::string rv = StrCat("Dealer is ", kPlayerChar[ParentGame()->Dealer()], ".\n");
   std::vector<BridgeHand> hands;
   if (IsTerminal()) {
     hands = OriginalDeal();

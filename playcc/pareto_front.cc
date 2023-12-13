@@ -70,7 +70,8 @@ std::string ParetoFront::ToString() const {
   for (auto it = outcome_vectors_.begin(); it != outcome_vectors_.end(); ++it) {
     rv += std::to_string(index) + ":\nGame status:\n{";
     rv += "[" + VectorToString((*it).game_status) + "],\npossible worlds:\n";
-    rv += "[" + VectorToString((*it).possible_world) + "]";
+    rv += "[" + VectorToString((*it).possible_world) + "],\n move:";
+    rv += (*it).move.ToString();
     ++index;
     if (std::next(it) != outcome_vectors_.end()) {
       rv += ",\n";
@@ -177,4 +178,8 @@ ParetoFront ParetoFrontMax(const ParetoFront &lhs, const ParetoFront &rhs) {
     result.Insert(ov);
   }
   return result;
+}
+std::ostream &operator<<(std::ostream &stream, const ParetoFront &front) {
+  stream << front.ToString();
+  return stream;
 }

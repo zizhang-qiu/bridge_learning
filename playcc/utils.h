@@ -40,4 +40,12 @@ deal StateToDDSDeal(const ble::BridgeState &state);
 std::vector<int> MovesToUids(const std::vector<ble::BridgeMove> &moves, const ble::BridgeGame &game);
 
 bool IsActingPlayerDeclarerSide(const ble::BridgeState &state);
+
+template<typename T, size_t N>
+void PrintArray(std::array<T, N> arr) {
+  for (const auto item : arr) {
+    std::cout << item << ",";
+  }
+  std::cout << std::endl;
+}
 #endif // BRIDGE_LEARNING_PLAYCC_UTILS_H_

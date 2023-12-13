@@ -3,6 +3,7 @@
 //
 
 #include "worlds.h"
+#include "log_utils.h"
 std::vector<bool> Worlds::MoveIsLegal(const ble::BridgeMove& move) const {
   std::vector<bool> results;
   results.reserve(states_.size());
@@ -11,10 +12,16 @@ std::vector<bool> Worlds::MoveIsLegal(const ble::BridgeMove& move) const {
   }
   return results;
 }
+
 void Worlds::ApplyMove(const ble::BridgeMove& move) {
   for (int i = 0; i < Size(); ++i) {
     if (possible_[i]) {
-      states_[i].ApplyMove(move);
+      if (states_[i].MoveIsLegal(move)) {
+        states_[i].ApplyMove(move);
+      }
+      else {
+        possible_[i] = false;
+      }
     }
   }
 }
@@ -25,5 +32,24 @@ std::string Worlds::ToString() const {
   }
   return rv;
 }
-
-
+std::vector<ble::BridgeMove> Worlds::GetAllPossibleMoves() const {
+  SPIEL_CHECK_FALSE(states_.empty());
+  const auto game = states_[0].ParentGame();
+  auto compare_func = [game](const ble::BridgeMove& lhs, const ble::BridgeMove& rhs) {
+    return game->GetMoveUid(lhs) < game->GetMoveUid(rhs);
+  };
+  std::set<ble::BridgeMove, decltype(compare_func)> possible_moves(compare_func);
+  for (int i = 0; i < Size(); ++i) {
+    if (possible_[i]) {
+      const auto legal_moves = states_[i].LegalMoves();
+      for (const ble::BridgeMove& move : legal_moves) {
+        possible_moves.emplace(move);
+      }
+    }
+  }
+  return {possible_moves.begin(), possible_moves.end()};
+}
+std::ostream& operator<<(ostream& stream, const Worlds& worlds) {
+  stream << worlds.ToString();
+  return stream;
+}

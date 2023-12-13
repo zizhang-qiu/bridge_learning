@@ -65,6 +65,7 @@ endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 add_subdirectory(third_party/pybind11)
+add_subdirectory(third_party/cxxopts)
 #set(PYBIND11_FINDPYTHON ON)
 
 # We add the subdirectory here so open_spiel_core can #include absl.
@@ -167,6 +168,9 @@ add_test(pareto_front_test pareto_front_test)
 add_executable(log_utils_test playcc/log_utils_test.cc)
 target_link_libraries(log_utils_test PRIVATE _bridgelearn)
 add_test(log_utils_test log_utils_test)
+
+add_executable(bridge_match playcc/match.cc)
+target_link_libraries(bridge_match PRIVATE _bridgelearn)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     pybind11_add_module(bridgelearn rlcc/pybind.cc)

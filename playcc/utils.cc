@@ -122,8 +122,3 @@ bool IsActingPlayerDeclarerSide(const ble::BridgeState& state) {
   const auto cur_player = state.CurrentPlayer();
   return ble::Partnership(declarer) == ble::Partnership(cur_player);
 }
-
-void DefaultErrorHandler(const std::string& error_msg) {
-  std::cerr << "Spiel Fatal Error: " << error_msg << std::endl << std::endl << std::flush;
-  std::exit(1);
-}
