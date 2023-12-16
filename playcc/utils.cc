@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "bridge_lib/bridge_utils.h"
 #include "bridge_lib/utils.h"
+#include <algorithm>
 std::vector<ble::BridgeHistoryItem> GetPlayHistory(const std::vector<ble::BridgeHistoryItem> &history) {
   std::vector<ble::BridgeHistoryItem> play_history;
   for (const auto item : history) {
