@@ -48,4 +48,34 @@ void PrintArray(std::array<T, N> arr) {
   }
   std::cout << std::endl;
 }
+
+std::array<std::vector<ble::BridgeCard>,
+           ble::kNumSuits> SplitCardsVecBySuits(const std::vector<ble::BridgeCard> &cards);
+
+std::set<ble::Suit> GetSuitsFromCardsVec(const std::vector<ble::BridgeCard> &cards);
+
+std::set<ble::Suit> GetSuitsFromMovesVec(const std::vector<ble::BridgeMove> &moves);
+
+std::vector<ble::BridgeCard> ExtractCardsBySuitsFromCardsVec(const std::vector<ble::BridgeCard> &cards,
+                                                             const std::set<ble::Suit> &suits);
+
+std::vector<ble::BridgeCard> GenerateAllCardsBySuits(const std::set<ble::Suit> &suits);
+
+std::vector<ble::BridgeMove> GetLegalMovesWithoutEquivalentCards(const ble::BridgeState &state);
+
+std::vector<int> KeepLargestConsecutive(const std::vector<int> &input);
+
+template<typename T, typename RNG>
+T UniformSample(const std::vector<T> &vec, RNG &rng) {
+  // Check if the vector is not empty
+  if (vec.empty()) {
+    throw std::out_of_range("Vector is empty");
+  }
+
+  // Use the provided RNG to generate an index uniformly
+  std::uniform_int_distribution<std::size_t> dist(0, vec.size() - 1);
+
+  // Return the sampled element
+  return vec[dist(rng)];
+}
 #endif // BRIDGE_LEARNING_PLAYCC_UTILS_H_

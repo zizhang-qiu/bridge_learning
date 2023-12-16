@@ -17,4 +17,15 @@ bool BridgeCard::operator==(const BridgeCard &other_card) const {
   return other_card.CardSuit() == CardSuit() && other_card.Rank() == Rank();
 }
 
+std::ostream &operator<<(std::ostream &stream, const BridgeCard &card) {
+  stream << card.ToString();
+  return stream;
+}
+
+std::ostream &operator<<(std::ostream &stream, const std::vector<BridgeCard> &cards) {
+  for (const auto &card : cards) {
+    stream << card << ", ";
+  }
+  return stream;
+}
 } // bridge

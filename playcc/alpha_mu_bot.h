@@ -9,29 +9,48 @@
 #include "resampler.h"
 #include "alpha_mu_search.h"
 #include "bridge_state_without_hidden_info.h"
+#include "transposition_table.h"
 
 struct AlphaMuConfig {
   int num_max_moves;
   int num_worlds;
   bool search_with_one_legal_move;
-  bool use_transportation_table;
-  bool root_cut;
-  bool early_cut;
+  bool use_transportation_table = true;
+  bool root_cut = true;
+  bool early_cut = true;
 
 };
 class VanillaAlphaMuBot final : public PlayBot {
-  public:
-  VanillaAlphaMuBot(const std::shared_ptr<Resampler>& resampler, const AlphaMuConfig cfg) :
+ public:
+  VanillaAlphaMuBot(const std::shared_ptr<Resampler> &resampler, const AlphaMuConfig cfg) :
       resampler_(resampler), cfg_(cfg) {}
 
-  ble::BridgeMove Act(const ble::BridgeState& state) override;
+  ble::BridgeMove Act(const ble::BridgeState &state) override;
 
   // Act on given worlds.
-  ble::BridgeMove Act(const ble::BridgeState& state, const std::vector<ble::BridgeState>& worlds) const;
+  ble::BridgeMove Act(const ble::BridgeState &state, const std::vector<ble::BridgeState> &worlds) const;
 
-  [[nodiscard]] ParetoFront Search(const ble::BridgeState& state) const;
+  [[nodiscard]] ParetoFront Search(const ble::BridgeState &state) const;
 
-  private:
+ private:
+  std::shared_ptr<Resampler> resampler_;
+  const AlphaMuConfig cfg_;
+};
+
+class AlphaMuBot final : public PlayBot {
+ public:
+  AlphaMuBot(const std::shared_ptr<Resampler> &resampler, const AlphaMuConfig cfg) :
+      resampler_(resampler),
+      cfg_(cfg),
+      tt_() {}
+
+  ble::BridgeMove Act(const ble::BridgeState &state) override;
+
+  [[nodiscard]] ParetoFront Search(const ble::BridgeStateWithoutHiddenInfo &state, int num_max_moves,
+                                   const Worlds &worlds, ParetoFront alpha);
+
+ private:
+  TranspositionTable tt_;
   std::shared_ptr<Resampler> resampler_;
   const AlphaMuConfig cfg_;
 };

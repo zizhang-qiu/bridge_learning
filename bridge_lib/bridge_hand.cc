@@ -42,8 +42,17 @@ std::string BridgeHand::ToString() const {
   for (const Suit suit : kAllSuits) {
     cards_string[suit] = kSuitChar[suit];
   }
-  for (const auto &card : cards_) {
-    cards_string[card.CardSuit()].push_back(kRankChar[card.Rank()]);
+  auto cards_by_suits = CardsBySuits();
+  for (auto &cards_this_suit : cards_by_suits) {
+    std::sort(cards_this_suit.begin(), cards_this_suit.end(), [](const BridgeCard &lhs, const BridgeCard &rhs) {
+      return lhs.Index() > rhs.Index();
+    });
+  }
+
+  for (const Suit suit : kAllSuits) {
+    for (const auto &card : cards_by_suits[suit]) {
+      cards_string[suit].push_back(kRankChar[card.Rank()]);
+    }
   }
   for (const Suit suit : kAllSuits) {
     cards_string[suit] += " ";
@@ -74,10 +83,21 @@ bool BridgeHand::IsCardInHand(BridgeCard card) const {
 std::array<int, kNumSuits> BridgeHand::SuitLength() const {
   std::array<int, kNumSuits> res{};
   res.fill(0);
-  for(const auto card:cards_){
+  for (const auto card : cards_) {
     res[card.CardSuit()] += 1;
   }
   return res;
 }
+std::array<std::vector<BridgeCard>, kNumSuits> BridgeHand::CardsBySuits() const {
+  std::array<std::vector<BridgeCard>, kNumSuits> cards_by_suits{};
+  for (const auto &card : Cards()) {
+    cards_by_suits[card.CardSuit()].push_back(card);
+  }
+  return cards_by_suits;
+}
 
+std::ostream &operator<<(std::ostream &stream, const BridgeHand &hand) {
+  stream << hand.ToString();
+  return stream;
+}
 } // bridge

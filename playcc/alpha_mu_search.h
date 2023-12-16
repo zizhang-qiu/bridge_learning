@@ -15,21 +15,26 @@ namespace ble = bridge_learning_env;
 // The stop function should return a boolean value which
 // indicates whether to stop the search and a pareto front
 // represents the double dummy evaluation if the search is end.
-struct StopResult{
+struct StopResult {
   bool stop;
   ParetoFront result;
 };
 
-bool DoubleDummyEvaluation(const ble::BridgeState& state);
+struct SearchNode{
+  ble::BridgeMove move;
+  ble::Player player = 0;
+  std::vector<SearchNode> children;
+};
 
-std::vector<int> DoubleDummyEvaluation(const Worlds& worlds);
+bool DoubleDummyEvaluation(const ble::BridgeState &state);
 
-ble::BridgeState ApplyMove(const ble::BridgeMove& move, ble::BridgeState state);
+std::vector<int> DoubleDummyEvaluation(const Worlds &worlds);
 
+ble::BridgeState ApplyMove(const ble::BridgeMove &move, ble::BridgeState state);
 
-StopResult StopSearch(const ble::BridgeStateWithoutHiddenInfo& state,
-                int num_max_moves,
-                const Worlds& worlds);
+StopResult StopSearch(const ble::BridgeStateWithoutHiddenInfo &state,
+                      int num_max_moves,
+                      const Worlds &worlds);
 //
 //ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo& state,
 //                           int num_max_moves,
@@ -39,5 +44,7 @@ StopResult StopSearch(const ble::BridgeStateWithoutHiddenInfo& state,
 ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state,
                            int num_max_moves,
                            const Worlds &worlds);
+
+
 
 #endif // ALPHA_MU_SEARCHER_H

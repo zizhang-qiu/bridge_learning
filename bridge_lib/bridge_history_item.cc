@@ -13,4 +13,8 @@ std::string BridgeHistoryItem::ToString() const {
   }
   return str;
 }
+std::ostream &operator<<(std::ostream &stream, const BridgeHistoryItem &item) {
+  stream << item.ToString();
+  return stream;
+}
 } // bridge

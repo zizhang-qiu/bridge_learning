@@ -5,6 +5,7 @@
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
 #include <random>
+#include <iostream>
 #include "auction_tracker.h"
 #include "bridge_card.h"
 #include "bridge_game.h"
@@ -36,7 +37,7 @@ class BridgeState {
 
   std::vector<int> UidHistory() const;
 
-  const std::vector<BridgeCard> &PlayedCard() const { return played_cards_; }
+  const std::vector<BridgeCard> &PlayedCards() const { return played_cards_; }
 
   Player CurrentPlayer() const;
 
@@ -150,6 +151,8 @@ class BridgeState {
 
   std::vector<BridgeHistoryItem> SpecifiedHistory(BridgeMove::Type type) const;
 };
+
+std::ostream &operator<<(std::ostream &stream, const BridgeState& state);
 } // namespace bridge_learning_env
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_

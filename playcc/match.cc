@@ -8,8 +8,27 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "bridge_lib/bridge_scoring.h"
+#include <chrono>
 
 namespace ble = bridge_learning_env;
+
+struct RunningAverage {
+  double sum = 0.0;
+  int count = 0;
+
+  void AddNumber(double number) {
+    sum += number;
+    count++;
+  }
+
+  double GetAverage() const {
+    if (count == 0) {
+      return 0.0; // Avoid division by zero
+    }
+    return sum / count;
+  }
+};
+
 ble::Contract ParseContractFromString(std::string contract_string) {
   int contract_level = std::stoi(contract_string.substr(0, 1));
   absl::AsciiStrToUpper(&contract_string);
@@ -47,7 +66,7 @@ ble::BridgeState ConstructRandomState(std::mt19937 &rng, const ble::Contract &co
   std::vector<int> bid_uid;
   bid_uid.push_back(ble::kPass + ble::kBiddingActionBase);
   bid_uid.push_back(ble::kPass + ble::kBiddingActionBase);
-  bid_uid.push_back(ble::BidIndex(3, ble::kNoTrump) + ble::kBiddingActionBase);
+  bid_uid.push_back(ble::BidIndex(contract.level, contract.denomination) + ble::kBiddingActionBase);
   bid_uid.push_back(ble::kPass + ble::kBiddingActionBase);
   bid_uid.push_back(ble::kPass + ble::kBiddingActionBase);
   bid_uid.push_back(ble::kPass + ble::kBiddingActionBase);
@@ -66,20 +85,22 @@ int main(int argc, char **argv) {
       ("w, num_worlds", "Number of possible worlds", cxxopts::value<int>()->default_value("20"))
       ("num_deals", "Number of deals with different results", cxxopts::value<int>()->default_value("200"))
       ("contract", "The contract of the deals", cxxopts::value<std::string>()->default_value("3NT"))
-      ("seed", "Random seed for generating deals", cxxopts::value<int>()->default_value("42"));
+      ("seed", "Random seed for generating deals", cxxopts::value<int>()->default_value("66"))
+      ("show_play", "Whether to show the played games", cxxopts::value<bool>()->default_value("false"));
 
   auto result = options.parse(argc, argv);
   int played_deals = 0;
-  int total_deals = 100;
+  int total_deals = result["num_deals"].as<int>();
   int num_different_score_deals = 0;
   int num_deals_win_by_alpha_mu = 0;
   const int num_worlds = result["num_worlds"].as<int>();
 
   std::mt19937 rng(result["seed"].as<int>());
   auto resampler = std::make_shared<UniformResampler>(1);
-  const AlphaMuConfig alpha_mu_cfg{result["num_max_moves"].as<int>(), num_worlds, true};
-  const PIMCConfig pimc_cfg{num_worlds, true};
-  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
+  const AlphaMuConfig alpha_mu_cfg{result["num_max_moves"].as<int>(), num_worlds, false};
+  const PIMCConfig pimc_cfg{num_worlds, false};
+//  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
+  auto alpha_mu_bot = AlphaMuBot(resampler, alpha_mu_cfg);
   auto pimc_bot = PIMCBot(resampler, pimc_cfg);
 
   const ble::Contract contract = ParseContractFromString(result["contract"].as<std::string>());
@@ -90,6 +111,8 @@ int main(int argc, char **argv) {
                                num_worlds) << std::endl;
   std::cout << absl::StrFormat("The config of pimc: num_worlds: %d",
                                num_worlds) << std::endl;
+
+  RunningAverage avg{};
   while (num_different_score_deals < total_deals) {
     std::cout << absl::StrCat("Running deal No. ", played_deals) << std::endl;
     auto state1 = ConstructRandomState(rng, contract);
@@ -98,7 +121,12 @@ int main(int argc, char **argv) {
     while (!state1.IsTerminal()) {
       ble::BridgeMove move;
       if (IsActingPlayerDeclarerSide(state1)) {
+        const auto st = std::chrono::high_resolution_clock::now();
         move = alpha_mu_bot.Act(state1);
+        const auto ed = std::chrono::high_resolution_clock::now();
+        const auto elapsed = ed - st;
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << std::endl;
+        avg.AddNumber(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
       } else {
         move = pimc_bot.Act(state1);
       }
@@ -122,12 +150,19 @@ int main(int argc, char **argv) {
       ++num_different_score_deals;
       num_deals_win_by_alpha_mu += table_open_win;
     }
+    if (result["show_play"].as<bool>()) {
+      std::cout
+          << absl::StrFormat("Deal No.%d, state1:\n%s\nstate2:\n%s", played_deals, state1.ToString(), state2.ToString())
+          << std::endl;
+    }
     std::cout << absl::StrCat(played_deals,
                               " Deals have been played, num != : ",
                               num_different_score_deals,
                               ", num win by alphamu: ",
                               num_deals_win_by_alpha_mu)
               << std::endl;
+
+    std::cout << "Average execution time of alphamu: " << avg.GetAverage() << std::endl;
   }
   std::cout
       << absl::StrFormat("Match is over, the result for alphamu is %d/%d = %f", num_deals_win_by_alpha_mu, total_deals,

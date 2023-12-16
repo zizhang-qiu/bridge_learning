@@ -599,4 +599,8 @@ std::vector<BridgeHistoryItem> BridgeState::SpecifiedHistory(const BridgeMove::T
   return specified_history;
 }
 
+std::ostream &operator<<(std::ostream &stream, const BridgeState &state) {
+  stream << state.ToString();
+  return stream;
+}
 } // namespace bridge_learning_env

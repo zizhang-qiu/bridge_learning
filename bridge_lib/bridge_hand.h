@@ -35,9 +35,13 @@ class BridgeHand {
 
   std::array<int, kNumSuits> SuitLength() const;
 
+  std::array<std::vector<BridgeCard>, kNumSuits> CardsBySuits() const;
+
  private:
   std::vector<BridgeCard> cards_;
 };
+
+std::ostream &operator<<(std::ostream &stream, const BridgeHand& hand);
 
 } // bridge
 

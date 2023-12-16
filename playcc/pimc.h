@@ -34,18 +34,7 @@ class PIMCBot final : public PlayBot {
     SetMaxThreads(0);
   }
 
-  ble::BridgeMove Act(const ble::BridgeState &state) override {
-    SPIEL_CHECK_FALSE(state.IsTerminal());
-    const auto legal_moves = state.LegalMoves();
-    if (const int num_legal_moves = static_cast<int>(legal_moves.size()); num_legal_moves == 1){
-      if(!cfg_.search_with_one_legal_move){
-        return legal_moves[0];
-      }
-    }
-    const SearchResult res = Search(state);
-    auto [move, score] = GetBestAction(res);
-    return move;
-  }
+  ble::BridgeMove Act(const ble::BridgeState &state) override;
 
   ble::BridgeMove Act(const ble::BridgeState &state, const std::vector<ble::BridgeState> &worlds) const {
     const auto &legal_moves = state.LegalMoves();

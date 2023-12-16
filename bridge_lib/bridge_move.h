@@ -53,6 +53,8 @@ class BridgeMove {
 
 };
 
+std::ostream &operator<<(std::ostream &stream, const BridgeMove& move);
+
 } // namespace bridge
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_MOVE_H_

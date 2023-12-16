@@ -6,6 +6,7 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_CARD_H_
 
 #include "bridge_utils.h"
+#include <iostream>
 namespace bridge_learning_env {
 
 class BridgeCard {
@@ -25,6 +26,10 @@ class BridgeCard {
   Suit suit_ = Suit::kInvalidSuit;
   int rank_ = -1;
 };
+
+std::ostream &operator<<(std::ostream &stream, const BridgeCard &card);
+
+std::ostream &operator<<(std::ostream &stream, const std::vector<BridgeCard> &cards);
 
 } // namespace bridge
 

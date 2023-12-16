@@ -32,11 +32,11 @@ bool DoubleDummyEvaluation(const ble::BridgeState &state) {
   futureTricks fut{};
   const ble::Contract contract = state.GetContract();
   const int res = SolveBoard(dl,
-                             /*target=*/-1,
-                             /*solutions=*/1,
-                             /*mode=*/2,
+      /*target=*/-1,
+      /*solutions=*/1,
+      /*mode=*/2,
                              &fut,
-                             /*threadIndex=*/0);
+      /*threadIndex=*/0);
   if (res != RETURN_NO_FAULT) {
     char error_message[80];
     ErrorMessage(res, error_message);
@@ -55,6 +55,7 @@ bool DoubleDummyEvaluation(const ble::BridgeState &state) {
   const int num_tricks_left = ble::kNumTricks - state.NumTricksPlayed();
 
   return state.NumDeclarerTricks() + num_tricks_left - fut.score[0] >= (contract.level + 6);
+//  return fut.score[0] + state.NumDeclarerTricks() >= (contract.level + 6);
 }
 
 std::vector<int> DoubleDummyEvaluation(const Worlds &worlds) {
@@ -173,8 +174,7 @@ std::vector<ble::BridgeState> GetNextWorlds(const std::vector<ble::BridgeState> 
     if (next_possible_worlds[i]) {
       auto world = worlds[i].Child(move);
       next_worlds.push_back(world);
-    }
-    else {
+    } else {
       next_worlds.push_back(worlds[i]);
     }
   }
@@ -203,8 +203,7 @@ bool StopSearch(const ble::BridgeStateWithoutHiddenInfo &state,
       if (possible_worlds[i]) {
         const bool double_dummy_evaluation = DoubleDummyEvaluation(worlds[i]);
         game_status[i] = double_dummy_evaluation;
-      }
-      else {
+      } else {
         game_status[i] = 1;
       }
     }
@@ -276,8 +275,7 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state, int n
       //      std::endl;
     }
     //    std::cout << "overall front at Min node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
-  }
-  else {
+  } else {
     // Max node.
     //    std::cout << "Max node, M = " << num_max_moves << std::endl;
     const std::vector<ble::BridgeMove> all_moves = worlds.GetAllPossibleMoves();

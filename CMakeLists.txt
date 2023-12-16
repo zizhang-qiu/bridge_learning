@@ -146,6 +146,8 @@ add_library(_bridgelearn
         playcc/log_utils.h
         playcc/alpha_mu_bot.cc
         playcc/alpha_mu_bot.h
+        playcc/transposition_table.cc
+        playcc/transposition_table.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
@@ -186,5 +188,7 @@ target_link_libraries(main PUBLIC rela_lib)
 target_link_libraries(main PUBLIC _bridgelearn)
 
 
-
-
+add_executable(temp test.cc)
+target_link_libraries(temp PUBLIC bridge_lib)
+target_link_libraries(temp PUBLIC rela_lib)
+target_link_libraries(temp PUBLIC _bridgelearn)

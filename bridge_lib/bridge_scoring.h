@@ -2,6 +2,7 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_SCORING_H
 #include <array>
 #include "bridge_utils.h"
+#include <iostream>
 namespace bridge_learning_env {
 
 struct Contract {
@@ -12,6 +13,8 @@ struct Contract {
   std::string ToString() const;
   int Index() const;
 };
+
+std::ostream &operator<<(std::ostream &stream, const Contract& contract);
 
 int Score(Contract contract, int declarer_tricks, bool is_vulnerable);
 

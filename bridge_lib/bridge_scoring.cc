@@ -3,6 +3,12 @@
 #include <string>
 
 namespace bridge_learning_env {
+
+std::ostream &operator<<(std::ostream &stream, const Contract& contract){
+  stream << contract.ToString();
+  return stream;
+}
+
 constexpr int kBaseTrickScores[] = {20, 20, 30, 30, 30};
 
 int ScoreContract(Contract contract, DoubleStatus double_status) {

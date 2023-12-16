@@ -49,4 +49,9 @@ std::string BridgeMove::AuctionToString() const {
   return {LevelIndexToChar(level_), DenominationIndexToChar(denomination_)};
 }
 
+std::ostream &operator<<(std::ostream &stream, const BridgeMove &move) {
+  stream << move.ToString();
+  return stream;
+}
+
 } // namespace bridge
