@@ -14,7 +14,11 @@ bool IsFirstMaxNode(const ble::BridgeState &state) {
 
 ble::BridgeMove VanillaAlphaMuBot::Act(const ble::BridgeState &state) {
   SPIEL_CHECK_FALSE(state.IsTerminal());
-  const auto &legal_moves = state.LegalMoves();
+//  const auto &legal_moves = state.LegalMoves();
+  const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
+//  for (const auto move : legal_moves) {
+//    std::cout << move << std::endl;
+//  }
   const int num_legal_moves = static_cast<int>(legal_moves.size());
   // Only one legal move, return it.
   if (num_legal_moves == 1 && !cfg_.search_with_one_legal_move) {

@@ -93,14 +93,15 @@ int main(int argc, char **argv) {
   int total_deals = result["num_deals"].as<int>();
   int num_different_score_deals = 0;
   int num_deals_win_by_alpha_mu = 0;
+  int double_dummy_tolerance = 3;
   const int num_worlds = result["num_worlds"].as<int>();
 
   std::mt19937 rng(result["seed"].as<int>());
   auto resampler = std::make_shared<UniformResampler>(1);
   const AlphaMuConfig alpha_mu_cfg{result["num_max_moves"].as<int>(), num_worlds, false};
   const PIMCConfig pimc_cfg{num_worlds, false};
-//  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
-  auto alpha_mu_bot = AlphaMuBot(resampler, alpha_mu_cfg);
+  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
+//  auto alpha_mu_bot = AlphaMuBot(resampler, alpha_mu_cfg);
   auto pimc_bot = PIMCBot(resampler, pimc_cfg);
 
   const ble::Contract contract = ParseContractFromString(result["contract"].as<std::string>());
@@ -115,7 +116,17 @@ int main(int argc, char **argv) {
   RunningAverage avg{};
   while (num_different_score_deals < total_deals) {
     std::cout << absl::StrCat("Running deal No. ", played_deals) << std::endl;
+
     auto state1 = ConstructRandomState(rng, contract);
+    auto ddt = state1.DoubleDummyResults();
+    std::cout
+        << absl::StrCat("Double dummy result: ", ddt[state1.GetContract().denomination][state1.GetContract().declarer])
+        << "\n";
+    if (std::abs(ddt[state1.GetContract().denomination][state1.GetContract().declarer] - (6 + contract.level))
+        > double_dummy_tolerance) {
+      continue;
+    }
+    rela::utils::printVector(state1.UidHistory());
     auto state2 = state1.Clone();
     resampler->ResetWithParams({{"seed", std::to_string(played_deals)}});
     while (!state1.IsTerminal()) {
@@ -125,7 +136,7 @@ int main(int argc, char **argv) {
         move = alpha_mu_bot.Act(state1);
         const auto ed = std::chrono::high_resolution_clock::now();
         const auto elapsed = ed - st;
-        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << std::endl;
+//        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << std::endl;
         avg.AddNumber(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
       } else {
         move = pimc_bot.Act(state1);

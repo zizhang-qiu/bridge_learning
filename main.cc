@@ -51,13 +51,109 @@ ble::BridgeState ConstructRandomState(std::mt19937 &rng) {
   return state;
 }
 int main() {
-  std::mt19937 rng(5);
-  auto state = ConstructRandomState(rng);
-  while(!state.IsTerminal()){
-    std::cout << state << std::endl;
-    auto dl = StateToDDSDeal(state);
-    auto random_move = UniformSample(state.LegalMoves(), rng);
-    state.ApplyMove(random_move);
+  std::mt19937 rng(23);
+  std::vector<int> trajectory = {
+      40, 46, 35, 29, 31, 26, 32, 10, 47, 28, 19, 38, 12, 11, 1, 42, 2, 25, 0, 9, 50, 3, 8, 27, 4, 22, 18, 7, 6, 14, 30,
+      5, 44, 37, 21, 23, 13, 20, 48, 33, 16, 45, 51, 36, 34, 43, 17, 49, 39, 15, 24, 41, 52, 52, 69, 52, 52, 52
+  };
+//  auto state = ConstructRandomState(rng);
+  auto state = ble::BridgeState(game);
+
+  for (int i = 0; i < ble::kNumCards; ++i) {
+    state.ApplyMove(game->GetChanceOutcome(trajectory[i]));
   }
+  for (int i = 52; i < trajectory.size(); ++i) {
+    state.ApplyMove(game->GetMove(trajectory[i]));
+  }
+  auto state2 = state.Clone();
+  auto ddt = state.DoubleDummyResults();
+  std::cout
+      << absl::StrCat("Double dummy result: ", ddt[state.GetContract().denomination][state.GetContract().declarer])
+      << "\n";
+  int num_worlds = 50;
+  auto resampler = std::make_shared<UniformResampler>(1);
+  const AlphaMuConfig alpha_mu_cfg{2, num_worlds, false};
+  const PIMCConfig pimc_cfg{num_worlds, false};
+  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
+//  auto alpha_mu_bot = AlphaMuBot(resampler, alpha_mu_cfg);
+  auto pimc_bot = PIMCBot(resampler, pimc_cfg);
+  resampler->ResetWithParams({{"seed", std::to_string(23)}});
+  while (!state.IsTerminal()) {
+    std::cout << state << std::endl;
+    ble::BridgeMove move;
+    if (IsActingPlayerDeclarerSide(state)) {
+      SetMaxThreads(0);
+      auto dl = StateToDDSDeal(state);
+      futureTricks fut{};
+
+      const int res = SolveBoard(
+          dl,
+          /*target=*/-1,
+          /*solutions=*/3, // We only want one card.
+          /*mode=*/2,
+          &fut,
+          /*threadIndex=*/0);
+      if (res != RETURN_NO_FAULT) {
+        char error_message[80];
+        ErrorMessage(res, error_message);
+        std::cerr << "double dummy solver: " << error_message << std::endl;
+        std::exit(1);
+      }
+      for (int i = 0; i < ble::kNumCardsPerHand; ++i) {
+        if (fut.rank[i] != 0)
+          std::cout << absl::StrFormat("%d, %c%c, score: %d", i,
+                                       ble::kSuitChar[ble::DDSSuitToSuit(fut.suit[i])],
+                                       ble::kRankChar[ble::DDSRankToRank(fut.rank[i])],
+                                       fut.score[i]) << std::endl;
+      }
+      move = alpha_mu_bot.Act(state);
+    } else {
+      move = pimc_bot.Act(state);
+    }
+    state.ApplyMove(move);
+  }
+
+  std::cout << state << std::endl;
+  resampler->ResetWithParams({{"seed", std::to_string(23)}});
+  while (!state2.IsTerminal()) {
+    const auto move = pimc_bot.Act(state2);
+    //    std::cout << "pimc move: " << move.ToString() << std::endl;
+    state2.ApplyMove(move);
+  }
+  std::cout << state2 << std::endl;
+//  auto front = alpha_mu_bot.Search(state);
+//  std::cout << front << std::endl;
+//  auto search_res = pimc_bot.Search(state);
+//  PrintSearchResult(search_res);
+//  auto move = alpha_mu_bot.Act(state);
+//  std::cout << move << std::endl;
+//  SetMaxThreads(0);
+//  auto dl = StateToDDSDeal(state);
+//  futureTricks fut{};
+//
+//  const int res = SolveBoard(
+//      dl,
+//      /*target=*/-1,
+//      /*solutions=*/2, // We only want one card.
+//      /*mode=*/2,
+//      &fut,
+//      /*threadIndex=*/0);
+//  if (res != RETURN_NO_FAULT) {
+//    char error_message[80];
+//    ErrorMessage(res, error_message);
+//    std::cerr << "double dummy solver: " << error_message << std::endl;
+//    std::exit(1);
+//  }
+//  for(int i=0; i<ble::kNumCardsPerHand; ++i){
+//    std::cout << ble::DDSSuitToSuit(fut.suit[i]) << " " << ble::DDSRankToRank(fut.rank[i]) << std::endl;
+//  }
+//  ble::BridgeMove move{
+//      /*move_type=*/ble::BridgeMove::Type::kPlay,
+//      /*suit=*/ble::DDSSuitToSuit(fut.suit[0]),
+//      /*rank=*/ble::DDSRankToRank(fut.rank[0]),
+//      /*denomination=*/ble::kInvalidDenomination,
+//      /*level=*/-1,
+//      /*other_call=*/ble::kNotOtherCall};
+//  std::cout << "dds move: " << move << std::endl;
   return 0;
 }
