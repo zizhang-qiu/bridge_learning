@@ -2,6 +2,7 @@
 // Created by qzz on 2023/11/20.
 //
 #include "resampler.h"
+
 #include "bridge_lib/utils.h"
 std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndConstraintsFromState(
     const ble::BridgeState &state) {
@@ -27,8 +28,7 @@ std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndCo
       if (i > 0) {
         player = trick.Winner();
       }
-    }
-    else {
+    } else {
       player = (1 + player) % ble::kNumPlayers;
     }
     const auto item = play_history[i];
@@ -37,8 +37,7 @@ std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndCo
     // A new trick
     if (i % ble::kNumPlayers == 0) {
       trick = ble::Trick(player, contract.denomination, card);
-    }
-    else {
+    } else {
       trick.Play(player, card);
       // This only happen when this player has run out of led suit.
       if (item.suit != trick.LedSuit()) {
@@ -101,8 +100,7 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
     }
     if (suit_filter.empty()) {
       player_not_need_filter.push_back(pl);
-    }
-    else {
+    } else {
       player_needs_filter.push_back(pl);
     }
     suit_filters[pl] = suit_filter;
@@ -124,8 +122,7 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
       ble::BridgeCard sampled_card = deck_sampler_.SampleNotSuits(suit_filters[pl], rng_);
       if (sampled_card.IsValid()) {
         sampled_hands[pl].AddCard(sampled_card);
-      }
-      else {
+      } else {
         return {false, {}};
       }
     }
@@ -143,8 +140,7 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
       ble::BridgeCard sampled_card = deck_sampler_.Sample(rng_);
       if (sampled_card.IsValid()) {
         sampled_hands[pl].AddCard(sampled_card);
-      }
-      else {
+      } else {
         return {false, {}};
       }
     }

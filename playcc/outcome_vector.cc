@@ -1,8 +1,9 @@
 //
 // Created by qzz on 2023/11/5.
 //
-#include "outcome_vector.h"
 #include <algorithm>
+
+#include "outcome_vector.h"
 bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
 //    if (lhs.possible_world != rhs.possible_world) {
 //      return false;

@@ -4,8 +4,9 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_PARETO_FRONT_H_
 #define BRIDGE_LEARNING_PLAYCC_PARETO_FRONT_H_
-#include "outcome_vector.h"
 #include <ostream>
+
+#include "outcome_vector.h"
 class ParetoFront {
  public:
   ParetoFront() = default;
@@ -27,7 +28,7 @@ class ParetoFront {
 
   [[nodiscard]] OutcomeVector BestOutcome() const;
 
-  void SetMove(const ble::BridgeMove& move);
+  void SetMove(const ble::BridgeMove &move);
 
   static ParetoFront ParetoFrontWithOneOutcomeVector(const std::vector<bool> &possible_worlds, int fill_value);
 
@@ -47,8 +48,7 @@ ParetoFront ParetoFrontMin(const ParetoFront &lhs, const ParetoFront &rhs);
 
 ParetoFront ParetoFrontMax(const ParetoFront &lhs, const ParetoFront &rhs);
 
-
-std::ostream& operator<<(std::ostream& stream, const ParetoFront& front);
+std::ostream &operator<<(std::ostream &stream, const ParetoFront &front);
 //struct BridgeMoveOutcomeVector{
 //  ble::BridgeMove move;
 //  OutcomeVector outcome_vector;

@@ -2,9 +2,12 @@
 // Created by qzz on 2023/11/14.
 //
 #include "utils.h"
+
+#include <algorithm>
+
 #include "bridge_lib/bridge_utils.h"
 #include "bridge_lib/utils.h"
-#include <algorithm>
+
 std::vector<ble::BridgeHistoryItem> GetPlayHistory(const std::vector<ble::BridgeHistoryItem> &history) {
   std::vector<ble::BridgeHistoryItem> play_history;
   for (const auto item : history) {

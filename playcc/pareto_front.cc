@@ -1,8 +1,10 @@
 //
 // Created by qzz on 2023/11/5.
 //
-#include "pareto_front.h"
 #include <algorithm>
+
+#include "pareto_front.h"
+
 ParetoFront::ParetoFront(const std::vector<OutcomeVector> &outcome_vectors) {
   if (outcome_vectors.empty()) {
     outcome_vectors_ = outcome_vectors;

@@ -8,8 +8,11 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "log_utils.h"
+
 #include "bridge_lib/bridge_state.h"
+
+#include "log_utils.h"
+
 namespace ble = bridge_learning_env;
 
 std::vector<ble::BridgeHistoryItem> GetPlayHistory(const std::vector<ble::BridgeHistoryItem> &history);

@@ -3,6 +3,7 @@
 //
 
 #include "transposition_table.h"
+
 #include "absl/strings/str_cat.h"
 std::string TranspositionTable::ToString() const {
   std::string rv{};

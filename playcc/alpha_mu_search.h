@@ -4,9 +4,9 @@
 
 #ifndef ALPHA_MU_SEARCHER_H
 #define ALPHA_MU_SEARCHER_H
+#include "bridge_lib/bridge_state.h"
 
 #include "worlds.h"
-#include "bridge_lib/bridge_state.h"
 #include "pareto_front.h"
 #include "bridge_state_without_hidden_info.h"
 #include "utils.h"
@@ -20,7 +20,7 @@ struct StopResult {
   ParetoFront result;
 };
 
-struct SearchNode{
+struct SearchNode {
   ble::BridgeMove move;
   ble::Player player = 0;
   std::vector<SearchNode> children;
@@ -44,7 +44,5 @@ StopResult StopSearch(const ble::BridgeStateWithoutHiddenInfo &state,
 ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state,
                            int num_max_moves,
                            const Worlds &worlds);
-
-
 
 #endif // ALPHA_MU_SEARCHER_H

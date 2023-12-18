@@ -4,7 +4,7 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_CHEAT_BOT_H_
 #define BRIDGE_LEARNING_PLAYCC_CHEAT_BOT_H_
-#include "../bridge_lib/bridge_state.h"
+#include "bridge_lib/bridge_state.h"
 #include "play_bot.h"
 #include "utils.h"
 

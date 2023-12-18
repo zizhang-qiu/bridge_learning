@@ -6,10 +6,12 @@
 #define BRIDGE_LEARNING_PLAYCC_RESAMPLER_H_
 #include <algorithm>
 #include <array>
+
 #include "bridge_lib/bridge_state.h"
 #include "bridge_lib/utils.h"
-#include "deck_sampler.h"
 #include "rela/utils.h"
+
+#include "deck_sampler.h"
 #include "utils.h"
 namespace ble = bridge_learning_env;
 
@@ -20,11 +22,11 @@ struct ResampleResult {
 };
 
 class Resampler {
-  public:
+ public:
   Resampler() = default;
   virtual ~Resampler() = default;
   virtual ResampleResult Resample(const ble::BridgeState &state) = 0;
-  virtual void ResetWithParams(const std::unordered_map<std::string, std::string>&){};
+  virtual void ResetWithParams(const std::unordered_map<std::string, std::string> &) {};
 };
 
 std::vector<std::array<int, ble::kNumCards>> ResampleMultipleDeals(const std::shared_ptr<Resampler> &resampler,
@@ -47,14 +49,14 @@ std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndCo
 //}
 
 class UniformResampler final : public Resampler {
-  public:
+ public:
   explicit UniformResampler(const int seed) : rng_(seed), deck_sampler_() {}
 
   ResampleResult Resample(const ble::BridgeState &state) override;
 
-  void ResetWithParams(const std::unordered_map<std::string, std::string>& params) override;
+  void ResetWithParams(const std::unordered_map<std::string, std::string> &params) override;
 
-  private:
+ private:
   std::mt19937 rng_;
   DeckSampler deck_sampler_;
 };

@@ -7,10 +7,11 @@
 #include <utility>
 
 #include "bridge_lib/bridge_state.h"
+#include "bridge_lib/third_party/dds/include/dll.h"
+
 #include "play_bot.h"
 #include "resampler.h"
-// #include "rela/logging.h"
-#include "bridge_lib/third_party/dds/include/dll.h"
+
 namespace ble = bridge_learning_env;
 
 int Rollout(const ble::BridgeState &state, const ble::BridgeMove &move);
@@ -22,13 +23,13 @@ struct SearchResult {
 
 std::pair<ble::BridgeMove, int> GetBestAction(const SearchResult &res);
 
-struct PIMCConfig{
+struct PIMCConfig {
   int num_worlds;
   bool search_with_one_legal_move;
 };
 
 class PIMCBot final : public PlayBot {
-  public:
+ public:
   PIMCBot(std::shared_ptr<Resampler> resampler, PIMCConfig cfg) :
       resampler_(std::move(resampler)), cfg_(cfg) {
     SetMaxThreads(0);
@@ -61,7 +62,7 @@ class PIMCBot final : public PlayBot {
 
   [[nodiscard]] SearchResult Search(const ble::BridgeState &state) const;
 
-  private:
+ private:
   std::shared_ptr<Resampler> resampler_;
   const PIMCConfig cfg_;
 };
