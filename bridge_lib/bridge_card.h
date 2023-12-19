@@ -4,9 +4,10 @@
 
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_CARD_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_CARD_H_
+#include <iostream>
 
 #include "bridge_utils.h"
-#include <iostream>
+
 namespace bridge_learning_env {
 
 class BridgeCard {

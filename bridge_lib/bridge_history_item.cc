@@ -3,6 +3,7 @@
 //
 
 #include "bridge_history_item.h"
+
 #include "utils.h"
 
 namespace bridge_learning_env {

@@ -5,9 +5,10 @@
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_OBSERVATION_ENCODER_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_OBSERVATION_ENCODER_H_
 #include <vector>
-#include "bridge_observation.h"
-namespace bridge_learning_env {
 
+#include "bridge_observation.h"
+
+namespace bridge_learning_env {
 
 class ObservationEncoder {
  public:
@@ -19,7 +20,7 @@ class ObservationEncoder {
 
   // All of the canonical observation encodings are vectors of bits. We can
   // change this if we want something more general (e.g. floats or doubles).
-  virtual std::vector<int> Encode(const BridgeObservation& obs) const = 0;
+  virtual std::vector<int> Encode(const BridgeObservation &obs) const = 0;
 
   // Return the type of this encoder.
   virtual Type type() const = 0;

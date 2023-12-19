@@ -81,4 +81,14 @@ T UniformSample(const std::vector<T> &vec, RNG &rng) {
   // Return the sampled element
   return vec[dist(rng)];
 }
+
+template <typename T>
+void MoveItemToFirst(std::vector<T>& vec, bool (*constraint_function)(T)) {
+  auto it = std::find_if(vec.begin(), vec.end(), constraint_function);
+
+  if (it != vec.end()) {
+    // Rotate the vector so that the item satisfying the constraint is at the beginning
+    std::rotate(vec.begin(), it, it + 1);
+  }
+}
 #endif // BRIDGE_LEARNING_PLAYCC_UTILS_H_

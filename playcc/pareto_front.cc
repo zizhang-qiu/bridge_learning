@@ -70,7 +70,7 @@ std::string ParetoFront::ToString() const {
   std::string rv;
   int index = 0;
   for (auto it = outcome_vectors_.begin(); it != outcome_vectors_.end(); ++it) {
-    rv += std::to_string(index) + ":\nGame status:\n{";
+    rv += std::to_string(index) + ":\nGame status:\n";
     rv += "[" + VectorToString((*it).game_status) + "],\npossible worlds:\n";
     rv += "[" + VectorToString((*it).possible_world) + "],\n move:";
     rv += (*it).move.ToString();
@@ -138,7 +138,6 @@ ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {
   }
   return res;
 }
-bool operator==(const ParetoFront &lhs, const ParetoFront &rhs) { return lhs.OutcomeVectors() == rhs.OutcomeVectors(); }
 
 bool operator<=(const ParetoFront &lhs, const ParetoFront &rhs) {
   for (const auto &vec : lhs.OutcomeVectors()) {
@@ -184,4 +183,39 @@ ParetoFront ParetoFrontMax(const ParetoFront &lhs, const ParetoFront &rhs) {
 std::ostream &operator<<(std::ostream &stream, const ParetoFront &front) {
   stream << front.ToString();
   return stream;
+}
+
+// A Pareto front P1 dominates or is equal to a Pareto front P2 iff \forall v \in P2,
+// \exist v' \in P1 such that (v' dominates v) or v' = v.
+bool ParetoFrontDominate(const ParetoFront &lhs, const ParetoFront &rhs) {
+  if (lhs.Empty()) return false;
+  for (const OutcomeVector &vec : rhs.OutcomeVectors()) {
+    bool one_dominate = false;
+    for (const OutcomeVector &v : lhs.OutcomeVectors()) {
+      if (OutcomeVectorDominate(v, vec)) {
+        one_dominate = true;
+        break;
+      }
+    }
+    if (!one_dominate) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool operator==(const ParetoFront &lhs, const ParetoFront &rhs) {
+  for (const OutcomeVector &vec : rhs.OutcomeVectors()) {
+    bool one_equal = false;
+    for (const OutcomeVector &v : lhs.OutcomeVectors()) {
+      if (v == vec) {
+        one_equal = true;
+        break;
+      }
+    }
+    if (!one_equal) {
+      return false;
+    }
+  }
+  return true;
 }

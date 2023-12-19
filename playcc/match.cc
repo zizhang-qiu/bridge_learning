@@ -98,12 +98,18 @@ int main(int argc, char **argv) {
   int double_dummy_tolerance = 3;
   const int num_worlds = result["num_worlds"].as<int>();
 
-  std::mt19937 rng(result["seed"].as<int>());
+  int seed = result["seed"].as<int>();
+  while (seed == -1) {
+    seed = static_cast<int>(std::random_device()());
+  }
+  std::mt19937 rng(seed);
   auto resampler = std::make_shared<UniformResampler>(1);
-  const AlphaMuConfig alpha_mu_cfg{result["num_max_moves"].as<int>(), num_worlds, false};
+  const AlphaMuConfig alpha_mu_cfg{result["num_max_moves"].as<int>(),
+                                   num_worlds,
+                                   false};
   const PIMCConfig pimc_cfg{num_worlds, false};
-  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
-//  auto alpha_mu_bot = AlphaMuBot(resampler, alpha_mu_cfg);
+//  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
+  auto alpha_mu_bot = AlphaMuBot(resampler, alpha_mu_cfg);
   auto pimc_bot = PIMCBot(resampler, pimc_cfg);
 
   const ble::Contract contract = ParseContractFromString(result["contract"].as<std::string>());
@@ -132,6 +138,7 @@ int main(int argc, char **argv) {
     auto state2 = state1.Clone();
     resampler->ResetWithParams({{"seed", std::to_string(played_deals)}});
     while (!state1.IsTerminal()) {
+//      std::cout << state1 << std::endl;
       ble::BridgeMove move;
       if (IsActingPlayerDeclarerSide(state1)) {
         const auto st = std::chrono::high_resolution_clock::now();

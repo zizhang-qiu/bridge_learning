@@ -1,6 +1,8 @@
 #include "canonical_encoder.h"
-#include "bridge_observation.h"
+
 #include <numeric>
+
+#include "bridge_observation.h"
 
 namespace bridge_learning_env {
 // Computes the product of dimensions in shape, i.e. how many individual

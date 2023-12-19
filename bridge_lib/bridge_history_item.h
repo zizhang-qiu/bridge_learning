@@ -4,8 +4,10 @@
 
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HISTORY_ITEM_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HISTORY_ITEM_H_
-#include "bridge_move.h"
 #include <iostream>
+
+#include "bridge_move.h"
+
 namespace bridge_learning_env {
 
 struct BridgeHistoryItem {
@@ -24,7 +26,7 @@ struct BridgeHistoryItem {
   OtherCalls other_call = kNotOtherCall;
 };
 
-std::ostream &operator<<(std::ostream &stream, const BridgeHistoryItem& item);
+std::ostream &operator<<(std::ostream &stream, const BridgeHistoryItem &item);
 
 } // namespace bridge
 

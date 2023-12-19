@@ -52,6 +52,15 @@ class Worlds {
     return cloned;
   }
 
+  [[nodiscard]] bool IsMaxNode() const {
+    for (int i = 0; i < Size(); ++i) {
+      if (possible_[i]) {
+        return ble::Partnership(states_[i].CurrentPlayer()) == ble::Partnership(states_[i].GetContract().declarer);
+      }
+    }
+    return false;
+  }
+
  private:
   std::vector<ble::BridgeState> states_;
   std::vector<bool> possible_;

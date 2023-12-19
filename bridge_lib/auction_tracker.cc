@@ -3,6 +3,7 @@
 //
 
 #include "auction_tracker.h"
+
 #include "utils.h"
 namespace bridge_learning_env {
 

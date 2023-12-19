@@ -148,6 +148,7 @@ add_library(_bridgelearn
         playcc/alpha_mu_bot.h
         playcc/transposition_table.cc
         playcc/transposition_table.h
+        playcc/game_tree.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

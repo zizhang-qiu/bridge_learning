@@ -261,20 +261,21 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state, int n
     //    for (const auto &move : all_moves) {
     //      std::cout << move.ToString() << "\n";
     //    }
+//    std::cout << "f for state \n" << state << std::endl;
     for (const ble::BridgeMove &move : all_moves) {
-      //      std::cout << "Trying move " << move.ToString() << " in Min node, M = " << num_max_moves << std::endl;
+//      std::cout << "Trying move " << move.ToString() << " in Min node, M = " << num_max_moves << std::endl;
       const auto s = state.Child(move);
 
       const auto next_worlds = worlds.Child(move);
       ParetoFront f = VanillaAlphaMu(s, num_max_moves, next_worlds);
-      //      std::cout << "front at Min node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
-      //                << f.ToString() << std::endl;
+//      std::cout << "front at Min node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
+//                << f.ToString() << std::endl;
       f.SetMove(move);
       front = ParetoFrontMin(front, f);
       //      std::cout << "Min node, move: " << move.ToString() << "\nfront after join:\n" << front.ToString() <<
       //      std::endl;
     }
-    //    std::cout << "overall front at Min node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
+//    std::cout << "overall front at Min node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
   } else {
     // Max node.
     //    std::cout << "Max node, M = " << num_max_moves << std::endl;
@@ -285,7 +286,7 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state, int n
     //      std::cout << move.ToString() << "\n";
     //    }
     for (const auto &move : all_moves) {
-      //      std::cout << "Trying move " << move.ToString() << " in Max node, M = " << num_max_moves << std::endl;
+//      std::cout << "Trying move " << move.ToString() << " in Max node, M = " << num_max_moves << std::endl;
 
       auto s = state.Child(move);
 
@@ -301,7 +302,7 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state, int n
 //      if (num_max_moves == 2)
 //        std::cout << "Max node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
     }
-    //    std::cout << "overall front at Max node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
+//    std::cout << "overall front at Max node, M = " << num_max_moves << "\n" << front.ToString() << std::endl;
   }
   return front;
 }

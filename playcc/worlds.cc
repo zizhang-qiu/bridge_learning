@@ -35,13 +35,14 @@ std::string Worlds::ToString() const {
 std::vector<ble::BridgeMove> Worlds::GetAllPossibleMoves() const {
   SPIEL_CHECK_FALSE(states_.empty());
   const auto game = states_[0].ParentGame();
-  auto compare_func = [game](const ble::BridgeMove &lhs, const ble::BridgeMove &rhs) {
+  auto compare_func = [&game](const ble::BridgeMove &lhs, const ble::BridgeMove &rhs) {
     return game->GetMoveUid(lhs) < game->GetMoveUid(rhs);
   };
   std::set<ble::BridgeMove, decltype(compare_func)> possible_moves(compare_func);
   for (int i = 0; i < Size(); ++i) {
     if (possible_[i]) {
       const auto legal_moves = states_[i].LegalMoves();
+//      const auto legal_moves = GetLegalMovesWithoutEquivalentCards(states_[i]);
       for (const ble::BridgeMove &move : legal_moves) {
         possible_moves.emplace(move);
       }

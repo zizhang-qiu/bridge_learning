@@ -62,7 +62,9 @@ ble::BridgeMove VanillaAlphaMuBot::Act(const ble::BridgeState &state, const vect
 
 ble::BridgeMove AlphaMuBot::Act(const ble::BridgeState &state) {
   SPIEL_CHECK_FALSE(state.IsTerminal());
-
+  if (IsFirstMaxNode(state)) {
+    tt_.Clear();
+  }
 //  const auto &legal_moves = state.LegalMoves();
   const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
   const int num_legal_moves = static_cast<int>(legal_moves.size());
@@ -78,14 +80,13 @@ ble::BridgeMove AlphaMuBot::Act(const ble::BridgeState &state) {
   if (best.move.MoveType() == bridge_learning_env::BridgeMove::kInvalid) {
     best.move = state.LegalMoves()[0];
   }
+  std::cout << front << std::endl;
   return best.move;
 }
 
 ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo &state, int num_max_moves,
-                               const Worlds &worlds, ParetoFront alpha) {
-  if (IsFirstMaxNode(state)) {
-    tt_.Clear();
-  }
+                               const Worlds &worlds, const ParetoFront &alpha) {
+
   auto [stop, result] = StopSearch(state, num_max_moves, worlds);
   if (stop) {
     tt_[state] = result;
@@ -99,7 +100,8 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo &state, i
     ParetoFront mini{};
     // Early cut.
     if (cfg_.early_cut) {
-      if (is_state_in_tt && (tt_[state] <= alpha)) {
+      if (is_state_in_tt && (ParetoFrontDominate(alpha, tt_[state]))) {
+//        std::cout << "Perform early cut." << std::endl;
         return mini;
       }
     }
@@ -108,7 +110,7 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo &state, i
     if (is_state_in_tt) {
       auto it = std::find(all_moves.begin(), all_moves.end(), tt_[state].BestOutcome().move);
       if (it != all_moves.end()) {
-        all_moves.erase(it);
+        std::rotate(all_moves.begin(), it, it + 1);
       }
     }
 
@@ -125,7 +127,14 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo &state, i
   } else {
     // Max node.
     ParetoFront front{};
-    const std::vector<ble::BridgeMove> all_moves = worlds.GetAllPossibleMoves();
+    std::vector<ble::BridgeMove> all_moves = worlds.GetAllPossibleMoves();
+    if (is_state_in_tt) {
+      auto it = std::find(all_moves.begin(), all_moves.end(), tt_[state].BestOutcome().move);
+      if (it != all_moves.end()) {
+        std::rotate(all_moves.begin(), it, it + 1);
+      }
+
+    }
     for (const auto &move : all_moves) {
 
       const auto s = state.Child(move);
@@ -139,7 +148,8 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo &state, i
 
         if (num_max_moves == cfg_.num_max_moves) {
           // Root node.
-          if (tt_.HasKey(state) && tt_[state].BestOutcome().Score() == front.BestOutcome().Score()) {
+          if (tt_.HasKey(state) && (tt_[state].BestOutcome().Score() == front.BestOutcome().Score())) {
+//            std::cout << "Perform root cut." << std::endl;
             break;
           }
         }

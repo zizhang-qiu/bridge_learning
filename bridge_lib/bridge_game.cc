@@ -1,6 +1,7 @@
-#include "bridge_game.h"
 #include <memory>
 #include <utility>
+
+#include "bridge_game.h"
 
 namespace bridge_learning_env {
 

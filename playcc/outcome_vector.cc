@@ -71,9 +71,9 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
     //     0      |      1     |   1    |  false
     //     1      |      1     |   1    |  true
     //     1      |      0     |   1    |  true
-    //     0      |      0     |   0    |  true
-    game_status = std::max(lhs_game_status, rhs_game_status);
-    possible_worlds = !(lhs_game_status == 0 && rhs_game_status == 1);
+    //     0      |      0     |   0    |  false
+    game_status = lhs_game_status;
+    possible_worlds = true;
     return std::make_pair(game_status, possible_worlds);
   }
 
@@ -82,9 +82,9 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
   //     0      |      1     |   1    |  true
   //     1      |      1     |   1    |  true
   //     1      |      0     |   1    |  false
-  //     0      |      0     |   0    |  true
-  game_status = std::max(lhs_game_status, rhs_game_status);
-  possible_worlds = !(lhs_game_status == 1 && rhs_game_status == 0);
+  //     0      |      0     |   0    |  false
+  game_status = rhs_game_status;
+  possible_worlds = true;
   return std::make_pair(game_status, possible_worlds);
 }
 

@@ -1,12 +1,12 @@
 //
 // Created by qzz on 2023/9/21.
 //
-
 #include "bridge_hand.h"
-#include "utils.h"
-#include <cassert>
+
 #include <array>
 #include <algorithm>
+
+#include "utils.h"
 
 namespace bridge_learning_env {
 int BridgeHand::HighCardPoints() const {

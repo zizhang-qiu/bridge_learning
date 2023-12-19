@@ -2,6 +2,7 @@
 // Created by qzz on 2023/10/9.
 //
 #include "bridge_dataset.h"
+
 #include "rela/logging.h"
 BridgeDataset::BridgeDataset(const std::vector<std::array<int, ble::kNumCards>> &deals) {
   size_t num_deals = deals.size();

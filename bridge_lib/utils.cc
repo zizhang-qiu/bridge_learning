@@ -4,8 +4,8 @@
 #include <random>
 
 namespace bridge_learning_env {
-template <>
-int ParameterValue<int>(const GameParameters& params, const std::string& key,
+template<>
+int ParameterValue<int>(const GameParameters &params, const std::string &key,
                         int default_value) {
   auto iter = params.find(key);
   if (iter == params.end()) {
@@ -15,9 +15,9 @@ int ParameterValue<int>(const GameParameters& params, const std::string& key,
   return std::stoi(iter->second);
 }
 
-template <>
-std::string ParameterValue<std::string>(const GameParameters& params,
-                                        const std::string& key,
+template<>
+std::string ParameterValue<std::string>(const GameParameters &params,
+                                        const std::string &key,
                                         std::string default_value) {
   auto iter = params.find(key);
   if (iter == params.end()) {
@@ -27,8 +27,8 @@ std::string ParameterValue<std::string>(const GameParameters& params,
   return iter->second;
 }
 
-template <>
-double ParameterValue<double>(const GameParameters& params, const std::string& key,
+template<>
+double ParameterValue<double>(const GameParameters &params, const std::string &key,
                               double default_value) {
   auto iter = params.find(key);
   if (iter == params.end()) {
@@ -38,8 +38,8 @@ double ParameterValue<double>(const GameParameters& params, const std::string& k
   return std::stod(iter->second);
 }
 
-template <>
-bool ParameterValue<bool>(const GameParameters& params, const std::string& key,
+template<>
+bool ParameterValue<bool>(const GameParameters &params, const std::string &key,
                           bool default_value) {
   auto iter = params.find(key);
   if (iter == params.end()) {
@@ -64,7 +64,7 @@ std::vector<int> Permutation(int num) {
   return Permutation(num, rng);
 }
 
-std::vector<int> Permutation(int num, std::mt19937& rng) {
+std::vector<int> Permutation(int num, std::mt19937 &rng) {
   std::vector<int> ret = Arange(0, num);
   std::shuffle(ret.begin(), ret.end(), rng);
   return ret;

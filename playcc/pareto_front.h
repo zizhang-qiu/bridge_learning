@@ -48,6 +48,8 @@ ParetoFront ParetoFrontMin(const ParetoFront &lhs, const ParetoFront &rhs);
 
 ParetoFront ParetoFrontMax(const ParetoFront &lhs, const ParetoFront &rhs);
 
+bool ParetoFrontDominate(const ParetoFront &lhs, const ParetoFront &rhs);
+
 std::ostream &operator<<(std::ostream &stream, const ParetoFront &front);
 //struct BridgeMoveOutcomeVector{
 //  ble::BridgeMove move;

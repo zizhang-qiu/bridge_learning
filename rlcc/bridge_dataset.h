@@ -8,6 +8,7 @@
 #include <array>
 #include <optional>
 #include <mutex>
+
 #include "bridge_lib/bridge_utils.h"
 namespace ble = bridge_learning_env;
 inline constexpr int kDoubleDummyResultSize = ble::kNumPlayers * ble::kNumDenominations;

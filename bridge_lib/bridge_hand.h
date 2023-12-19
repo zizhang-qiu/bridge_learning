@@ -6,6 +6,7 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HAND_H_
 #include <vector>
 #include <array>
+
 #include "bridge_card.h"
 namespace bridge_learning_env {
 
@@ -17,9 +18,9 @@ class BridgeHand {
 
   [[nodiscard]] const std::vector<BridgeCard> &Cards() const { return cards_; }
 
-  void AddCard(const BridgeCard& card);
+  void AddCard(const BridgeCard &card);
 
-  void RemoveFromHand(Suit suit, int rank, std::vector<BridgeCard>* played_cards);
+  void RemoveFromHand(Suit suit, int rank, std::vector<BridgeCard> *played_cards);
 
   [[nodiscard]] std::string ToString() const;
 
@@ -41,7 +42,7 @@ class BridgeHand {
   std::vector<BridgeCard> cards_;
 };
 
-std::ostream &operator<<(std::ostream &stream, const BridgeHand& hand);
+std::ostream &operator<<(std::ostream &stream, const BridgeHand &hand);
 
 } // bridge
 

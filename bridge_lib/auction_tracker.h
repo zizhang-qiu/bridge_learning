@@ -4,10 +4,12 @@
 
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_AUCTION_TRACKER_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_AUCTION_TRACKER_H_
+#include <optional>
+
 #include "bridge_scoring.h"
 #include "bridge_utils.h"
 #include "bridge_move.h"
-#include <optional>
+
 namespace bridge_learning_env {
 class AuctionTracker {
  public:

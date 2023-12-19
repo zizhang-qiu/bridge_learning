@@ -6,6 +6,11 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
 #include <random>
 #include <iostream>
+
+#include "third_party/dds/src/Memory.h"
+#include "third_party/dds/src/SolverIF.h"
+#include "third_party/dds/src/TransTableL.h"
+
 #include "auction_tracker.h"
 #include "bridge_card.h"
 #include "bridge_game.h"
@@ -13,14 +18,11 @@
 #include "bridge_history_item.h"
 #include "bridge_utils.h"
 #include "trick.h"
-
 #include "bridge_deck.h"
-#include "third_party/dds/src/Memory.h"
-#include "third_party/dds/src/SolverIF.h"
-#include "third_party/dds/src/TransTableL.h"
+
 namespace bridge_learning_env {
 class BridgeState {
-  public:
+ public:
   ~BridgeState() = default;
 
   BridgeState(const BridgeState &) = default;
@@ -114,7 +116,7 @@ class BridgeState {
     return move_history_.back().move;
   }
 
-  private:
+ private:
   BridgeDeck deck_;
   Phase phase_;
   std::array<Trick, kNumTricks> tricks_;
@@ -152,7 +154,7 @@ class BridgeState {
   std::vector<BridgeHistoryItem> SpecifiedHistory(BridgeMove::Type type) const;
 };
 
-std::ostream &operator<<(std::ostream &stream, const BridgeState& state);
+std::ostream &operator<<(std::ostream &stream, const BridgeState &state);
 } // namespace bridge_learning_env
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_

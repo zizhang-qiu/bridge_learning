@@ -5,8 +5,9 @@
 #ifndef BRIDGE_LIB_BRIDGE_LIB_EXAMPLE_CARDS_DDTS_H_
 #define BRIDGE_LIB_BRIDGE_LIB_EXAMPLE_CARDS_DDTS_H_
 #include <vector>
+
 #include "bridge_utils.h"
-namespace bridge_learning_env{
+namespace bridge_learning_env {
 // Some cards and ddts for debug and test.
 
 const std::vector<std::vector<Action>> example_deals = {

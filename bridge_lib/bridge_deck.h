@@ -4,18 +4,20 @@
 
 #ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_2_CC_BRIDGE_DECK_H_
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_2_CC_BRIDGE_DECK_H_
+#include <set>
+#include <random>
 
 #include "third_party/dds/src/TransTableL.h"
 #include "third_party/dds/src/SolverIF.h"
 #include "third_party/dds/src/Memory.h"
+
 #include "auction_tracker.h"
 #include "bridge_history_item.h"
 #include "bridge_hand.h"
 #include "bridge_card.h"
 #include "bridge_utils.h"
 #include "bridge_game.h"
-#include <set>
-#include <random>
+
 namespace bridge_learning_env {
 class BridgeDeck {
  public:
@@ -29,7 +31,6 @@ class BridgeDeck {
   [[nodiscard]] bool CardInDeck(Suit suit, int rank) const {
     return card_in_deck_[CardIndex(suit, rank)];
   }
-
 
   [[nodiscard]] std::vector<BridgeCard> Cards() const;
   [[nodiscard]] std::array<std::vector<BridgeCard>, kNumSuits> CardsBySuits() const;

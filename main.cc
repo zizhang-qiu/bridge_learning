@@ -54,7 +54,41 @@ int main() {
   std::mt19937 rng(23);
   std::vector<int> trajectory = {
       40, 46, 35, 29, 31, 26, 32, 10, 47, 28, 19, 38, 12, 11, 1, 42, 2, 25, 0, 9, 50, 3, 8, 27, 4, 22, 18, 7, 6, 14, 30,
-      5, 44, 37, 21, 23, 13, 20, 48, 33, 16, 45, 51, 36, 34, 43, 17, 49, 39, 15, 24, 41, 52, 52, 69, 52, 52, 52
+      5, 44, 37, 21, 23, 13, 20, 48, 33, 16, 45, 51, 36, 34, 43, 17, 49, 39, 15, 24, 41, 52, 52, 69, 52, 52, 52,
+//      ble::CardIndex(ble::kDiamondsSuit, 1),
+//      ble::CardIndex(ble::kDiamondsSuit, 3),
+//      ble::CardIndex(ble::kDiamondsSuit, 11),
+//      ble::CardIndex(ble::kDiamondsSuit, 0),
+//      ble::CardIndex(ble::kHeartsSuit, 3),
+//      ble::CardIndex(ble::kHeartsSuit, 4),
+//      ble::CardIndex(ble::kHeartsSuit, 9),
+//      ble::CardIndex(ble::kHeartsSuit, 12),
+//      ble::CardIndex(ble::kClubsSuit, 1),
+//      ble::CardIndex(ble::kClubsSuit, 5),
+//      ble::CardIndex(ble::kClubsSuit, 12),
+//      ble::CardIndex(ble::kClubsSuit, 9),
+//      ble::CardIndex(ble::kClubsSuit, 0),
+//      ble::CardIndex(ble::kSpadesSuit, 1),
+//      ble::CardIndex(ble::kClubsSuit, 10),
+//      ble::CardIndex(ble::kClubsSuit, 7),
+//      ble::CardIndex(ble::kClubsSuit, 3),
+//      ble::CardIndex(ble::kSpadesSuit, 0),
+//      ble::CardIndex(ble::kClubsSuit, 2),
+//      ble::CardIndex(ble::kDiamondsSuit, 2),
+//      ble::CardIndex(ble::kClubsSuit, 4),
+//      ble::CardIndex(ble::kHeartsSuit, 5),
+//      ble::CardIndex(ble::kClubsSuit, 8),
+//      ble::CardIndex(ble::kSpadesSuit, 5),
+//      ble::CardIndex(ble::kSpadesSuit, 4),
+//      ble::CardIndex(ble::kSpadesSuit, 6),
+//      ble::CardIndex(ble::kSpadesSuit, 11),
+//      ble::CardIndex(ble::kSpadesSuit, 2),
+//      ble::CardIndex(ble::kClubsSuit, 11),
+//      ble::CardIndex(ble::kDiamondsSuit, 6),
+//      ble::CardIndex(ble::kClubsSuit, 6),
+//      ble::CardIndex(ble::kDiamondsSuit, 7),
+//      ble::CardIndex(ble::kSpadesSuit, 7),
+//      ble::CardIndex(ble::kSpadesSuit, 3),
   };
 //  auto state = ConstructRandomState(rng);
   auto state = ble::BridgeState(game);
@@ -70,7 +104,7 @@ int main() {
   std::cout
       << absl::StrCat("Double dummy result: ", ddt[state.GetContract().denomination][state.GetContract().declarer])
       << "\n";
-  int num_worlds = 50;
+  int num_worlds = 10;
   auto resampler = std::make_shared<UniformResampler>(1);
   const AlphaMuConfig alpha_mu_cfg{2, num_worlds, false};
   const PIMCConfig pimc_cfg{num_worlds, false};
@@ -107,6 +141,7 @@ int main() {
                                        fut.score[i]) << std::endl;
       }
       move = alpha_mu_bot.Act(state);
+//      break;
     } else {
       move = pimc_bot.Act(state);
     }
@@ -119,6 +154,7 @@ int main() {
     const auto move = pimc_bot.Act(state2);
     //    std::cout << "pimc move: " << move.ToString() << std::endl;
     state2.ApplyMove(move);
+//    break;
   }
   std::cout << state2 << std::endl;
 //  auto front = alpha_mu_bot.Search(state);
