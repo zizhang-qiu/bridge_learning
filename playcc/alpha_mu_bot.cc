@@ -80,7 +80,7 @@ ble::BridgeMove AlphaMuBot::Act(const ble::BridgeState &state) {
   if (best.move.MoveType() == bridge_learning_env::BridgeMove::kInvalid) {
     best.move = state.LegalMoves()[0];
   }
-  std::cout << front << std::endl;
+//  std::cout << front << std::endl;
   return best.move;
 }
 
