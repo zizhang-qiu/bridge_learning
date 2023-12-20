@@ -66,6 +66,7 @@ endif ()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 add_subdirectory(third_party/pybind11)
 add_subdirectory(third_party/cxxopts)
+add_subdirectory(third_party/spdlog)
 #set(PYBIND11_FINDPYTHON ON)
 
 # We add the subdirectory here so open_spiel_core can #include absl.
@@ -73,6 +74,7 @@ set(ABSL_PROPAGATE_CXX_STD ON)
 #set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lstdc++fs")
 add_subdirectory(third_party/abseil-cpp)
 include_directories(third_party/abseil-cpp)
+include_directories(third_party/spdlog/include)
 
 add_subdirectory(bridge_lib)
 
