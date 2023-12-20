@@ -7,14 +7,11 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h"
 #include "bridge_lib/bridge_scoring.h"
 
 #include "pimc.h"
 #include "alpha_mu_bot.h"
 #include "logger.h"
-
 
 namespace ble = bridge_learning_env;
 
@@ -92,7 +89,8 @@ int main(int argc, char **argv) {
       ("num_deals", "Number of deals with different results", cxxopts::value<int>()->default_value("200"))
       ("contract", "The contract of the deals", cxxopts::value<std::string>()->default_value("3NT"))
       ("seed", "Random seed for generating deals", cxxopts::value<int>()->default_value("66"))
-      ("show_play", "Whether to show the played games", cxxopts::value<bool>()->default_value("false"));
+      ("show_play", "Whether to show the played games", cxxopts::value<bool>()->default_value("false"))
+      ("file_path", "The path to save log", cxxopts::value<std::string>()->default_value(".."));
 
   auto result = options.parse(argc, argv);
   int played_deals = 0;
@@ -108,7 +106,8 @@ int main(int argc, char **argv) {
   }
   std::mt19937 rng(seed);
   auto resampler = std::make_shared<UniformResampler>(1);
-  const AlphaMuConfig alpha_mu_cfg{result["num_max_moves"].as<int>(),
+  const int num_max_moves = result["num_max_moves"].as<int>();
+  const AlphaMuConfig alpha_mu_cfg{num_max_moves,
                                    num_worlds,
                                    false};
   const PIMCConfig pimc_cfg{num_worlds, false};
@@ -127,7 +126,11 @@ int main(int argc, char **argv) {
 
   RunningAverage avg{};
 //  spdlog::set_level(spdlog::level::info);
-  auto logger = FileLogger("D:/Projects/bridge", "log.txt");
+  std::string time =
+      absl::FormatTime("%Y%m%d%H%M%E3S", absl::Now(), absl::LocalTimeZone());
+  std::string file_name = absl::StrFormat("Match_alpha_mu(%d)_vs_PIMC___%s", num_max_moves, time);
+  std::cout << file_name << std::endl;
+  auto logger = FileLogger("D:/Projects/bridge", file_name, "w");
   logger.Print("Match Start.");
 
   while (num_different_score_deals < total_deals) {
@@ -177,10 +180,10 @@ int main(int argc, char **argv) {
     if (table_open_win != table_close_win) {
       ++num_different_score_deals;
       num_deals_win_by_alpha_mu += table_open_win;
-      spdlog::info("Deal No.{}, state1:\n{}\nstate2:\n{}",
-                   played_deals,
-                   state1.ToString(),
-                   state2.ToString());
+      logger.Print("Deal No.%d, state1:\n%s\ntrajectory:\n%s\nstate2:\n%s\ntrajectory:\n%s",
+                   played_deals, state1.ToString(), VectorToString(state1.UidHistory()),
+                   state2.ToString(), VectorToString(state2.UidHistory()));
+
     }
     if (result["show_play"].as<bool>()) {
       std::cout
@@ -193,8 +196,14 @@ int main(int argc, char **argv) {
                               ", num win by alphamu: ",
                               num_deals_win_by_alpha_mu)
               << std::endl;
+    logger.Print(absl::StrCat(played_deals,
+                              " Deals have been played, num != : ",
+                              num_different_score_deals,
+                              ", num win by alphamu: ",
+                              num_deals_win_by_alpha_mu));
 
     std::cout << "Average execution time of alphamu: " << avg.GetAverage() << std::endl;
+    logger.Print("Average execution time of alphamu: %f", avg.GetAverage());
   }
   std::cout
       << absl::StrFormat("Match is over, the result for alphamu is %d/%d = %f", num_deals_win_by_alpha_mu, total_deals,
