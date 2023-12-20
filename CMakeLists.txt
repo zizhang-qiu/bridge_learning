@@ -151,6 +151,9 @@ add_library(_bridgelearn
         playcc/transposition_table.cc
         playcc/transposition_table.h
         playcc/game_tree.h
+        playcc/logger.h
+        playcc/file.cc
+        playcc/file.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

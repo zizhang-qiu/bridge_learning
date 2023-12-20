@@ -7,10 +7,14 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "bridge_lib/bridge_scoring.h"
 
 #include "pimc.h"
 #include "alpha_mu_bot.h"
-#include "bridge_lib/bridge_scoring.h"
+#include "logger.h"
+
 
 namespace ble = bridge_learning_env;
 
@@ -113,15 +117,19 @@ int main(int argc, char **argv) {
   auto pimc_bot = PIMCBot(resampler, pimc_cfg);
 
   const ble::Contract contract = ParseContractFromString(result["contract"].as<std::string>());
-  std::cout << absl::StrFormat("The contract is set to %s", contract.ToString()) << std::endl;
-
-  std::cout << absl::StrFormat("The config of alpha mu: num_max_moves: %d, num_worlds: %d",
-                               result["num_max_moves"].as<int>(),
-                               num_worlds) << std::endl;
-  std::cout << absl::StrFormat("The config of pimc: num_worlds: %d",
-                               num_worlds) << std::endl;
+//  std::cout << absl::StrFormat("The contract is set to %s", contract.ToString()) << std::endl;
+//
+//  std::cout << absl::StrFormat("The config of alpha mu: num_max_moves: %d, num_worlds: %d",
+//                               result["num_max_moves"].as<int>(),
+//                               num_worlds) << std::endl;
+//  std::cout << absl::StrFormat("The config of pimc: num_worlds: %d",
+//                               num_worlds) << std::endl;
 
   RunningAverage avg{};
+//  spdlog::set_level(spdlog::level::info);
+  auto logger = FileLogger("D:/Projects/bridge", "log.txt");
+  logger.Print("Match Start.");
+
   while (num_different_score_deals < total_deals) {
     std::cout << absl::StrCat("Running deal No. ", played_deals) << std::endl;
 
@@ -169,6 +177,10 @@ int main(int argc, char **argv) {
     if (table_open_win != table_close_win) {
       ++num_different_score_deals;
       num_deals_win_by_alpha_mu += table_open_win;
+      spdlog::info("Deal No.{}, state1:\n{}\nstate2:\n{}",
+                   played_deals,
+                   state1.ToString(),
+                   state2.ToString());
     }
     if (result["show_play"].as<bool>()) {
       std::cout
