@@ -1,0 +1,8 @@
+//
+// Created by qzz on 2023/12/20.
+//
+
+#ifndef BRIDGE_LEARNING_PLAYCC_LOGGER_H_
+#define BRIDGE_LEARNING_PLAYCC_LOGGER_H_
+
+#endif //BRIDGE_LEARNING_PLAYCC_LOGGER_H_
