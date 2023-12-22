@@ -4,6 +4,8 @@
 
 #include "bridge_state_without_hidden_info.h"
 
+#include <algorithm>
+
 namespace bridge_learning_env {
 BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo(const std::shared_ptr<BridgeGame> &parent_game,
                                                            const BridgeHand &dummy_hand) :

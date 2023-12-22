@@ -57,7 +57,7 @@ int main() {
       27, 3, 32, 38, 25, 44, 4, 17, 34, 46, 42, 15, 11, 31, 41, 0, 24, 16, 7, 39, 21, 30, 33, 47, 49, 29, 5, 1, 37, 22,
       14, 8, 23, 40, 12, 43, 20, 2, 45, 28, 13, 9, 26, 18, 6, 19, 51, 10, 48, 35, 50, 36, 52, 52, 69, 52, 52, 52
   };
-//  ble::BridgeState state{game};
+  ble::BridgeState state{game};
 //  while (true) {
 
 //    state = ConstructRandomState(rng);

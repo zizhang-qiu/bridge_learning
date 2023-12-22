@@ -31,7 +31,7 @@ int main() {
 
   std::cout << state << std::endl;
 
-  int num_worlds = 20;
+  int num_worlds = 40;
   const AlphaMuConfig alpha_mu_cfg{3,
                                    num_worlds,
                                    false,
@@ -43,8 +43,8 @@ int main() {
   const PIMCConfig pimc_cfg{num_worlds, false};
   auto pimc_bot = PIMCBot(resampler, pimc_cfg);
 
-  auto tt = TranspositionTableFromFile("D:/Projects/bridge/analysis/tt.txt", game);
-  alpha_mu_bot.SetTT(tt);
+//  auto tt = TranspositionTableFromFile("D:/Projects/bridge/analysis/tt.txt", game);
+//  alpha_mu_bot.SetTT(tt);
 
   const auto move = alpha_mu_bot.Act(state);
   std::cout << move << std::endl;

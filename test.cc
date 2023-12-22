@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
       state.ApplyMove(move);
     }
     auto ddt = state.DoubleDummyResults();
-    if (ddt[state.GetContract().denomination][state.GetContract().declarer] > (6 + contract.level)){
+    if (ddt[state.GetContract().denomination][state.GetContract().declarer] != (6 + contract.level)){
       break;
     }
   }
