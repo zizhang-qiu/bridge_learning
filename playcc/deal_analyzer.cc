@@ -57,10 +57,12 @@ void DealAnalyzer::Analyze(ble::BridgeState state, AlphaMuBot alpha_mu_bot, PIMC
         file::File tt_file{absl::StrCat(save_dir_, "/tt.txt"), "w"};
         tt_file.Write(alpha_mu_bot.GetTT().Serialize());
         std::cout << "trajectory:" << VectorToString(state.UidHistory()) << std::endl;
+        file::File traj_file{absl::StrCat(save_dir_, "/traj.txt"), "w"};
+        traj_file.Write(VectorToString(state.UidHistory()));
         std::cout << absl::StrFormat("At state:\n%s, the alpha bot gives move: %s\nThe dds give moves:",
                                      state.ToString(), move.ToString());
-        for(const auto &move:dds_moves){
-          std::cout << move << std::endl;
+        for(const auto &m:dds_moves){
+          std::cout << m << std::endl;
         }
         return;
       }
