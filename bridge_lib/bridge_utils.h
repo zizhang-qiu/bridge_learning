@@ -81,6 +81,10 @@ const std::vector<Suit> kAllSuitsReverse = {
 const std::vector<DoubleStatus> kAllDoubleStatus = {kUndoubled, kDoubled,
                                                     kRedoubled};
 
+const std::vector<Denomination> kAllDenominations =
+    {Denomination::kClubsTrump, Denomination::kDiamondsTrump, Denomination::kHeartsTrump, Denomination::kSpadesTrump,
+     Denomination::kNoTrump};
+
 inline constexpr int kBiddingActionBase = kNumCards;
 inline constexpr int kFirstBid = kRedouble + 1;
 
@@ -102,6 +106,9 @@ char RankIndexToChar(int rank);
 char DenominationIndexToChar(Denomination denomination);
 char LevelIndexToChar(int level);
 std::string OtherCallsToString(OtherCalls call);
+
+Suit SuitCharToSuit(char suit_char);
+int RankCharToRank(char rank_char);
 
 int Partnership(Player player);
 int Partner(Player player);

@@ -317,6 +317,51 @@ std::vector<int> KeepLargestConsecutive(const std::vector<int> &input) {
   return result;
 }
 
+std::vector<int> FindSetBitPositions(int decimalNumber) {
+  std::vector<int> set_bit_positions;
+
+  for (int position = 0; decimalNumber > 0; ++position) {
+    if (decimalNumber & 1) {
+      set_bit_positions.push_back(position);
+    }
+    decimalNumber >>= 1; // Right shift to check the next bit
+  }
+
+  return set_bit_positions;
+}
+
+std::vector<ble::BridgeMove> GetMovesFromFutureTricks(const futureTricks &fut) {
+  std::vector<ble::BridgeMove> moves;
+  for (int i = 0; i < ble::kNumCardsPerHand; ++i) {
+    if (fut.rank[i] != 0) {
+      moves.emplace_back(
+          /*move_type=*/ble::BridgeMove::Type::kPlay,
+          /*suit=*/ble::DDSSuitToSuit(fut.suit[i]),
+          /*rank=*/ble::DDSRankToRank(fut.rank[i]),
+          /*denomination=*/ble::kInvalidDenomination,
+          /*level=*/-1,
+          /*other_call=*/ble::kNotOtherCall);
+    }
+
+    // Deal with equal cards.
+    if (fut.equals[i]!=0){
+      const std::vector<int> positions = FindSetBitPositions(fut.equals[i]);
+      for(const int pos:positions){
+        moves.emplace_back(
+            /*move_type=*/ble::BridgeMove::Type::kPlay,
+            /*suit=*/ble::DDSSuitToSuit(fut.suit[i]),
+            /*rank=*/ble::DDSRankToRank(pos),
+            /*denomination=*/ble::kInvalidDenomination,
+            /*level=*/-1,
+            /*other_call=*/ble::kNotOtherCall);
+      }
+    }
+  }
+  return moves;
+}
+
+
+
 
 
 

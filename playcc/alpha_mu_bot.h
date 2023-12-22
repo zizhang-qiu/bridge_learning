@@ -47,7 +47,13 @@ class AlphaMuBot final : public PlayBot {
   ble::BridgeMove Act(const ble::BridgeState &state) override;
 
   [[nodiscard]] ParetoFront Search(const ble::BridgeStateWithoutHiddenInfo &state, int num_max_moves,
-                                   const Worlds &worlds, const ParetoFront& alpha);
+                                   const Worlds &worlds, const ParetoFront &alpha);
+
+  const TranspositionTable &GetTT() const { return tt_; }
+
+  void SetTT(const TranspositionTable &tt) { tt_ = tt; }
+
+
 
  private:
   TranspositionTable tt_;

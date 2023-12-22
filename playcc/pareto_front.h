@@ -32,6 +32,10 @@ class ParetoFront {
 
   static ParetoFront ParetoFrontWithOneOutcomeVector(const std::vector<bool> &possible_worlds, int fill_value);
 
+  std::string Serialize() const;
+
+  static ParetoFront Deserialize(const std::string &str);
+
  private:
   std::vector<OutcomeVector> outcome_vectors_;
 

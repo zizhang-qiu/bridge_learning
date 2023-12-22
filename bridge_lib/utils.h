@@ -60,6 +60,8 @@ std::string StrCat(const Args&... args) {
   return ss.str();
 }
 
+std::vector<std::string> StrSplit(const std::string& str, char delimiter);
+
 #if defined(NDEBUG)
 #define REQUIRE(expr)                                                                                              \
   (expr ? (void)0                                                                                                  \

@@ -69,6 +69,10 @@ std::vector<ble::BridgeMove> GetLegalMovesWithoutEquivalentCards(const ble::Brid
 
 std::vector<int> KeepLargestConsecutive(const std::vector<int> &input);
 
+std::vector<int> FindSetBitPositions(int decimalNumber);
+
+std::vector<ble::BridgeMove> GetMovesFromFutureTricks(const futureTricks& fut);
+
 template<typename T, typename RNG>
 T UniformSample(const std::vector<T> &vec, RNG &rng) {
   // Check if the vector is not empty

@@ -25,6 +25,7 @@
 #include "playcc/pareto_front.h"
 #include "playcc/worlds.h"
 #include "playcc/transposition_table.h"
+#include "playcc/logger.h"
 namespace ble = bridge_learning_env;
 
 const ble::GameParameters params = {};
@@ -51,47 +52,16 @@ ble::BridgeState ConstructRandomState(std::mt19937 &rng) {
   return state;
 }
 int main() {
-  std::mt19937 rng(23);
+  std::mt19937 rng;
   std::vector<int> trajectory = {
-      40, 46, 35, 29, 31, 26, 32, 10, 47, 28, 19, 38, 12, 11, 1, 42, 2, 25, 0, 9, 50, 3, 8, 27, 4, 22, 18, 7, 6, 14, 30,
-      5, 44, 37, 21, 23, 13, 20, 48, 33, 16, 45, 51, 36, 34, 43, 17, 49, 39, 15, 24, 41, 52, 52, 69, 52, 52, 52,
-//      ble::CardIndex(ble::kDiamondsSuit, 1),
-//      ble::CardIndex(ble::kDiamondsSuit, 3),
-//      ble::CardIndex(ble::kDiamondsSuit, 11),
-//      ble::CardIndex(ble::kDiamondsSuit, 0),
-//      ble::CardIndex(ble::kHeartsSuit, 3),
-//      ble::CardIndex(ble::kHeartsSuit, 4),
-//      ble::CardIndex(ble::kHeartsSuit, 9),
-//      ble::CardIndex(ble::kHeartsSuit, 12),
-//      ble::CardIndex(ble::kClubsSuit, 1),
-//      ble::CardIndex(ble::kClubsSuit, 5),
-//      ble::CardIndex(ble::kClubsSuit, 12),
-//      ble::CardIndex(ble::kClubsSuit, 9),
-//      ble::CardIndex(ble::kClubsSuit, 0),
-//      ble::CardIndex(ble::kSpadesSuit, 1),
-//      ble::CardIndex(ble::kClubsSuit, 10),
-//      ble::CardIndex(ble::kClubsSuit, 7),
-//      ble::CardIndex(ble::kClubsSuit, 3),
-//      ble::CardIndex(ble::kSpadesSuit, 0),
-//      ble::CardIndex(ble::kClubsSuit, 2),
-//      ble::CardIndex(ble::kDiamondsSuit, 2),
-//      ble::CardIndex(ble::kClubsSuit, 4),
-//      ble::CardIndex(ble::kHeartsSuit, 5),
-//      ble::CardIndex(ble::kClubsSuit, 8),
-//      ble::CardIndex(ble::kSpadesSuit, 5),
-//      ble::CardIndex(ble::kSpadesSuit, 4),
-//      ble::CardIndex(ble::kSpadesSuit, 6),
-//      ble::CardIndex(ble::kSpadesSuit, 11),
-//      ble::CardIndex(ble::kSpadesSuit, 2),
-//      ble::CardIndex(ble::kClubsSuit, 11),
-//      ble::CardIndex(ble::kDiamondsSuit, 6),
-//      ble::CardIndex(ble::kClubsSuit, 6),
-//      ble::CardIndex(ble::kDiamondsSuit, 7),
-//      ble::CardIndex(ble::kSpadesSuit, 7),
-//      ble::CardIndex(ble::kSpadesSuit, 3),
+      27, 3, 32, 38, 25, 44, 4, 17, 34, 46, 42, 15, 11, 31, 41, 0, 24, 16, 7, 39, 21, 30, 33, 47, 49, 29, 5, 1, 37, 22,
+      14, 8, 23, 40, 12, 43, 20, 2, 45, 28, 13, 9, 26, 18, 6, 19, 51, 10, 48, 35, 50, 36, 52, 52, 69, 52, 52, 52
   };
-//  auto state = ConstructRandomState(rng);
-  auto state = ble::BridgeState(game);
+//  ble::BridgeState state{game};
+//  while (true) {
+
+//    state = ConstructRandomState(rng);
+
 
   for (int i = 0; i < ble::kNumCards; ++i) {
     state.ApplyMove(game->GetChanceOutcome(trajectory[i]));
@@ -104,17 +74,26 @@ int main() {
   std::cout
       << absl::StrCat("Double dummy result: ", ddt[state.GetContract().denomination][state.GetContract().declarer])
       << "\n";
-  int num_worlds = 10;
+//    if (ddt[state.GetContract().denomination][state.GetContract().declarer] >= 9) {
+//      break;
+//    }
+//  }
+
+  int num_worlds = 20;
   auto resampler = std::make_shared<UniformResampler>(1);
-  const AlphaMuConfig alpha_mu_cfg{2, num_worlds, false};
+  const AlphaMuConfig alpha_mu_cfg{3,
+                                   num_worlds,
+                                   false,
+                                   true,
+                                   true,
+                                   true};
   const PIMCConfig pimc_cfg{num_worlds, false};
-  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
-//  auto alpha_mu_bot = AlphaMuBot(resampler, alpha_mu_cfg);
+//  auto alpha_mu_bot = VanillaAlphaMuBot(resampler, alpha_mu_cfg);
+  auto alpha_mu_bot = AlphaMuBot(resampler, alpha_mu_cfg);
   auto pimc_bot = PIMCBot(resampler, pimc_cfg);
-  resampler->ResetWithParams({{"seed", std::to_string(23)}});
+  resampler->ResetWithParams({{"seed", std::to_string(3)}});
   while (!state.IsTerminal()) {
     std::cout << state << std::endl;
-    ble::BridgeMove move;
     if (IsActingPlayerDeclarerSide(state)) {
       SetMaxThreads(0);
       auto dl = StateToDDSDeal(state);
@@ -140,23 +119,35 @@ int main() {
                                        ble::kRankChar[ble::DDSRankToRank(fut.rank[i])],
                                        fut.score[i]) << std::endl;
       }
-      move = alpha_mu_bot.Act(state);
-//      break;
+      auto search_move = alpha_mu_bot.Act(state);
+      auto str = alpha_mu_bot.GetTT().Serialize();
+      auto logger = FileLogger("D:/Projects/bridge", "tt", "a");
+      logger.Print(str);
+//      std::cout << "str:\n" << str << std::endl;
+      auto tt = TranspositionTable::Deserialize(str, game);
+      auto str2 = tt.Serialize();
+      std::cout << (tt.Table() == alpha_mu_bot.GetTT().Table()) << std::endl;
+      std::cout << "Search move: " << search_move << std::endl;
+      state.ApplyMove(search_move);
     } else {
-      move = pimc_bot.Act(state);
+      auto move = pimc_bot.Act(state);
+//      if (move.CardSuit() == ble::kHeartsSuit && move.CardRank() == 7) {
+//
+////        std::cout << alpha_mu_bot.GetTT().Serialize() << std::endl;
+//      }
+      state.ApplyMove(move);
     }
-    state.ApplyMove(move);
-  }
+//    state.ApplyMove(move);
 
-  std::cout << state << std::endl;
-  resampler->ResetWithParams({{"seed", std::to_string(23)}});
-  while (!state2.IsTerminal()) {
-    const auto move = pimc_bot.Act(state2);
-    //    std::cout << "pimc move: " << move.ToString() << std::endl;
-    state2.ApplyMove(move);
-//    break;
-  }
-  std::cout << state2 << std::endl;
+    std::cout << state << std::endl;
+//  resampler->ResetWithParams({{"seed", std::to_string(23)}});
+//  while (!state2.IsTerminal()) {
+//    const auto move = pimc_bot.Act(state2);
+//    //    std::cout << "pimc move: " << move.ToString() << std::endl;
+//    state2.ApplyMove(move);
+////    break;
+//  }
+//  std::cout << state2 << std::endl;
 //  auto front = alpha_mu_bot.Search(state);
 //  std::cout << front << std::endl;
 //  auto search_res = pimc_bot.Search(state);
@@ -191,5 +182,7 @@ int main() {
 //      /*level=*/-1,
 //      /*other_call=*/ble::kNotOtherCall};
 //  std::cout << "dds move: " << move << std::endl;
+
+  }
   return 0;
 }

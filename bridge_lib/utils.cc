@@ -69,4 +69,15 @@ std::vector<int> Permutation(int num, std::mt19937 &rng) {
   std::shuffle(ret.begin(), ret.end(), rng);
   return ret;
 }
+std::vector<std::string> StrSplit(const std::string &str, char delimiter) {
+  std::vector<std::string> result;
+  std::stringstream ss(str);
+  std::string token;
+
+  while (std::getline(ss, token, delimiter)) {
+    result.push_back(token);
+  }
+
+  return result;
+}
 }  // namespace bridge

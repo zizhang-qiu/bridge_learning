@@ -105,6 +105,10 @@ class BridgeState {
 
   BridgeState Child(const BridgeMove &move) const;
 
+  std::string Serialize() const;
+
+  static BridgeState Deserialize(const string &str, const std::shared_ptr<BridgeGame>& game);
+
   std::vector<BridgeHistoryItem> DealHistory() const { return SpecifiedHistory(BridgeMove::Type::kDeal); }
 
   std::vector<BridgeHistoryItem> PlayHistory() const { return SpecifiedHistory(BridgeMove::Type::kPlay); }

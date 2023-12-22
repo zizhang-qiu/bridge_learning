@@ -4,6 +4,8 @@
 #include <algorithm>
 
 #include "pareto_front.h"
+#include "absl/strings/str_split.h"
+#include "log_utils.h"
 
 ParetoFront::ParetoFront(const std::vector<OutcomeVector> &outcome_vectors) {
   if (outcome_vectors.empty()) {
@@ -124,6 +126,75 @@ void ParetoFront::SetMove(const ble::BridgeMove &move) {
   for (auto &ov : outcome_vectors_) {
     ov.move = move;
   }
+}
+
+std::string ParetoFront::Serialize() const {
+  std::string rv{};
+  for (const auto &ov : outcome_vectors_) {
+    rv += "game status\n";
+    for (const auto &status : ov.game_status) {
+      rv += std::to_string(status) + "\n";
+    }
+
+    rv += "possible worlds\n";
+    for (const auto &status : ov.possible_world) {
+      rv += std::to_string(status) + "\n";
+    }
+
+    rv += "move\n";
+    rv += ble::CardString(ov.move.CardSuit(), ov.move.CardRank()) + "\n";
+    rv += "\n";
+  }
+  return rv;
+}
+
+ParetoFront ParetoFront::Deserialize(const std::string &str) {
+  std::vector<std::string> lines = absl::StrSplit(str, '\n');
+  ParetoFront front{};
+  auto it = std::find(lines.begin(), lines.end(), "game status");
+  if (it==lines.end()){
+    return front;
+  }
+  while (true) {
+    auto next_it = std::find(it + 1, lines.end(), "game status");
+    std::vector<int> game_status;
+    std::vector<bool> possible_worlds;
+    ble::BridgeMove move{};
+    auto possible_worlds_it = std::find(it, next_it, "possible worlds");
+    auto move_it = std::find(it, next_it, "move");
+    for (auto temp_it = it + 1; temp_it != possible_worlds_it; ++temp_it) {
+      if (temp_it->empty()) continue;
+      game_status.push_back(std::stoi(*temp_it));
+    }
+
+    for (auto temp_it = possible_worlds_it + 1; temp_it != move_it; ++temp_it) {
+      if (temp_it->empty()) continue;
+      possible_worlds.push_back(std::stoi(*temp_it));
+    }
+
+    SPIEL_CHECK_EQ(game_status.size(), possible_worlds.size());
+
+    auto move_str = *(move_it + 1);
+    if (move_str != "II") {
+      const ble::Suit suit = ble::SuitCharToSuit(move_str[0]);
+      const int rank = ble::RankCharToRank(move_str[1]);
+      move = ble::BridgeMove{
+          /*move_type=*/ble::BridgeMove::kPlay,
+          /*suit=*/suit,
+          /*rank=*/rank,
+          /*denomination=*/ble::kInvalidDenomination,
+          /*level=*/-1,
+          /*other_call=*/ble::kNotOtherCall
+      };
+    }
+    const OutcomeVector ov{game_status, possible_worlds, move};
+    front.Insert(ov);
+    it = std::find(it + 1, lines.end(), "game status");
+    if (it == lines.end()) {
+      break;
+    }
+  }
+  return front;
 }
 
 ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {

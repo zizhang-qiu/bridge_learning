@@ -41,7 +41,12 @@ std::vector<ble::BridgeMove> Worlds::GetAllPossibleMoves() const {
   std::set<ble::BridgeMove, decltype(compare_func)> possible_moves(compare_func);
   for (int i = 0; i < Size(); ++i) {
     if (possible_[i]) {
-      const auto legal_moves = states_[i].LegalMoves();
+      std::vector<ble::BridgeMove> legal_moves;
+      if (IsMaxNode()) {
+        legal_moves = GetLegalMovesWithoutEquivalentCards(states_[i]);
+      } else {
+        legal_moves = states_[i].LegalMoves();
+      }
 //      const auto legal_moves = GetLegalMovesWithoutEquivalentCards(states_[i]);
       for (const ble::BridgeMove &move : legal_moves) {
         possible_moves.emplace(move);

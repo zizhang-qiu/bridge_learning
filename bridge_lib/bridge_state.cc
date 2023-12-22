@@ -116,6 +116,9 @@ bool BridgeState::MoveIsLegal(const BridgeMove &move) const {
 }
 
 void BridgeState::ApplyMove(const BridgeMove &move) {
+  if (!MoveIsLegal(move)){
+    std::cout << "state:\n" << ToString() << "encounter illegal move: " << move << std::endl;
+  }
   REQUIRE(MoveIsLegal(move));
   BridgeHistoryItem history(move);
   history.player = current_player_;
@@ -561,7 +564,7 @@ bool BridgeState::IsDummyActing() const {
   return false;
 }
 Player BridgeState::GetDummy() const {
-  if (phase_ != Phase::kPlay) {
+  if (phase_ < Phase::kPlay) {
     return kInvalidPlayer;
   }
   return Partner(contract_.declarer);
@@ -574,6 +577,60 @@ std::vector<BridgeHistoryItem> BridgeState::SpecifiedHistory(const BridgeMove::T
     }
   }
   return specified_history;
+}
+std::string BridgeState::Serialize() const {
+//  absl::StrCat(absl::StrJoin(History(), "\n"), "\n");
+  std::string rv{};
+  for (const int uid : UidHistory()) {
+    rv += std::to_string(uid) + "\n";
+  }
+  if (double_dummy_results_.has_value()) {
+    std::string dd;
+    for (Denomination denomination : kAllDenominations) {
+      for (Player player = 0; player < kNumPlayers; ++player) {
+        dd += std::to_string(double_dummy_results_->resTable[denomination][player]) + "\n";
+      }
+    }
+    rv += "Double Dummy Results\n" + dd;
+  }
+  return rv;
+}
+BridgeState BridgeState::Deserialize(const std::string &str, const std::shared_ptr<BridgeGame> &game) {
+  BridgeState state{game};
+  if (str.empty()) {
+    return state;
+  }
+  std::vector<std::string> lines = StrSplit(str, '\n');
+
+  const auto separator = std::find(lines.begin(), lines.end(), "Double Dummy Results");
+  // Double-dummy results.
+  if (separator != lines.end()) {
+    ddTableResults double_dummy_results{};
+    auto it = separator;
+    int i = 0;
+    while (++it != lines.end()) {
+      if (it->empty()) continue;
+      double_dummy_results.resTable[i / kNumPlayers][i % kNumPlayers] =
+          std::stol(*it);
+      ++i;
+    }
+    state.double_dummy_results_ = double_dummy_results;
+  }
+
+  for (int i = 0; i < std::distance(lines.begin(), separator); ++i) {
+    if (lines[i].empty()) continue;
+    int action_uid = std::stoi(lines[i]);
+    BridgeMove move{};
+    if (i < kNumCards) {
+      move = game->GetChanceOutcome(action_uid);
+    } else {
+      move = game->GetMove(action_uid);
+    }
+    state.ApplyMove(move);
+  }
+
+  return state;
+
 }
 
 std::ostream &operator<<(std::ostream &stream, const BridgeState &state) {

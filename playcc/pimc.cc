@@ -64,7 +64,8 @@ std::pair<ble::BridgeMove, int> GetBestAction(const SearchResult& res) {
   return std::make_pair(res.moves[index], res.scores[index]);
 }
 SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
-  const auto legal_moves = state.LegalMoves();
+//  const auto legal_moves = state.LegalMoves();
+  const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
   const int num_legal_moves = static_cast<int>(legal_moves.size());
   //    std::cout << "num legal moves: " << num_legal_moves << std::endl;
   SearchResult res{};
@@ -108,7 +109,8 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
 }
 ble::BridgeMove PIMCBot::Act(const ble::BridgeState &state) {
   SPIEL_CHECK_FALSE(state.IsTerminal());
-  const auto legal_moves = state.LegalMoves();
+//  const auto legal_moves = state.LegalMoves();
+  const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
   if (const int num_legal_moves = static_cast<int>(legal_moves.size()); num_legal_moves == 1){
     if(!cfg_.search_with_one_legal_move){
       return legal_moves[0];

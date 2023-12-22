@@ -154,6 +154,8 @@ add_library(_bridgelearn
         playcc/logger.h
         playcc/file.cc
         playcc/file.h
+        playcc/deal_analyzer.cc
+        playcc/deal_analyzer.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
@@ -169,13 +171,17 @@ target_link_libraries(_bridgelearn PUBLIC
         absl::strings
         absl::time)
 
-add_executable(pareto_front_test playcc/pareto_front_test.cc)
+add_executable(pareto_front_test playcc/unit_tests/pareto_front_test.cc)
 target_link_libraries(pareto_front_test PRIVATE _bridgelearn)
 add_test(pareto_front_test pareto_front_test)
 
-add_executable(log_utils_test playcc/log_utils_test.cc)
+add_executable(log_utils_test playcc/unit_tests/log_utils_test.cc)
 target_link_libraries(log_utils_test PRIVATE _bridgelearn)
 add_test(log_utils_test log_utils_test)
+
+add_executable(transposition_table_test playcc/unit_tests/transposition_table_test.cc)
+target_link_libraries(transposition_table_test PRIVATE _bridgelearn)
+add_test(transposition_table_test transposition_table_test)
 
 add_executable(bridge_match playcc/match.cc)
 target_link_libraries(bridge_match PRIVATE _bridgelearn)
@@ -198,3 +204,9 @@ add_executable(temp test.cc)
 target_link_libraries(temp PUBLIC bridge_lib)
 target_link_libraries(temp PUBLIC rela_lib)
 target_link_libraries(temp PUBLIC _bridgelearn)
+
+
+add_executable(temp2 temp2.cc)
+target_link_libraries(temp2 PUBLIC bridge_lib)
+target_link_libraries(temp2 PUBLIC rela_lib)
+target_link_libraries(temp2 PUBLIC _bridgelearn)

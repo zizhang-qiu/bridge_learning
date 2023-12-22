@@ -86,6 +86,11 @@ class BridgeStateWithoutHiddenInfo {
     return hash_value;
   }
 
+  std::string Serialize() const;
+
+  static BridgeStateWithoutHiddenInfo Deserialize(const std::string &str,
+                                                  const std::shared_ptr<BridgeGame> &game);
+
  private:
   std::shared_ptr<BridgeGame> parent_game_ = nullptr;
   std::vector<BridgeHistoryItem> move_history_;
@@ -100,7 +105,7 @@ class BridgeStateWithoutHiddenInfo {
   bool is_non_dealer_vulnerable_{};
   int num_cards_played_{};
   int num_declarer_tricks_{};
-  std::vector<int> scores_;
+  std::vector<int> scores_ = std::vector<int>(kNumPlayers);
   std::optional<BridgeHand> dummy_hand_;
 
   void AdvanceToNextPlayer();
@@ -112,6 +117,8 @@ class BridgeStateWithoutHiddenInfo {
   [[nodiscard]] std::string FormatAuction() const;
   [[nodiscard]] std::string FormatPlay() const;
   [[nodiscard]] std::string FormatResult() const;
+
+  BridgeHand OriginalDummyHand() const;
 
   void ScoreUp();
 };

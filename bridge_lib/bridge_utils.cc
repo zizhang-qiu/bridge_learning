@@ -95,5 +95,33 @@ Suit DDSSuitToSuit(int suit) {
 int DDSRankToRank(int dds_rank) {
   return dds_rank - 2;
 }
+Suit SuitCharToSuit(const char suit_char) {
+  char upper_char = std::toupper(suit_char);
+  switch (upper_char) {
+    case 'C':return kClubsSuit;
+    case 'D':return kDiamondsSuit;
+    case 'H':return kHeartsSuit;
+    case 'S':return kSpadesSuit;
+    default:return kInvalidSuit;
+  }
+}
+int RankCharToRank(const char rank_char) {
+  switch (rank_char) {
+    case '2': return 0;
+    case '3': return 1;
+    case '4': return 2;
+    case '5': return 3;
+    case '6': return 4;
+    case '7': return 5;
+    case '8': return 6;
+    case '9': return 7;
+    case 'T': return 8;
+    case 'J': return 9;
+    case 'Q': return 10;
+    case 'K': return 11;
+    case 'A': return 12;
+    default:return -1;
+  }
+}
 
 } // namespace bridge

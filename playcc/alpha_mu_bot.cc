@@ -62,6 +62,7 @@ ble::BridgeMove VanillaAlphaMuBot::Act(const ble::BridgeState &state, const vect
 
 ble::BridgeMove AlphaMuBot::Act(const ble::BridgeState &state) {
   SPIEL_CHECK_FALSE(state.IsTerminal());
+//  std::cout << "tt size: " << tt_.Table().size() << std::endl;
   if (IsFirstMaxNode(state)) {
     tt_.Clear();
   }
@@ -141,6 +142,9 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo &state, i
       const auto next_worlds = worlds.Child(move);
       ParetoFront f = Search(s, num_max_moves - 1, next_worlds, front);
       f.SetMove(move);
+      if(num_max_moves == cfg_.num_max_moves){
+        std::cout << "move: " << move.ToString() << ", f:\n" << f << std::endl;
+      }
 
       front = ParetoFrontMax(front, f);
 
