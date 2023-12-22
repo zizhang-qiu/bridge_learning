@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
       ("contract", "The contract of the deals", cxxopts::value<std::string>()->default_value("3NT"))
       ("seed", "Random seed for generating deals", cxxopts::value<int>()->default_value("66"))
       ("show_play", "Whether to show the played games", cxxopts::value<bool>()->default_value("false"))
-      ("file_path", "The path to save log", cxxopts::value<std::string>()->default_value(".."));
+      ("file_dir", "The directory to save log", cxxopts::value<std::string>()->default_value("D:/Projects/bridge"));
 
   auto result = options.parse(argc, argv);
   int played_deals = 0;
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
       absl::FormatTime("%Y%m%d%H%M%E3S", absl::Now(), absl::LocalTimeZone());
   std::string file_name = absl::StrFormat("Match_alpha_mu(%d)_vs_PIMC___%s", num_max_moves, time);
   std::cout << file_name << std::endl;
-  auto logger = FileLogger("D:/Projects/bridge", file_name, "w");
+  auto logger = FileLogger(result["file_dir"].as<std::string>(), file_name, "w");
   logger.Print("Match Start.");
 
   while (num_different_score_deals < total_deals) {
