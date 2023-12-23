@@ -141,6 +141,7 @@ class Worker(mp.Process):
             # print(state1)
             # self.stats.save_all(self.ev_cfg.save_dir)
 
+            resampler.reset_with_params({"seed": str(self.num_deals_played.value)})
             while not state2.is_terminal():
                 st = time.perf_counter()
                 move = pimc_bot.act(state2)
@@ -214,7 +215,3 @@ if __name__ == '__main__':
 
     for w in workers:
         w.join()
-    # w.start()
-    # w.run()
-
-    logger.info("123")
