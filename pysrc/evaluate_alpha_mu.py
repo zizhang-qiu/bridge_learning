@@ -208,8 +208,8 @@ if __name__ == '__main__':
     # logger = create_logger(os.path.join(save_dir, "log.txt"))
 
     workers = []
-    for _ in range(args.num_processes):
-        w = Worker(cfg, num_deals_played, num_deals_win_by_alpha_mu, stats)
+    for i in range(args.num_processes):
+        w = Worker(cfg, num_deals_played, num_deals_win_by_alpha_mu, stats, i)
         workers.append(w)
 
     for w in workers:
