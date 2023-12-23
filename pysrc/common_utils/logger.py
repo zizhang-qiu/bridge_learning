@@ -1,5 +1,6 @@
 import os
 import sys
+import multiprocessing as mp
 
 
 class Logger:
@@ -45,5 +46,3 @@ class Logger:
     def flush(self):
         # for python 3 compatibility.
         pass
-
-

@@ -26,7 +26,7 @@ std::array<int, ble::kNumCards> HandsToCardIndices(const std::vector<ble::Bridge
   }
   return res;
 }
-ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> deal,
+ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards>& deal,
                                         const std::shared_ptr<ble::BridgeGame> &game) {
   auto state = ble::BridgeState(game);
   for (int i = 0; i < ble::kNumCards; ++i) {
@@ -358,6 +358,20 @@ std::vector<ble::BridgeMove> GetMovesFromFutureTricks(const futureTricks &fut) {
     }
   }
   return moves;
+}
+ble::BridgeState ConstructStateFromTrajectory(const std::vector<int> &trajectory,
+                                              const std::shared_ptr<ble::BridgeGame> &game) {
+  ble::BridgeState state{game};
+  const int trajectory_length = static_cast<int>(trajectory.size());
+  for(int i=0; i< std::min(trajectory_length, ble::kNumCards); ++i){
+    const ble::BridgeMove move = game->GetChanceOutcome(trajectory[i]);
+    state.ApplyMove(move);
+  }
+  for(int i=ble::kNumCards; i < trajectory_length; ++i){
+    const ble::BridgeMove move = game->GetMove(trajectory[i]);
+    state.ApplyMove(move);
+  }
+  return state;
 }
 
 

@@ -43,7 +43,7 @@ ParetoFront VanillaAlphaMuBot::Search(const ble::BridgeState &state) const {
       VanillaAlphaMu(ble::BridgeStateWithoutHiddenInfo(state), cfg_.num_max_moves, Worlds(deals, state));
   return front;
 }
-ble::BridgeMove VanillaAlphaMuBot::Act(const ble::BridgeState &state, const vector<ble::BridgeState> &worlds) const {
+ble::BridgeMove VanillaAlphaMuBot::ActWithWorlds(const ble::BridgeState &state, const vector<ble::BridgeState> &worlds) const {
   const auto &legal_moves = state.LegalMoves();
   const int num_legal_moves = static_cast<int>(legal_moves.size());
   // Only one legal move, return it.

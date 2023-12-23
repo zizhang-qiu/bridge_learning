@@ -108,7 +108,7 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
   return res;
 }
 ble::BridgeMove PIMCBot::Act(const ble::BridgeState &state) {
-  SPIEL_CHECK_FALSE(state.IsTerminal());
+  SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()), static_cast<int>(ble::Phase::kPlay));
 //  const auto legal_moves = state.LegalMoves();
   const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
   if (const int num_legal_moves = static_cast<int>(legal_moves.size()); num_legal_moves == 1){

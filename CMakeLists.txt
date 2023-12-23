@@ -156,6 +156,7 @@ add_library(_bridgelearn
         playcc/file.h
         playcc/deal_analyzer.cc
         playcc/deal_analyzer.h
+
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
@@ -210,3 +211,8 @@ add_executable(temp2 temp2.cc)
 target_link_libraries(temp2 PUBLIC bridge_lib)
 target_link_libraries(temp2 PUBLIC rela_lib)
 target_link_libraries(temp2 PUBLIC _bridgelearn)
+
+add_executable(analyze_from_traj_and_tt playcc/analyze_from_traj_and_tt.cc)
+target_link_libraries(analyze_from_traj_and_tt PUBLIC bridge_lib)
+target_link_libraries(analyze_from_traj_and_tt PUBLIC rela_lib)
+target_link_libraries(analyze_from_traj_and_tt PUBLIC _bridgelearn)

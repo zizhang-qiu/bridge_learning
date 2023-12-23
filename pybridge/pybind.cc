@@ -10,12 +10,19 @@
 #include "bridge_lib/example_cards_ddts.h"
 
 namespace py = pybind11;
-namespace bridge_learning_env{
-PYBIND11_MODULE(bridge, m){
+namespace bridge_learning_env {
+PYBIND11_MODULE(bridge, m) {
+  py::enum_<DoubleStatus>(m, "DoubleStatus")
+      .value("UNDOUBLED", DoubleStatus::kUndoubled)
+      .value("DOUBLED", DoubleStatus::kDoubled)
+      .value("REDOUBLED", DoubleStatus::kRedoubled)
+      .export_values();
+
   py::class_<Contract>(m, "Contract")
+      .def(py::init<>())
       .def("index", &Contract::Index)
       .def("__repr__", &Contract::ToString)
-      .def_readwrite("level", &Contract::declarer)
+      .def_readwrite("level", &Contract::level)
       .def_readwrite("denomination", &Contract::denomination)
       .def_readwrite("double_status", &Contract::double_status)
       .def_readwrite("declarer", &Contract::declarer);
@@ -153,6 +160,8 @@ PYBIND11_MODULE(bridge, m){
       .def("get_move_uid", py::overload_cast<BridgeMove>(&BridgeGame::GetMoveUid, py::const_))
       .def("get_chance_outcome", &BridgeGame::GetChanceOutcome)
       .def("pick_random_chance", &BridgeGame::PickRandomChance);
+
+  m.attr("default_game") = default_game;
 
   py::enum_<Phase>(m, "Phase")
       .value("DEAL", Phase::kDeal)

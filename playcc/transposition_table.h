@@ -14,6 +14,9 @@
 namespace ble = bridge_learning_env;
 class TranspositionTable {
  public:
+
+  TranspositionTable() = default;
+
   void Clear() {
     table_.clear();
   }
@@ -46,7 +49,7 @@ class TranspositionTable {
 
   std::string Serialize() const;
 
-  static TranspositionTable Deserialize(const std::string &str, const std::shared_ptr<ble::BridgeGame>& game);
+  static TranspositionTable Deserialize(const std::string &str, const std::shared_ptr<ble::BridgeGame> &game);
 
  private:
   std::unordered_map<ble::BridgeStateWithoutHiddenInfo, ParetoFront, ble::BridgeStateWithoutHiddenInfo> table_{};
@@ -54,10 +57,10 @@ class TranspositionTable {
 
 std::ostream &operator<<(std::ostream &stream, const TranspositionTable &tt);
 
-bool operator==(const TranspositionTable& lhs, const TranspositionTable& rhs);
+bool operator==(const TranspositionTable &lhs, const TranspositionTable &rhs);
 
-inline TranspositionTable TranspositionTableFromFile(const std::string& filename,
-                                                     const std::shared_ptr<ble::BridgeGame>& game){
+inline TranspositionTable TranspositionTableFromFile(const std::string &filename,
+                                                     const std::shared_ptr<ble::BridgeGame> &game) {
   file::File f{filename, "r"};
   const auto str = f.ReadContents();
   return TranspositionTable::Deserialize(str, game);

@@ -30,7 +30,7 @@ params = create_params()
 # env = bridgelearn.BridgeEnv(params, False)
 # env.reset_with_deck_and_double_dummy_results(deal, ddt)
 #
-bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_ddts)
+# bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_ddts)
 
 
 # print(bridge_dataset.size())
@@ -74,7 +74,7 @@ bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_
 #     batch = generator.next_batch("cuda")
 #     print(batch)
 
-a = []
-a.copy()
-
+times = np.load(r"D:\Projects\bridge\evaluation\exp1\pimc_time.npy")
+print(times)
+print(np.mean(times))
 

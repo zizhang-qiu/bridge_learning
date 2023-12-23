@@ -14,7 +14,7 @@
 struct AlphaMuConfig {
   int num_max_moves;
   int num_worlds;
-  bool search_with_one_legal_move;
+  bool search_with_one_legal_move = false;
   bool use_transportation_table = true;
   bool root_cut = true;
   bool early_cut = true;
@@ -28,7 +28,7 @@ class VanillaAlphaMuBot final : public PlayBot {
   ble::BridgeMove Act(const ble::BridgeState &state) override;
 
   // Act on given worlds.
-  ble::BridgeMove Act(const ble::BridgeState &state, const std::vector<ble::BridgeState> &worlds) const;
+  ble::BridgeMove ActWithWorlds(const ble::BridgeState &state, const std::vector<ble::BridgeState> &worlds) const;
 
   [[nodiscard]] ParetoFront Search(const ble::BridgeState &state) const;
 

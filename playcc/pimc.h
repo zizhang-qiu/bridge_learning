@@ -37,7 +37,7 @@ class PIMCBot final : public PlayBot {
 
   ble::BridgeMove Act(const ble::BridgeState &state) override;
 
-  ble::BridgeMove Act(const ble::BridgeState &state, const std::vector<ble::BridgeState> &worlds) const {
+  ble::BridgeMove ActWithWorlds(const ble::BridgeState &state, const std::vector<ble::BridgeState> &worlds) const {
     const auto &legal_moves = state.LegalMoves();
     const int num_legal_moves = static_cast<int>(legal_moves.size());
     // Only one legal move, return it.

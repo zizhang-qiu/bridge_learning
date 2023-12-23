@@ -31,12 +31,15 @@ std::vector<T> FlattenVector(const std::vector<std::vector<T>> &nested_vector) {
 
 std::array<int, ble::kNumCards> HandsToCardIndices(const std::vector<ble::BridgeHand> &hands);
 
-ble::BridgeState ConstructStateFromDeal(std::array<int, ble::kNumCards> deal,
+ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards>& deal,
                                         const std::shared_ptr<ble::BridgeGame> &game);
 
 ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> &deal,
                                         const std::shared_ptr<ble::BridgeGame> &game,
                                         const ble::BridgeState &original_state);
+
+ble::BridgeState ConstructStateFromTrajectory(const std::vector<int> &trajectory,
+                                              const std::shared_ptr<ble::BridgeGame> &game);
 
 // Convert a BridgeState to DDS deal
 deal StateToDDSDeal(const ble::BridgeState &state);

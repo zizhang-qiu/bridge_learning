@@ -74,6 +74,10 @@ class BridgeGame {
   int seed_;
   mutable std::mt19937 rng_;
 };
+
+const GameParameters default_game_params = {};
+const std::shared_ptr<BridgeGame> default_game = std::make_shared<BridgeGame>(default_game_params);
+
 } // namespace bridge
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_GAME_H_
