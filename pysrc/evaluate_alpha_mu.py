@@ -90,17 +90,19 @@ class Worker(mp.Process):
     def __init__(self, ev_cfg: EvaluateConfig,
                  num_deals_played: mp.Value,
                  num_deals_win_by_alpha_mu: mp.Value,
-                 stats: MultiStats):
+                 stats: MultiStats,
+                 pid:int):
         super().__init__()
         self.ev_cfg = ev_cfg
         self.stats = stats
         self.num_deals_played = num_deals_played
         self.num_deals_win_by_alpha_mu = num_deals_win_by_alpha_mu
+        self.process_id = pid
 
     def run(self):
         # logger = Logger(os.path.join(self.ev_cfg.save_dir, "1.txt"), auto_line_feed=True)
         # stats = MultiStats()
-
+        np.random.seed(self.process_id)
         contract = get_contract_from_str(self.ev_cfg.contract_str)
 
         resampler = bridgelearn.UniformResampler(1)
