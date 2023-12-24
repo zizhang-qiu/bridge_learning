@@ -91,7 +91,7 @@ class Worker(mp.Process):
                  num_deals_played: mp.Value,
                  num_deals_win_by_alpha_mu: mp.Value,
                  stats: MultiStats,
-                 pid:int):
+                 pid: int):
         super().__init__()
         self.ev_cfg = ev_cfg
         self.stats = stats
@@ -124,8 +124,8 @@ class Worker(mp.Process):
             state1 = self.generate_state(contract)
 
             state2 = state1.clone()
-
-            resampler.reset_with_params({"seed": str(self.num_deals_played.value)})
+            random_num = np.random.randint(0, 10000)
+            resampler.reset_with_params({"seed": str(random_num)})
             while not state1.is_terminal():
                 if bridgelearn.is_acting_player_declarer_side(state1):
                     st = time.perf_counter()
@@ -143,7 +143,7 @@ class Worker(mp.Process):
             # print(state1)
             # self.stats.save_all(self.ev_cfg.save_dir)
 
-            resampler.reset_with_params({"seed": str(self.num_deals_played.value)})
+            resampler.reset_with_params({"seed": str(random_num)})
             while not state2.is_terminal():
                 st = time.perf_counter()
                 move = pimc_bot.act(state2)
@@ -163,7 +163,8 @@ class Worker(mp.Process):
                     with self.num_deals_win_by_alpha_mu.get_lock():
                         self.num_deals_win_by_alpha_mu.value += 1
                 logger.info(
-                    f"Deal No.{self.num_deals_played.value}\nstate1\n{state1}\n{state2}\n"
+                    f"Deal No.{self.num_deals_played.value}\nstate1\n{state1}\ntrajectory:{state1.uid_history()}"
+                    f"state2\n{state2}\ntrajectory:{state2.uid_history()}"
                     f"num_win_by_alpha_mu:{self.num_deals_win_by_alpha_mu.value} / {self.num_deals_played.value}")
             else:
                 logger.info(f"{self.num_deals_played.value} deals have been played,"
@@ -217,3 +218,5 @@ if __name__ == '__main__':
 
     for w in workers:
         w.join()
+
+    stats.save_all(save_dir)
