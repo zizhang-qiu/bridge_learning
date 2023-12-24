@@ -74,7 +74,13 @@ params = create_params()
 #     batch = generator.next_batch("cuda")
 #     print(batch)
 
-times = np.load(r"D:\Projects\bridge\evaluation\exp1\pimc_time.npy")
-print(times)
-print(np.mean(times))
+# times = np.load(r"D:\Projects\bridge\evaluation\exp1\pimc_time.npy")
+# print(times)
+# print(np.mean(times))
 
+trajectory = [32, 5, 33, 28, 7, 37, 46, 12, 45, 47, 25, 41, 15, 51, 31, 36, 6, 38, 43, 16, 19, 40, 24, 8, 11, 22, 48, 4,
+              1, 26, 44, 14, 27, 17, 20, 18, 50, 30, 35, 49, 2, 23, 10, 0, 9, 21, 39, 13, 42, 34, 3, 29, 52, 52, 69, 52,
+              52, 52, 16, 32, 40, 48, 3, 12, 19, 23, 38, 10, 18, 6, 5, 25, 29, 9, 36, 1, 21, 24, 49, 45, 17, 33, 8, 2,
+              37, 20, 31, 28, 27, 51, 34, 46, 14, 50, 7, 47, 43, 4, 30, 35, 0, 42, 15, 26, 39, 41, 44, 13, 11, 22]
+state = bridgelearn.construct_state_from_trajectory(trajectory, bridge.default_game)
+print(state)

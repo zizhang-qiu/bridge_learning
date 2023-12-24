@@ -192,6 +192,9 @@ PYBIND11_MODULE(bridge, m) {
       .def("num_cards_played", &BridgeState::NumCardsPlayed)
       .def("scores", &BridgeState::Scores)
       .def("get_contract", &BridgeState::GetContract)
+      .def("deal_history", &BridgeState::DealHistory)
+      .def("auction_history", &BridgeState::AuctionHistory)
+      .def("play_history", &BridgeState::PlayHistory)
       .def("__repr__", &BridgeState::ToString);
 
   py::class_<BridgeObservation>(m, "BridgeObservation")

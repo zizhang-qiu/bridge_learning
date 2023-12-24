@@ -172,5 +172,7 @@ PYBIND11_MODULE(bridgelearn, m) {
   m.def("construct_state_from_deal", py::overload_cast<const std::array<int, ble::kNumCards> &,
                                                        const std::shared_ptr<ble::BridgeGame> &>(&ConstructStateFromDeal));
 
+  m.def("construct_state_from_trajectory", &ConstructStateFromTrajectory);
+
   m.def("is_acting_player_declarer_side", &IsActingPlayerDeclarerSide);
 }
