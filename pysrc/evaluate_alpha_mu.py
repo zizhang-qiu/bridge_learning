@@ -163,8 +163,8 @@ class Worker(mp.Process):
                     with self.num_deals_win_by_alpha_mu.get_lock():
                         self.num_deals_win_by_alpha_mu.value += 1
                 logger.info(
-                    f"Deal No.{self.num_deals_played.value}\nstate1\n{state1}\ntrajectory:{state1.uid_history()}"
-                    f"state2\n{state2}\ntrajectory:{state2.uid_history()}"
+                    f"Deal No.{self.num_deals_played.value}\nstate1\n{state1}\ntrajectory:{state1.uid_history()}\n"
+                    f"state2\n{state2}\ntrajectory:{state2.uid_history()}\n"
                     f"num_win_by_alpha_mu:{self.num_deals_win_by_alpha_mu.value} / {self.num_deals_played.value}")
             else:
                 logger.info(f"{self.num_deals_played.value} deals have been played,"
