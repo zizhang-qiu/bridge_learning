@@ -36,6 +36,8 @@ class ParetoFront {
 
   static ParetoFront Deserialize(const std::string &str);
 
+  void RemoveVectorsDominatedBy(const OutcomeVector& r);
+
  private:
   std::vector<OutcomeVector> outcome_vectors_;
 

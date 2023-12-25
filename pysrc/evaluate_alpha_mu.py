@@ -43,7 +43,7 @@ def create_logger(filepath: str):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_processes", "-p", type=int, default=4)
+    parser.add_argument("--num_processes", "-p", type=int, default=8)
     parser.add_argument("--dd_tolerance", type=int, default=1)
     parser.add_argument("--num_deals", type=int, default=200)
     parser.add_argument("--num_worlds", "-w", type=int, default=20)
@@ -165,8 +165,8 @@ class Worker(mp.Process):
                 logger.info(
                     f"Deal No.{self.num_deals_played.value}\nstate1\n{state1}\ntrajectory:{state1.uid_history()}\n"
                     f"state2\n{state2}\ntrajectory:{state2.uid_history()}\n"
-                    f"seed: {random_num}"
-                    f"num_win_by_alpha_mu:{self.num_deals_win_by_alpha_mu.value} / {self.num_deals_played.value}")
+                    f"seed: {random_num}\n"
+                    f"num_win_by_alpha_mu: {self.num_deals_win_by_alpha_mu.value} / {self.num_deals_played.value}")
             else:
                 logger.info(f"{self.num_deals_played.value} deals have been played,"
                             f"num_win_by_alpha_mu:{self.num_deals_win_by_alpha_mu.value} / {self.num_deals_played.value}")

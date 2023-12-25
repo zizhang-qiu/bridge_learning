@@ -45,7 +45,7 @@ int main() {
 //      40, 24, 14, 28, 47, 18, 27, 3, 10, 34, 38, 6, 22, 26, 35, 46, 4, 39, 43, 23
   };
 
-  int num_worlds = 40;
+  int num_worlds = 20;
   const AlphaMuConfig alpha_mu_cfg{2,
                                    num_worlds,
                                    false,

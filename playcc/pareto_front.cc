@@ -196,6 +196,15 @@ ParetoFront ParetoFront::Deserialize(const std::string &str) {
   }
   return front;
 }
+void ParetoFront::RemoveVectorsDominatedBy(const OutcomeVector &r) {
+  auto is_dominated = [&r](const OutcomeVector &ov) -> bool{
+    return OutcomeVectorDominate(r, ov);
+  };
+  outcome_vectors_.erase(std::remove_if(outcome_vectors_.begin(),
+                                        outcome_vectors_.end(),
+                                        is_dominated),
+                         outcome_vectors_.end());
+}
 
 ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {
   ParetoFront res{};
@@ -235,8 +244,20 @@ ParetoFront ParetoFrontMin(const ParetoFront &lhs, const ParetoFront &rhs) {
     for (const auto &v : rhs.OutcomeVectors()) {
       //      const auto r_vec = VectorMin(vec.game_status, v.game_status);
       const OutcomeVector outcome_vector = OutcomeVectorJoin(vec, v);
-      result.Insert(outcome_vector);
+      result.RemoveVectorsDominatedBy(v);
+      bool no_dominate = true;
+      auto ovs = result.OutcomeVectors();
+      for(const auto &ov:ovs){
+        if (OutcomeVectorDominate(ov, outcome_vector)){
+          no_dominate = false;
+          break;
+        }
+      }
+      if (no_dominate){
+        result.Insert(outcome_vector);
+      }
     }
+
   }
   return result;
 }

@@ -5,21 +5,24 @@
 
 #include "outcome_vector.h"
 bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
-//    if (lhs.possible_world != rhs.possible_world) {
-//      return false;
-//    }
-  CheckVectorSize(lhs.game_status, rhs.game_status);
-
-  if (!VectorGreaterEqual(lhs.game_status, rhs.game_status)) {
+  if (lhs.possible_world != rhs.possible_world) {
     return false;
   }
+  CheckVectorSize(lhs.game_status, rhs.game_status);
+
   const size_t size = lhs.game_status.size();
+  bool is_dominant = false;
   for (size_t i = 0; i < size; ++i) {
-    if (lhs.game_status[i] > rhs.game_status[i]) {
-      return true;
+    if (!lhs.possible_world[i]) {
+      continue;
+    }
+    if (lhs.game_status[i] < rhs.game_status[i]) {
+      return false;
+    } else if (lhs.game_status[i] > rhs.game_status[i]) {
+      is_dominant = true;
     }
   }
-  return false;
+  return is_dominant;
 }
 
 double OutcomeVector::Score() const {
@@ -31,7 +34,7 @@ double OutcomeVector::Score() const {
       count += 1;
     }
   }
-  return sum / count;
+  return count == 0 ? 0.0 : sum / count;
 }
 std::string OutcomeVector::ToString() const {
   std::string rv;
@@ -53,47 +56,19 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
                                                     const bool rhs_possible) {
   int game_status;
   bool possible_worlds;
-  if (lhs_possible == rhs_possible) {
-    if (lhs_possible) {
-      // Both possible.
-      game_status = std::min(lhs_game_status, rhs_game_status);
-      possible_worlds = true;
-      return std::make_pair(game_status, possible_worlds);
-    }
-    // Both impossible
-    game_status = 0;
-    possible_worlds = false;
-    return std::make_pair(game_status, possible_worlds);
-  }
 
-  // One is possible while another is not.
-  if (lhs_possible) {
-    // lhs true, and rhs false
-    // lhs status | rhs status | status | possible
-    //     0      |      1     |   1    |  false
-    //     1      |      1     |   1    |  true
-    //     1      |      0     |   1    |  true
-    //     0      |      0     |   0    |  false
-    if (lhs_game_status < rhs_game_status){
-      return std::make_pair(0, 0);
+  if (lhs_possible && rhs_possible) {
+    return {std::min(lhs_game_status, rhs_game_status), true};
+  } else {
+    if((!lhs_possible) && (!rhs_possible)){
+      // Both impossible
+      return {0, false};
     }
-    game_status = lhs_game_status;
-    possible_worlds = true;
-    return std::make_pair(game_status, possible_worlds);
+    if (lhs_possible){
+      return {lhs_game_status, true};
+    }
+    return {rhs_game_status, true};
   }
-
-  // lhs false, and rhs true
-  // lhs status | rhs status | status | possible
-  //     0      |      1     |   1    |  true
-  //     1      |      1     |   1    |  true
-  //     1      |      0     |   1    |  false
-  //     0      |      0     |   0    |  false
-  if(rhs_game_status < lhs_game_status){
-    return std::make_pair(0, 0);
-  }
-  game_status = rhs_game_status;
-  possible_worlds = true;
-  return std::make_pair(game_status, possible_worlds);
 }
 
 OutcomeVector OutcomeVectorJoin(const OutcomeVector &lhs, const OutcomeVector &rhs) {
