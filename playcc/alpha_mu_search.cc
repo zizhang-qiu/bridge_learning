@@ -294,10 +294,10 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state, int n
       //      std::cout << "Step Max node alphamu\n";
       ParetoFront f = VanillaAlphaMu(s, num_max_moves - 1, next_worlds);
       f.SetMove(move);
-      if (num_max_moves == 2) {
-        std::cout << "front at Max node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
-                  << f.ToString() << "\n score: " << f.Score() << std::endl;
-      }
+//      if (num_max_moves == 2) {
+//        std::cout << "front at Max node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
+//                  << f.ToString() << "\n score: " << f.Score() << std::endl;
+//      }
       front = ParetoFrontMax(front, f);
 //      if (num_max_moves == 2)
 //        std::cout << "Max node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;
