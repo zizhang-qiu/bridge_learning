@@ -64,7 +64,7 @@ std::vector<int> DoubleDummyEvaluation(const Worlds &worlds) {
   const auto possible = worlds.Possible();
   std::vector<int> evaluation(size, 0);
   for (size_t i = 0; i < size; ++i) {
-    evaluation[i] = possible[i] ? DoubleDummyEvaluation(states[i]) : 0;
+    evaluation[i] = possible[i] ? DoubleDummyEvaluation(states[i]) : 1;
   }
   return evaluation;
 }
@@ -83,7 +83,7 @@ bool CheckAlreadyLose(const ble::BridgeState &state) {
 bool StopSearch(const ble::BridgeState &state,
                 const int num_max_moves,
                 const std::vector<ble::BridgeState> &worlds,
-                const std::vector<bool> &possible_worlds,
+                const std::vector<int> &possible_worlds,
                 ParetoFront &result) {
   if (CheckAlreadyWin(state)) {
     result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 1);
@@ -147,7 +147,7 @@ std::vector<bool> GetPossibleWorlds(const ble::BridgeStateWithoutHiddenInfo &sta
 bool StopSearch(const ble::BridgeState &state,
                 int num_max_moves,
                 const Worlds &worlds,
-                const vector<bool> &possible_worlds,
+                const vector<int> &possible_worlds,
                 ParetoFront &result) {
   if (CheckAlreadyWin(state)) {
     result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 1);
@@ -183,7 +183,7 @@ std::vector<ble::BridgeState> GetNextWorlds(const std::vector<ble::BridgeState> 
 bool StopSearch(const ble::BridgeStateWithoutHiddenInfo &state,
                 int num_max_moves,
                 const vector<ble::BridgeState> &worlds,
-                const vector<bool> &possible_worlds,
+                const vector<int> &possible_worlds,
                 ParetoFront &result) {
   if (state.NumDeclarerTricks() >= state.GetContract().level + 6) {
     result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 1);
@@ -294,10 +294,10 @@ ParetoFront VanillaAlphaMu(const ble::BridgeStateWithoutHiddenInfo &state, int n
       //      std::cout << "Step Max node alphamu\n";
       ParetoFront f = VanillaAlphaMu(s, num_max_moves - 1, next_worlds);
       f.SetMove(move);
-//      if (num_max_moves == 2) {
-//        std::cout << "front at Max node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
-//                  << f.ToString() << std::endl;
-//      }
+      if (num_max_moves == 2) {
+        std::cout << "front at Max node, M = " << num_max_moves << ", move: " << move.ToString() << "\n"
+                  << f.ToString() << "\n score: " << f.Score() << std::endl;
+      }
       front = ParetoFrontMax(front, f);
 //      if (num_max_moves == 2)
 //        std::cout << "Max node, move: " << move.ToString() << "\nfront:\n" << front.ToString() << std::endl;

@@ -41,6 +41,7 @@ ParetoFront VanillaAlphaMuBot::Search(const ble::BridgeState &state) const {
 //  }
   ParetoFront front =
       VanillaAlphaMu(ble::BridgeStateWithoutHiddenInfo(state), cfg_.num_max_moves, Worlds(deals, state));
+  std::cout << front << std::endl;
   return front;
 }
 ble::BridgeMove VanillaAlphaMuBot::ActWithWorlds(const ble::BridgeState &state, const vector<ble::BridgeState> &worlds) const {

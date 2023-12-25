@@ -9,6 +9,7 @@ bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
 //      return false;
 //    }
   CheckVectorSize(lhs.game_status, rhs.game_status);
+
   if (!VectorGreaterEqual(lhs.game_status, rhs.game_status)) {
     return false;
   }
@@ -20,6 +21,7 @@ bool OutcomeVectorDominate(const OutcomeVector &lhs, const OutcomeVector &rhs) {
   }
   return false;
 }
+
 double OutcomeVector::Score() const {
   double sum = 0;
   int count = 0;
@@ -72,6 +74,9 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
     //     1      |      1     |   1    |  true
     //     1      |      0     |   1    |  true
     //     0      |      0     |   0    |  false
+    if (lhs_game_status < rhs_game_status){
+      return std::make_pair(0, 0);
+    }
     game_status = lhs_game_status;
     possible_worlds = true;
     return std::make_pair(game_status, possible_worlds);
@@ -83,6 +88,9 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
   //     1      |      1     |   1    |  true
   //     1      |      0     |   1    |  false
   //     0      |      0     |   0    |  false
+  if(rhs_game_status < lhs_game_status){
+    return std::make_pair(0, 0);
+  }
   game_status = rhs_game_status;
   possible_worlds = true;
   return std::make_pair(game_status, possible_worlds);
@@ -91,7 +99,7 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
 OutcomeVector OutcomeVectorJoin(const OutcomeVector &lhs, const OutcomeVector &rhs) {
   const size_t size = lhs.game_status.size();
   std::vector<int> game_status(size, 0);
-  std::vector<bool> possible_worlds(size, false);
+  std::vector<int> possible_worlds(size, 0);
   for (size_t i = 0; i < size; ++i) {
     const auto [status, possible] = GetGameStatusAndPossibleWorlds(
         lhs.game_status[i], rhs.game_status[i], lhs.possible_world[i], rhs.possible_world[i]);

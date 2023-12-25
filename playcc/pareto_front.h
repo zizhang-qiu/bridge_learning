@@ -30,7 +30,7 @@ class ParetoFront {
 
   void SetMove(const ble::BridgeMove &move);
 
-  static ParetoFront ParetoFrontWithOneOutcomeVector(const std::vector<bool> &possible_worlds, int fill_value);
+  static ParetoFront ParetoFrontWithOneOutcomeVector(const std::vector<int> &possible_worlds, int fill_value);
 
   std::string Serialize() const;
 

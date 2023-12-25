@@ -16,7 +16,7 @@ class Worlds {
 
   explicit Worlds(const std::vector<ble::BridgeState> &worlds) : states_(worlds), possible_(states_.size(), true) {}
 
-  Worlds(const std::vector<ble::BridgeState> &worlds, const std::vector<bool> &possible) {
+  Worlds(const std::vector<ble::BridgeState> &worlds, const std::vector<int> &possible) {
     SPIEL_CHECK_EQ(worlds.size(), possible.size());
     states_ = worlds;
     possible_ = possible;
@@ -42,9 +42,9 @@ class Worlds {
 
   [[nodiscard]] std::vector<ble::BridgeState> States() const { return states_; }
 
-  [[nodiscard]] std::vector<bool> Possible() const { return possible_; }
+  [[nodiscard]] std::vector<int> Possible() const { return possible_; }
 
-  Worlds CloneWithPossibility(const std::vector<bool> &possible) { return {states_, possible}; }
+  Worlds CloneWithPossibility(const std::vector<int> &possible) { return {states_, possible}; }
 
   Worlds Child(const ble::BridgeMove &move) const {
     auto cloned = *this;
@@ -63,7 +63,7 @@ class Worlds {
 
  private:
   std::vector<ble::BridgeState> states_;
-  std::vector<bool> possible_;
+  std::vector<int> possible_;
 };
 
 std::ostream &operator<<(std::ostream &stream, const Worlds &worlds);

@@ -87,7 +87,7 @@ std::string ParetoFront::ToString() const {
   //  }
   return rv;
 }
-ParetoFront ParetoFront::ParetoFrontWithOneOutcomeVector(const std::vector<bool> &possible_worlds,
+ParetoFront ParetoFront::ParetoFrontWithOneOutcomeVector(const std::vector<int> &possible_worlds,
                                                          const int fill_value) {
   const std::vector<int> game_status(possible_worlds.size(), fill_value);
   const OutcomeVector outcome_vector{game_status, possible_worlds};
@@ -158,7 +158,7 @@ ParetoFront ParetoFront::Deserialize(const std::string &str) {
   while (true) {
     auto next_it = std::find(it + 1, lines.end(), "game status");
     std::vector<int> game_status;
-    std::vector<bool> possible_worlds;
+    std::vector<int> possible_worlds;
     ble::BridgeMove move{};
     auto possible_worlds_it = std::find(it, next_it, "possible worlds");
     auto move_it = std::find(it, next_it, "move");

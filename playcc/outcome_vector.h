@@ -18,7 +18,7 @@ struct OutcomeVector {
   std::string ToString() const;
 
   std::vector<int> game_status;
-  std::vector<bool> possible_world;
+  std::vector<int> possible_world;
   ble::BridgeMove move{};
 };
 
