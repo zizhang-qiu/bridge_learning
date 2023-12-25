@@ -119,7 +119,7 @@ ble::BridgeMove PIMCBot::Act(const ble::BridgeState &state) {
   const SearchResult res = Search(state);
   auto [move, score] = GetBestAction(res);
 
-  PrintSearchResult(res);
+//  PrintSearchResult(res);
 
   return move;
 }
