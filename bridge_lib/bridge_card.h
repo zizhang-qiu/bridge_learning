@@ -13,7 +13,7 @@ namespace bridge_learning_env {
 class BridgeCard {
  public:
   BridgeCard() = default; // Create an invalid card.
-  BridgeCard(Suit suit, int rank) : suit_(suit), rank_(rank) {}
+  BridgeCard(const Suit suit, const int rank) : suit_(suit), rank_(rank) {}
   bool operator==(const BridgeCard &other_card) const;
   [[nodiscard]] bool IsValid() const {
     return suit_ >= 0 && rank_ >= 0;

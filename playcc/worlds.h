@@ -46,7 +46,7 @@ class Worlds {
 
   Worlds CloneWithPossibility(const std::vector<int> &possible) { return {states_, possible}; }
 
-  Worlds Child(const ble::BridgeMove &move) const {
+  [[nodiscard]] Worlds Child(const ble::BridgeMove &move) const {
     auto cloned = *this;
     cloned.ApplyMove(move);
     return cloned;

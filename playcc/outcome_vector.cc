@@ -54,9 +54,6 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
                                                     const int rhs_game_status,
                                                     const bool lhs_possible,
                                                     const bool rhs_possible) {
-  int game_status;
-  bool possible_worlds;
-
   if (lhs_possible && rhs_possible) {
     return {std::min(lhs_game_status, rhs_game_status), true};
   } else {

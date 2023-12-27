@@ -15,7 +15,7 @@ struct OutcomeVector {
 
   [[nodiscard]] double Score() const;
 
-  std::string ToString() const;
+  [[nodiscard]] std::string ToString() const;
 
   std::vector<int> game_status;
   std::vector<int> possible_world;

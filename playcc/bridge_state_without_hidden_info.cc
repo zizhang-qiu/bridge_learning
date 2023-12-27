@@ -183,7 +183,7 @@ void BridgeStateWithoutHiddenInfo::ApplyMove(const BridgeMove &move) {
       history.other_call = move.OtherCall();
       auction_tracker_.ApplyAuction(move, history.player);
       if (auction_tracker_.IsAuctionTerminated()) {
-        contract_ = auction_tracker_.Contract();
+        contract_ = auction_tracker_.GetContract();
         if (contract_.level == 0) {
           phase_ = Phase::kGameOver;
           ScoreUp();

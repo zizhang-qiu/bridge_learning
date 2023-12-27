@@ -73,9 +73,9 @@ std::string ParetoFront::ToString() const {
   int index = 0;
   for (auto it = outcome_vectors_.begin(); it != outcome_vectors_.end(); ++it) {
     rv += std::to_string(index) + ":\nGame status:\n";
-    rv += "[" + VectorToString((*it).game_status) + "],\npossible worlds:\n";
-    rv += "[" + VectorToString((*it).possible_world) + "],\n move:";
-    rv += (*it).move.ToString();
+    rv += "[" + VectorToString(it->game_status) + "],\npossible worlds:\n";
+    rv += "[" + VectorToString(it->possible_world) + "],\n move:";
+    rv += it->move.ToString();
     ++index;
     if (std::next(it) != outcome_vectors_.end()) {
       rv += ",\n";
@@ -115,7 +115,7 @@ OutcomeVector ParetoFront::BestOutcome() const {
   double max_score = -1;
   OutcomeVector result{};
   for (const auto &ov : outcome_vectors_) {
-    if (double this_score = ov.Score(); this_score > max_score) {
+    if (const double this_score = ov.Score(); this_score > max_score) {
       result = ov;
       max_score = this_score;
     }
@@ -156,7 +156,7 @@ ParetoFront ParetoFront::Deserialize(const std::string &str) {
     return front;
   }
   while (true) {
-    auto next_it = std::find(it + 1, lines.end(), "game status");
+    const auto next_it = std::find(it + 1, lines.end(), "game status");
     std::vector<int> game_status;
     std::vector<int> possible_worlds;
     ble::BridgeMove move{};
@@ -174,8 +174,7 @@ ParetoFront ParetoFront::Deserialize(const std::string &str) {
 
     SPIEL_CHECK_EQ(game_status.size(), possible_worlds.size());
 
-    auto move_str = *(move_it + 1);
-    if (move_str != "II") {
+    if (auto move_str = *(move_it + 1); move_str != "II") {
       const ble::Suit suit = ble::SuitCharToSuit(move_str[0]);
       const int rank = ble::RankCharToRank(move_str[1]);
       move = ble::BridgeMove{
@@ -210,7 +209,7 @@ ParetoFront operator*(const ParetoFront &lhs, const ParetoFront &rhs) {
   ParetoFront res{};
   for (const auto &ov_l : lhs.OutcomeVectors()) {
     for (const auto &ov_r : rhs.OutcomeVectors()) {
-      auto product = VectorProduct(ov_l.game_status, ov_r.game_status);
+      const auto product = VectorProduct(ov_l.game_status, ov_r.game_status);
       // std::cout << VectorToString(product) << std::endl;
       const OutcomeVector outcome_vector{product, ov_l.possible_world};
       res.Insert(outcome_vector);

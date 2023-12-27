@@ -30,7 +30,7 @@ struct PIMCConfig {
 
 class PIMCBot final : public PlayBot {
  public:
-  PIMCBot(std::shared_ptr<Resampler> resampler, PIMCConfig cfg) :
+  PIMCBot(std::shared_ptr<Resampler> resampler, const PIMCConfig cfg) :
       resampler_(std::move(resampler)), cfg_(cfg) {
     SetMaxThreads(0);
   }

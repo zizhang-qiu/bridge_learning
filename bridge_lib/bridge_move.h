@@ -9,17 +9,29 @@
 namespace bridge_learning_env {
 
 class BridgeMove {
- public:
+  public:
   enum Type { kInvalid = -1, kAuction, kPlay, kDeal };
 
-  BridgeMove() : move_type_(kInvalid), suit_(kInvalidSuit), rank_(-1),
-                 denomination_(kInvalidDenomination), level_(-1), other_call_(kNotOtherCall) {}
+  BridgeMove() :
+      suit_(kInvalidSuit),
+      rank_(-1),
+      denomination_(kInvalidDenomination),
+      level_(-1),
+      other_call_(kNotOtherCall),
+      move_type_(kInvalid) {}
 
-  BridgeMove(Type move_type, Suit suit, int rank,
-             Denomination denomination, int level, OtherCalls other_call)
-      : move_type_(move_type), suit_(suit),
-        rank_(rank), denomination_(denomination), level_(level),
-        other_call_(other_call) {}
+  BridgeMove(const Type move_type,
+             const Suit suit,
+             const int rank,
+             const Denomination denomination,
+             const int level,
+             const OtherCalls other_call) :
+      suit_(suit),
+      rank_(rank),
+      denomination_(denomination),
+      level_(level),
+      other_call_(other_call),
+      move_type_(move_type) {}
 
   BridgeMove(const BridgeMove &) = default;
 
@@ -43,18 +55,17 @@ class BridgeMove {
 
   [[nodiscard]] std::string AuctionToString() const;
 
- private:
+  private:
   Suit suit_;
   int rank_;
   Denomination denomination_;
   int level_;
   OtherCalls other_call_;
   Type move_type_;
-
 };
 
-std::ostream &operator<<(std::ostream &stream, const BridgeMove& move);
+std::ostream &operator<<(std::ostream &stream, const BridgeMove &move);
 
-} // namespace bridge
+} // namespace bridge_learning_env
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_MOVE_H_

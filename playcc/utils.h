@@ -4,11 +4,11 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_UTILS_H_
 #define BRIDGE_LEARNING_PLAYCC_UTILS_H_
+#include <algorithm>
 #include <cstring>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "bridge_lib/bridge_state.h"
 
@@ -31,7 +31,7 @@ std::vector<T> FlattenVector(const std::vector<std::vector<T>> &nested_vector) {
 
 std::array<int, ble::kNumCards> HandsToCardIndices(const std::vector<ble::BridgeHand> &hands);
 
-ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards>& deal,
+ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> &deal,
                                         const std::shared_ptr<ble::BridgeGame> &game);
 
 ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> &deal,
@@ -56,8 +56,8 @@ void PrintArray(std::array<T, N> arr) {
   std::cout << std::endl;
 }
 
-std::array<std::vector<ble::BridgeCard>,
-           ble::kNumSuits> SplitCardsVecBySuits(const std::vector<ble::BridgeCard> &cards);
+std::array<std::vector<ble::BridgeCard>, ble::kNumSuits> SplitCardsVecBySuits(
+    const std::vector<ble::BridgeCard> &cards);
 
 std::set<ble::Suit> GetSuitsFromCardsVec(const std::vector<ble::BridgeCard> &cards);
 
@@ -74,7 +74,7 @@ std::vector<int> KeepLargestConsecutive(const std::vector<int> &input);
 
 std::vector<int> FindSetBitPositions(int decimalNumber);
 
-std::vector<ble::BridgeMove> GetMovesFromFutureTricks(const futureTricks& fut);
+std::vector<ble::BridgeMove> GetMovesFromFutureTricks(const futureTricks &fut);
 
 template<typename T, typename RNG>
 T UniformSample(const std::vector<T> &vec, RNG &rng) {
@@ -90,8 +90,8 @@ T UniformSample(const std::vector<T> &vec, RNG &rng) {
   return vec[dist(rng)];
 }
 
-template <typename T>
-void MoveItemToFirst(std::vector<T>& vec, bool (*constraint_function)(T)) {
+template<typename T>
+void MoveItemToFirst(std::vector<T> &vec, bool (*constraint_function)(T)) {
   auto it = std::find_if(vec.begin(), vec.end(), constraint_function);
 
   if (it != vec.end()) {

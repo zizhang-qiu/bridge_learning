@@ -26,7 +26,7 @@ std::array<int, ble::kNumCards> HandsToCardIndices(const std::vector<ble::Bridge
   }
   return res;
 }
-ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards>& deal,
+ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> &deal,
                                         const std::shared_ptr<ble::BridgeGame> &game) {
   auto state = ble::BridgeState(game);
   for (int i = 0; i < ble::kNumCards; ++i) {
@@ -59,9 +59,9 @@ deal StateToDDSDeal(const ble::BridgeState &state) {
   dl.trump = ble::DenominationToDDSStrain(contract.denomination);
   const ble::Trick current_trick = state.CurrentTrick();
   dl.first = current_trick.Leader() != ble::kInvalidPlayer ? current_trick.Leader()
-                                                           : state.IsDummyActing() ? state.GetDummy()
-                                                                                   : state.CurrentPlayer();
-//  std::cout << "first: " << dl.first << std::endl;
+      : state.IsDummyActing()                              ? state.GetDummy()
+                                                           : state.CurrentPlayer();
+  //  std::cout << "first: " << dl.first << std::endl;
   const auto play_history = state.PlayHistory();
 
   const int num_tricks_played = static_cast<int>(play_history.size()) / ble::kNumPlayers;
@@ -75,15 +75,15 @@ deal StateToDDSDeal(const ble::BridgeState &state) {
     dl.currentTrickRank[i] = ble::RankToDDSRank(item.rank);
   }
 
-//  std::cout << "currentTrickSuit: ";
-//  for (int i : dl.currentTrickSuit) {
-//    std::cout << i << std::endl;
-//  }
-//
-//  std::cout << "currentTrickRank: ";
-//  for (int i : dl.currentTrickRank) {
-//    std::cout << i << std::endl;
-//  }
+  //  std::cout << "currentTrickSuit: ";
+  //  for (int i : dl.currentTrickSuit) {
+  //    std::cout << i << std::endl;
+  //  }
+  //
+  //  std::cout << "currentTrickRank: ";
+  //  for (int i : dl.currentTrickRank) {
+  //    std::cout << i << std::endl;
+  //  }
 
   const auto &hands = state.Hands();
   for (const ble::Player pl : ble::kAllSeats) {
@@ -163,27 +163,26 @@ std::vector<ble::BridgeMove> GetLegalMovesWithoutEquivalentCards(const ble::Brid
   // What suits do we need to analyze?
   const auto suits = GetSuitsFromMovesVec(legal_moves);
 
-  const auto legal_cards = ExtractCardsBySuitsFromCardsVec(state.Hands()[state.IsDummyActing() ? state.GetDummy()
-                                                                                               : state.CurrentPlayer()].Cards(),
+  const auto legal_cards = ExtractCardsBySuitsFromCardsVec(
+      state.Hands()[state.IsDummyActing() ? state.GetDummy() : state.CurrentPlayer()].Cards(),
 
-                                                           suits);
+      suits);
   const auto legal_cards_by_suits = SplitCardsVecBySuits(legal_cards);
-//  std::cout << "legal cards:" << std::endl;
-//  for (const auto &card : legal_cards) {
-//    std::cout << card.ToString() << std::endl;
-//  }
+  //  std::cout << "legal cards:" << std::endl;
+  //  for (const auto &card : legal_cards) {
+  //    std::cout << card.ToString() << std::endl;
+  //  }
 
   const auto &played_cards = state.PlayedCards();
-//  const auto relevant_played_cards = ExtractCardsBySuitsFromCardsVec(played_cards, suits);
+  //  const auto relevant_played_cards = ExtractCardsBySuitsFromCardsVec(played_cards, suits);
   const auto dummy_hand = state.Hands()[state.GetDummy()];
   const auto declarer_hand = state.Hands()[state.GetContract().declarer];
 
   const bool is_dummy_acting = state.IsDummyActing();
 
-
   // Get all cards we need to analyze.
   std::vector<ble::BridgeCard> all_cards = GenerateAllCardsBySuits(suits);
-//  std::vector<int> all_cards_indices = ble::Arange(0, ble::kNumCards);
+  //  std::vector<int> all_cards_indices = ble::Arange(0, ble::kNumCards);
   // First, erase the played cards.
   for (const auto &card : played_cards) {
     auto it = std::find(all_cards.begin(), all_cards.end(), card);
@@ -192,30 +191,30 @@ std::vector<ble::BridgeMove> GetLegalMovesWithoutEquivalentCards(const ble::Brid
     }
   }
 
-//  if (is_dummy_acting) {
-//    for (const auto &card : declarer_hand.Cards()) {
-//      auto it = std::find(all_cards.begin(), all_cards.end(), card);
-//      if (it != all_cards.end()) {
-//        all_cards.erase(it);
-//      }
-//    }
-//  } else {
-//    for (const auto &card : dummy_hand.Cards()) {
-//      auto it = std::find(all_cards.begin(), all_cards.end(), card);
-//      if (it != all_cards.end()) {
-//        all_cards.erase(it);
-//      }
-//    }
-//  }
+  //  if (is_dummy_acting) {
+  //    for (const auto &card : declarer_hand.Cards()) {
+  //      auto it = std::find(all_cards.begin(), all_cards.end(), card);
+  //      if (it != all_cards.end()) {
+  //        all_cards.erase(it);
+  //      }
+  //    }
+  //  } else {
+  //    for (const auto &card : dummy_hand.Cards()) {
+  //      auto it = std::find(all_cards.begin(), all_cards.end(), card);
+  //      if (it != all_cards.end()) {
+  //        all_cards.erase(it);
+  //      }
+  //    }
+  //  }
 
-//  std::cout << "all cards:" << std::endl;
-//  for (const auto &card : all_cards) {
-//    std::cout << card.ToString() << std::endl;
-//  }
+  //  std::cout << "all cards:" << std::endl;
+  //  for (const auto &card : all_cards) {
+  //    std::cout << card.ToString() << std::endl;
+  //  }
 
   auto cards_by_suits = SplitCardsVecBySuits(all_cards);
   auto card_value = [cards_by_suits](const ble::BridgeCard &card) -> int {
-    auto it = std::find(cards_by_suits[card.CardSuit()].begin(), cards_by_suits[card.CardSuit()].end(), card);
+    const auto it = std::find(cards_by_suits[card.CardSuit()].begin(), cards_by_suits[card.CardSuit()].end(), card);
     return static_cast<int>(std::distance(cards_by_suits[card.CardSuit()].begin(), it));
   };
 
@@ -226,12 +225,12 @@ std::vector<ble::BridgeMove> GetLegalMovesWithoutEquivalentCards(const ble::Brid
     }
   }
 
-//  for (const ble::Suit suit : ble::kAllSuits) {
-//    for (const int value : card_values_by_suits[suit]) {
-//      std::cout << value << ", ";
-//    }
-//    std::cout << std::endl;
-//  }
+  //  for (const ble::Suit suit : ble::kAllSuits) {
+  //    for (const int value : card_values_by_suits[suit]) {
+  //      std::cout << value << ", ";
+  //    }
+  //    std::cout << std::endl;
+  //  }
 
   std::array<std::vector<int>, ble::kNumCards> legal_card_values_by_suits{};
 
@@ -247,25 +246,25 @@ std::vector<ble::BridgeMove> GetLegalMovesWithoutEquivalentCards(const ble::Brid
     std::sort(legal_card_values_by_suits[suit].begin(), legal_card_values_by_suits[suit].end());
   }
 
-//  std::cout << "legal card values:" << std::endl;
-//  for (const ble::Suit suit : ble::kAllSuits) {
-//    for (const int value : legal_card_values_by_suits[suit]) {
-//      std::cout << value << ", ";
-//    }
-//    std::cout << std::endl;
-//  }
+  //  std::cout << "legal card values:" << std::endl;
+  //  for (const ble::Suit suit : ble::kAllSuits) {
+  //    for (const int value : legal_card_values_by_suits[suit]) {
+  //      std::cout << value << ", ";
+  //    }
+  //    std::cout << std::endl;
+  //  }
 
   std::array<std::vector<int>, ble::kNumCards> remained_legal_card_values_by_suits{};
   for (const ble::Suit suit : suits) {
     remained_legal_card_values_by_suits[suit] = KeepLargestConsecutive(legal_card_values_by_suits[suit]);
   }
-//  std::cout << "remained legal card values:" << std::endl;
-//  for (const ble::Suit suit : ble::kAllSuits) {
-//    for (const int value : remained_legal_card_values_by_suits[suit]) {
-//      std::cout << value << ", ";
-//    }
-//    std::cout << std::endl;
-//  }
+  //  std::cout << "remained legal card values:" << std::endl;
+  //  for (const ble::Suit suit : ble::kAllSuits) {
+  //    for (const int value : remained_legal_card_values_by_suits[suit]) {
+  //      std::cout << value << ", ";
+  //    }
+  //    std::cout << std::endl;
+  //  }
 
   // Construct moves
   for (const ble::Suit suit : suits) {
@@ -284,7 +283,6 @@ std::vector<ble::BridgeMove> GetLegalMovesWithoutEquivalentCards(const ble::Brid
   }
 
   return moves;
-
 }
 std::vector<int> KeepLargestConsecutive(const std::vector<int> &input) {
   std::vector<int> result;
@@ -302,7 +300,8 @@ std::vector<int> KeepLargestConsecutive(const std::vector<int> &input) {
     if (input[i] == current_consecutive + 1) {
       // Update the current consecutive sequence to the larger value
       current_consecutive = input[i];
-    } else {
+    }
+    else {
       // If not consecutive, add the largest value in the current sequence to the result
       result.push_back(current_consecutive);
 
@@ -344,9 +343,9 @@ std::vector<ble::BridgeMove> GetMovesFromFutureTricks(const futureTricks &fut) {
     }
 
     // Deal with equal cards.
-    if (fut.equals[i]!=0){
+    if (fut.equals[i] != 0) {
       const std::vector<int> positions = FindSetBitPositions(fut.equals[i]);
-      for(const int pos:positions){
+      for (const int pos : positions) {
         moves.emplace_back(
             /*move_type=*/ble::BridgeMove::Type::kPlay,
             /*suit=*/ble::DDSSuitToSuit(fut.suit[i]),
@@ -363,19 +362,13 @@ ble::BridgeState ConstructStateFromTrajectory(const std::vector<int> &trajectory
                                               const std::shared_ptr<ble::BridgeGame> &game) {
   ble::BridgeState state{game};
   const int trajectory_length = static_cast<int>(trajectory.size());
-  for(int i=0; i< std::min(trajectory_length, ble::kNumCards); ++i){
+  for (int i = 0; i < std::min(trajectory_length, ble::kNumCards); ++i) {
     const ble::BridgeMove move = game->GetChanceOutcome(trajectory[i]);
     state.ApplyMove(move);
   }
-  for(int i=ble::kNumCards; i < trajectory_length; ++i){
+  for (int i = ble::kNumCards; i < trajectory_length; ++i) {
     const ble::BridgeMove move = game->GetMove(trajectory[i]);
     state.ApplyMove(move);
   }
   return state;
 }
-
-
-
-
-
-

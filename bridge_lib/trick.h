@@ -4,7 +4,7 @@
 
 namespace bridge_learning_env {
 class Trick {
- public:
+  public:
   Trick(Player leader, Denomination trumps, int card);
   Trick() : Trick{kInvalidPlayer, kNoTrump, 0} {}
   void Play(Player player, int card);
@@ -12,7 +12,7 @@ class Trick {
   Player Winner() const { return winning_player_; }
   Player Leader() const { return leader_; }
 
- private:
+  private:
   Denomination trumps_;
   Suit led_suit_;
   Suit winning_suit_;
@@ -20,6 +20,6 @@ class Trick {
   Player leader_;
   Player winning_player_;
 };
-}  // namespace bridge
+} // namespace bridge_learning_env
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_TRICK_H

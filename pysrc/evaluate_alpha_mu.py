@@ -177,7 +177,6 @@ class Worker2(mp.Process):
 
 
 if __name__ == '__main__':
-
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
     cfg = EvaluateConfig(args.num_deals,

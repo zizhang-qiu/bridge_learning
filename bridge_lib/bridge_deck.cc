@@ -5,13 +5,13 @@
 namespace bridge_learning_env {
 BridgeCard BridgeDeck::DealCard(Suit suit,
                                 int rank) {
-  int index = CardIndex(suit, rank);
+  const int index = CardIndex(suit, rank);
   REQUIRE(card_in_deck_[index] == true);
   card_in_deck_[index] = false;
   --total_count_;
   return {suit, rank};
 }
-BridgeCard BridgeDeck::DealCard(int card_index) {
+BridgeCard BridgeDeck::DealCard(const int card_index) {
   REQUIRE(card_in_deck_[card_index] == true);
   card_in_deck_[card_index] = false;
   --total_count_;
@@ -21,9 +21,8 @@ BridgeCard BridgeDeck::DealCard(std::mt19937 &rng) {
   if (Empty()) {
     return {};
   }
-  std::discrete_distribution<std::mt19937::result_type> dist(
-      card_in_deck_.begin(), card_in_deck_.end());
-  int index = static_cast<int>(dist(rng));
+  std::discrete_distribution<std::mt19937::result_type> dist(card_in_deck_.begin(), card_in_deck_.end());
+  const int index = static_cast<int>(dist(rng));
   REQUIRE(card_in_deck_[index] == true);
   card_in_deck_[index] = false;
   --total_count_;

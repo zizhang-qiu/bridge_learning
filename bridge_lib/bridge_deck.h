@@ -22,13 +22,13 @@ namespace bridge_learning_env {
 class BridgeDeck {
  public:
   // The deck of bridge always contains 52 cards, no other arguments.
-  BridgeDeck() : total_count_(kNumCards), card_in_deck_(kNumCards, true) {}
+  BridgeDeck() : card_in_deck_(kNumCards, true), total_count_(kNumCards) {}
   BridgeCard DealCard(Suit suit, int rank);
   BridgeCard DealCard(int card_index);
   BridgeCard DealCard(std::mt19937 &rng);
   [[nodiscard]] int Size() const { return total_count_; }
   [[nodiscard]] bool Empty() const { return total_count_ == 0; }
-  [[nodiscard]] bool CardInDeck(Suit suit, int rank) const {
+  [[nodiscard]] bool CardInDeck(const Suit suit, const int rank) const {
     return card_in_deck_[CardIndex(suit, rank)];
   }
 

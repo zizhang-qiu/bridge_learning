@@ -28,12 +28,12 @@ bool ParameterValue(const GameParameters& params, const std::string& key, bool d
 
 template<typename... Args>
 std::string StrFormat(const std::string& format, Args... args) {
-  int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
+  const int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
   if (size_s <= 0) {
     throw std::runtime_error("Error during formatting.");
   }
-  auto size = static_cast<size_t>(size_s);
-  std::unique_ptr<char[]> buf(new char[size]);
+  const auto size = static_cast<size_t>(size_s);
+  const std::unique_ptr<char[]> buf(new char[size]);
   std::snprintf(buf.get(), size, format.c_str(), args...);
   return {buf.get(), buf.get() + size - 1}; // We don't want the '\0' inside
 }

@@ -47,7 +47,7 @@ class TranspositionTable {
 
   [[nodiscard]] std::string ToString() const;
 
-  std::string Serialize() const;
+  [[nodiscard]] std::string Serialize() const;
 
   static TranspositionTable Deserialize(const std::string &str, const std::shared_ptr<ble::BridgeGame> &game);
 

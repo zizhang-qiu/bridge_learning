@@ -7,15 +7,16 @@
 #include "utils.h"
 namespace bridge_learning_env {
 
-void AuctionTracker::ApplyAuction(bridge_learning_env::BridgeMove move, Player current_player) {
+void AuctionTracker::ApplyAuction(const BridgeMove &move, Player current_player) {
   REQUIRE(move.MoveType() == BridgeMove::kAuction);
-  OtherCalls other_call = move.OtherCall();
+  const OtherCalls other_call = move.OtherCall();
   if (other_call == kPass) {
     ++num_passes_;
-  } else {
+  }
+  else {
     num_passes_ = 0;
   }
-  int partnership = Partnership(current_player);
+  const int partnership = Partnership(current_player);
   if (other_call == kDouble) {
     REQUIRE(Partnership(contract_.declarer) != partnership);
     REQUIRE(contract_.double_status == kUndoubled);
@@ -42,14 +43,14 @@ void AuctionTracker::ApplyAuction(bridge_learning_env::BridgeMove move, Player c
     contract_.declarer = first_bidder_[partnership][contract_.denomination].value();
   }
 }
-bool AuctionTracker::AuctionIsLegal(BridgeMove move, Player current_player) const {
+bool AuctionTracker::AuctionIsLegal(const BridgeMove &move, const Player current_player) const {
   if (IsAuctionTerminated() || move.MoveType() != BridgeMove::kAuction) {
     return false;
   }
   if (move.OtherCall() == kPass) {
     return true;
   }
-  int partnership = Partnership(current_player);
+  const int partnership = Partnership(current_player);
   if (move.OtherCall() == kDouble) {
     if (contract_.level == 0 || contract_.double_status != kUndoubled
         || Partnership(contract_.declarer) == partnership) {

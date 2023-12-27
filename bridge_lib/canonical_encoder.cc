@@ -8,12 +8,12 @@ namespace bridge_learning_env {
 // Computes the product of dimensions in shape, i.e. how many individual
 // pieces of data the encoded observation requires.
 int FlatLength(const std::vector<int> &shape) {
-  return std::accumulate(std::begin(shape), std::end(shape), 1,
-                         std::multiplies<>());
+  return std::accumulate(std::begin(shape), std::end(shape), 1, std::multiplies<>());
 }
 
 int EncodeVulnerability(const BridgeObservation &obs,
-                        const std::shared_ptr<BridgeGame> &game, int start_offset,
+                        const std::shared_ptr<BridgeGame> &game,
+                        const int start_offset,
                         std::vector<int> *encoding) {
   int offset = start_offset;
   (*encoding)[offset + obs.IsPlayerVulnerable()] = 1;
@@ -24,8 +24,7 @@ int EncodeVulnerability(const BridgeObservation &obs,
   return offset - start_offset;
 }
 
-int EncodeAuction(const BridgeObservation &obs, int start_offset,
-                  std::vector<int> *encoding) {
+int EncodeAuction(const BridgeObservation &obs, const int start_offset, std::vector<int> *encoding) {
   int offset = start_offset;
   const auto &history = obs.AuctionHistory();
   int idx = 0;
@@ -38,7 +37,7 @@ int EncodeAuction(const BridgeObservation &obs, int start_offset,
       (*encoding)[offset + history[idx].player] = 1;
     }
   }
-//  std::cout << "idx: " << idx << "\n";
+  //  std::cout << "idx: " << idx << "\n";
   offset += kNumPlayers;
   // For each bid, a 4 * 3 = 12 bits block is used to track whether a player
   // makes/doubles/redoubles the bid.
@@ -47,9 +46,11 @@ int EncodeAuction(const BridgeObservation &obs, int start_offset,
     const auto &item = history[idx];
     if (item.other_call == kDouble) {
       (*encoding)[offset + (last_bid - kFirstBid) * kSingleBidTensorSize + kNumPlayers + item.player] = 1;
-    } else if (item.other_call == kRedouble) {
+    }
+    else if (item.other_call == kRedouble) {
       (*encoding)[offset + (last_bid - kFirstBid) * kSingleBidTensorSize + kNumPlayers * 2 + item.player] = 1;
-    } else if (item.move.IsBid()) {
+    }
+    else if (item.move.IsBid()) {
       // Should be a bid.
       int bid_index = BidIndex(item.level, item.denomination);
       (*encoding)[offset + (bid_index - kFirstBid) * kSingleBidTensorSize + item.player] = 1;
@@ -61,8 +62,7 @@ int EncodeAuction(const BridgeObservation &obs, int start_offset,
   return offset - start_offset;
 }
 
-int EncodePlayerHand(const BridgeObservation &obs, int start_offset,
-                     std::vector<int> *encoding) {
+int EncodePlayerHand(const BridgeObservation &obs, const int start_offset, std::vector<int> *encoding) {
   int offset = start_offset;
   const auto &cards = obs.Hands()[0].Cards();
   REQUIRE(cards.size() == kNumCardsPerHand);
@@ -89,4 +89,4 @@ std::vector<int> CanonicalEncoder::Encode(const BridgeObservation &obs) const {
   return encoding;
 }
 
-} // namespace bridge
+} // namespace bridge_learning_env

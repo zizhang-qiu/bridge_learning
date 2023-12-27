@@ -13,12 +13,12 @@
 namespace bridge_learning_env {
 class AuctionTracker {
  public:
-  AuctionTracker() : num_passes_(0), first_bidder_(), contract_(), is_auction_terminated_(false) {}
-  void ApplyAuction(BridgeMove move, Player current_player);
-  bool AuctionIsLegal(BridgeMove move, Player current_player) const;
+  AuctionTracker() : num_passes_(0), first_bidder_(), is_auction_terminated_(false), contract_() {}
+  void ApplyAuction(const BridgeMove &move, Player current_player);
+  bool AuctionIsLegal(const BridgeMove &move, Player current_player) const;
   bool IsAuctionTerminated() const { return is_auction_terminated_; };
 
-  bridge_learning_env::Contract Contract() const { return contract_; }
+  Contract GetContract() const { return contract_; }
 
   Player Declarer() const { return contract_.declarer; }
  private:
@@ -31,7 +31,7 @@ class AuctionTracker {
 
   bool is_auction_terminated_;
 
-  bridge_learning_env::Contract contract_;
+  Contract contract_;
 };
 }
 

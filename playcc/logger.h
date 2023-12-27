@@ -39,7 +39,7 @@ class FileLogger : public Logger {
 
   using Logger::Print;
   void Print(const std::string& str) override {
-    std::string time =
+    const std::string time =
         absl::FormatTime("%Y-%m-%d %H:%M:%E3S", absl::Now(), tz_);
     fd_.Write(absl::StrFormat("[%s] %s\n", time, str));
     fd_.Flush();
