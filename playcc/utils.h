@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 
 #include "bridge_lib/bridge_state.h"
 

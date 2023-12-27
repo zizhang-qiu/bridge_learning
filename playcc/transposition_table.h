@@ -22,7 +22,7 @@ class TranspositionTable {
   }
 
   [[nodiscard]] bool HasKey(const ble::BridgeStateWithoutHiddenInfo &state) const {
-    return (table_.find(state) != table_.end());
+    return table_.find(state) != table_.end();
   }
 
   [[nodiscard]] auto Table() const {

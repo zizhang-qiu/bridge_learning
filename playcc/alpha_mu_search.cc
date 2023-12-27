@@ -1,7 +1,7 @@
 //
 // Created by qzz on 2023/11/14.
 //
-
+#include <set>
 #include "alpha_mu_search.h"
 #include "absl/strings/str_cat.h"
 
@@ -159,7 +159,7 @@ bool StopSearch(const ble::BridgeState &state,
   }
   if (num_max_moves == 0) {
     result = ParetoFront{};
-    auto game_status = DoubleDummyEvaluation(worlds);
+    const auto game_status = DoubleDummyEvaluation(worlds);
     result.Insert({game_status, possible_worlds});
     return true;
   }
@@ -220,14 +220,14 @@ StopResult StopSearch(const ble::BridgeStateWithoutHiddenInfo &state, int num_ma
 
   // Declarer side has already won.
   if (state.NumDeclarerTricks() >= (6 + contract.level)) {
-    ParetoFront result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 1);
+    const ParetoFront result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 1);
     return {true, result};
   }
 
   // Declarer side has already lost.
   const int defense_tricks = state.NumTricksPlayed() - state.NumDeclarerTricks();
   if (defense_tricks > ble::kNumTricks - (contract.level + 6)) {
-    ParetoFront result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 0);
+    const ParetoFront result = ParetoFront::ParetoFrontWithOneOutcomeVector(possible_worlds, 0);
     return {true, result};
   }
 

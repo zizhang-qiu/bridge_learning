@@ -43,11 +43,6 @@ using ResampleConstraints = std::array<std::array<int, ble::kNumSuits>, ble::kNu
 std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndConstraintsFromState(
     const ble::BridgeState &state);
 
-// std::array<int, ble::kNumCards> SampleWithConstraints(ResampleConstraints constraints,
-//                                                      const std::vector<ble::BridgeHand>& known_hands) {
-//
-//}
-
 class UniformResampler final : public Resampler {
  public:
   explicit UniformResampler(const int seed) : rng_(seed), deck_sampler_() {}

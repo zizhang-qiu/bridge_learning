@@ -102,7 +102,7 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo &state, i
     ParetoFront mini{};
     // Early cut.
     if (cfg_.early_cut) {
-      if (is_state_in_tt && (ParetoFrontDominate(alpha, tt_[state]))) {
+      if (is_state_in_tt && ParetoFrontDominate(alpha, tt_[state])) {
 //        std::cout << "Perform early cut." << std::endl;
         return mini;
       }
@@ -153,7 +153,7 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo &state, i
 
         if (num_max_moves == cfg_.num_max_moves) {
           // Root node.
-          if (tt_.HasKey(state) && (tt_[state].BestOutcome().Score() == front.BestOutcome().Score())) {
+          if (tt_.HasKey(state) && tt_[state].BestOutcome().Score() == front.BestOutcome().Score()) {
 //            std::cout << "Perform root cut." << std::endl;
             break;
           }

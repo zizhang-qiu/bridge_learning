@@ -12,16 +12,12 @@ std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndCo
   const auto &history = state.History();
   const auto &play_history = GetPlayHistory(history);
   const ble::Contract contract = state.GetContract();
-  ble::Player current_player = state.CurrentPlayer();
-  //  if (state.IsDummyActing()) {
-  //    current_player = ble::Partner(current_player);
-  //  }
-  //  std::cout << "current player: " << current_player << "\n";
+  const ble::Player current_player = state.CurrentPlayer();
+
 
   ble::Player player = (1 + contract.declarer) % ble::kNumPlayers;
   ble::Trick trick{ble::kInvalidPlayer, ble::kNoTrump, 0};
   std::vector<ble::BridgeHand> known_cards(ble::kNumPlayers);
-  //  std::cout << "play history size: " << play_history.size() << std::endl;
 
   for (int i = 0; i < play_history.size(); ++i) {
     if (i % ble::kNumPlayers == 0) {
@@ -111,7 +107,7 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
   //    rela::utils::printVector(player_not_need_filter);
 
   auto sampled_hands = known_cards;
-  for (ble::Player pl : player_needs_filter) {
+  for (const ble::Player pl : player_needs_filter) {
     // Don't need to sample our cards.
     if (pl == current_player) {
       continue;
@@ -119,7 +115,8 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
 
     const int num_cards_need = ble::kNumCardsPerHand - static_cast<int>(known_cards[pl].Cards().size());
     for (int i = 0; i < num_cards_need; ++i) {
-      ble::BridgeCard sampled_card = deck_sampler_.SampleNotSuits(suit_filters[pl], rng_);
+      ble::BridgeCard sampled_card;
+      sampled_card = deck_sampler_.SampleNotSuits(suit_filters[pl], rng_);
       if (sampled_card.IsValid()) {
         sampled_hands[pl].AddCard(sampled_card);
       } else {
@@ -155,6 +152,6 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
   return {true, HandsToCardIndices(sampled_hands)};
 }
 void UniformResampler::ResetWithParams(const unordered_map<std::string, std::string> &params) {
-  auto seed = ble::ParameterValue<int>(params, "seed", 42);
+  const auto seed = ble::ParameterValue<int>(params, "seed", 42);
   rng_.seed(seed);
 }

@@ -47,7 +47,7 @@ std::string OutcomeVector::ToString() const {
   return rv;
 }
 bool operator==(const OutcomeVector &lhs, const OutcomeVector &rhs) {
-  return (lhs.game_status == rhs.game_status) && (lhs.possible_world == rhs.possible_world);
+  return lhs.game_status == rhs.game_status && lhs.possible_world == rhs.possible_world;
 }
 
 std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
@@ -57,7 +57,7 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
   if (lhs_possible && rhs_possible) {
     return {std::min(lhs_game_status, rhs_game_status), true};
   } else {
-    if((!lhs_possible) && (!rhs_possible)){
+    if(!lhs_possible && !rhs_possible){
       // Both impossible
       return {0, false};
     }

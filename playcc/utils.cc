@@ -88,7 +88,7 @@ deal StateToDDSDeal(const ble::BridgeState &state) {
   const auto &hands = state.Hands();
   for (const ble::Player pl : ble::kAllSeats) {
     for (const auto card : hands[pl].Cards()) {
-      dl.remainCards[pl][SuitToDDSSuit(card.CardSuit())] += 1 << (2 + card.Rank());
+      dl.remainCards[pl][SuitToDDSSuit(card.CardSuit())] += 1 << 2 + card.Rank();
     }
   }
   return dl;

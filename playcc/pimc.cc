@@ -39,11 +39,11 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   if (const bool is_max_node = IsActingPlayerDeclarerSide(state); is_max_node) {
     // The player act at child state is declarer side.
     if (ble::Partnership(child_player) == ble::Partnership(state.CurrentPlayer())) {
-      return fut.score[0] + child.NumDeclarerTricks() >= (contract.level + 6);
+      return fut.score[0] + child.NumDeclarerTricks() >= contract.level + 6;
     }
     else {
       // The player act at child state is defender side.
-      return num_tricks_left - fut.score[0] + child.NumDeclarerTricks() >= (contract.level + 6);
+      return num_tricks_left - fut.score[0] + child.NumDeclarerTricks() >= contract.level + 6;
     }
   }
 
@@ -52,11 +52,11 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
     // The player act at child state is defender side.
     // Defender side wins if declarer win less tricks than (target level + 6)
     const int num_tricks_declarer_can_win = num_tricks_left - fut.score[0] + child.NumDeclarerTricks();
-    return num_tricks_declarer_can_win < (contract.level + 6);
+    return num_tricks_declarer_can_win < contract.level + 6;
   }
   // The player act at child state is declarer side.
   const int num_tricks_declarer_can_win = fut.score[0] + child.NumDeclarerTricks();
-  return num_tricks_declarer_can_win < (contract.level + 6);
+  return num_tricks_declarer_can_win < contract.level + 6;
 }
 std::pair<ble::BridgeMove, int> GetBestAction(const SearchResult& res) {
   const auto it = std::max_element(res.scores.begin(), res.scores.end());
