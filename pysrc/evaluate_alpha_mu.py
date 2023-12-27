@@ -5,8 +5,8 @@
 @file: evaluate_alpha_mu.py
 @time: 2023/12/23 16:32
 """
+import pprint
 import time
-from typing import List
 
 import set_path
 
@@ -24,21 +24,6 @@ from loguru import logger
 import bridge
 import bridgelearn
 from common_utils.value_stats import MultiStats
-
-
-def create_logger(filepath: str):
-    logger = mp.get_logger()
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter(
-        '[%(asctime)s| %(levelname)s| %(processName)s] %(message)s')
-    handler = logging.FileHandler(filepath)
-    handler.setFormatter(formatter)
-
-    # this bit will make sure you won't have
-    # duplicated messages in the output
-    if not len(logger.handlers):
-        logger.addHandler(handler)
-    return logger
 
 
 def parse_args():
@@ -207,7 +192,7 @@ if __name__ == '__main__':
     num_deals_played = mp.Value('i', 0)
     num_deals_win_by_alpha_mu = mp.Value('i', 0)
     stats = MultiStats()
-    # logger = create_logger(os.path.join(save_dir, "log.txt"))
+    logger.info(f"Evaluate config:\n{cfg}\n")
 
     workers = []
     for i in range(args.num_processes):

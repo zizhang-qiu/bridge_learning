@@ -24,7 +24,7 @@ class BridgeStateWithoutHiddenInfo {
                                const Contract &contract,
                                const BridgeHand &dummy_hand);
 
-  BridgeStateWithoutHiddenInfo() = default;
+  BridgeStateWithoutHiddenInfo();
 
   explicit BridgeStateWithoutHiddenInfo(const BridgeState &state);
 
@@ -96,15 +96,15 @@ class BridgeStateWithoutHiddenInfo {
   std::vector<BridgeHistoryItem> move_history_;
   AuctionTracker auction_tracker_;
   Contract contract_;
-  Phase phase_ = Phase::kAuction;
+  Phase phase_;
   std::array<Trick, kNumTricks> tricks_;
-  Player dealer_{};
-  Player current_player_{};
-  Player last_round_winner_{};
-  bool is_dealer_vulnerable_{};
-  bool is_non_dealer_vulnerable_{};
-  int num_cards_played_{};
-  int num_declarer_tricks_{};
+  Player dealer_;
+  Player current_player_;
+  Player last_round_winner_;
+  bool is_dealer_vulnerable_;
+  bool is_non_dealer_vulnerable_;
+  int num_cards_played_;
+  int num_declarer_tricks_;
   std::vector<int> scores_ = std::vector<int>(kNumPlayers);
   std::optional<BridgeHand> dummy_hand_;
 

@@ -90,3 +90,4 @@ class MLP(torch.jit.ScriptModule):
         net = cls.from_conf(conf)
         net.load_state_dict(state_dict)
         return net
+
