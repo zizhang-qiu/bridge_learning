@@ -5,14 +5,16 @@
 #ifndef BRIDGE_LEARNING_PLAYCC_PLAY_BOT_H_
 #define BRIDGE_LEARNING_PLAYCC_PLAY_BOT_H_
 #include "bridge_lib/bridge_state.h"
-namespace ble=bridge_learning_env;
-class PlayBot{
- public:
-  PlayBot()=default;
+namespace ble = bridge_learning_env;
 
-  virtual ~PlayBot()=default;
+class PlayBot {
+  public:
+  PlayBot() = default;
+
+  virtual ~PlayBot() = default;
 
   virtual ble::BridgeMove Act(const ble::BridgeState &state) = 0;
 
+  virtual std::string Name() const { return "Play"; }
 };
-#endif //BRIDGE_LEARNING_PLAYCC_PLAY_BOT_H_
+#endif // BRIDGE_LEARNING_PLAYCC_PLAY_BOT_H_

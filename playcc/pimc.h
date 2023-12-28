@@ -6,6 +6,7 @@
 #define BRIDGE_LEARNING_PLAYCC_PIMC_H_
 #include <utility>
 
+#include "absl/strings/str_format.h"
 #include "bridge_lib/bridge_state.h"
 #include "bridge_lib/third_party/dds/include/dll.h"
 
@@ -29,9 +30,8 @@ struct PIMCConfig {
 };
 
 class PIMCBot final : public PlayBot {
- public:
-  PIMCBot(std::shared_ptr<Resampler> resampler, const PIMCConfig cfg) :
-      resampler_(std::move(resampler)), cfg_(cfg) {
+  public:
+  PIMCBot(std::shared_ptr<Resampler> resampler, const PIMCConfig cfg) : resampler_(std::move(resampler)), cfg_(cfg) {
     SetMaxThreads(0);
   }
 
@@ -62,7 +62,9 @@ class PIMCBot final : public PlayBot {
 
   [[nodiscard]] SearchResult Search(const ble::BridgeState &state) const;
 
- private:
+  std::string Name() const override { return absl::StrFormat("PIMC, %d worlds", cfg_.num_worlds); }
+
+  private:
   std::shared_ptr<Resampler> resampler_;
   const PIMCConfig cfg_;
 };

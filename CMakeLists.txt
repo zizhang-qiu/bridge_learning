@@ -156,6 +156,7 @@ add_library(_bridgelearn
         playcc/file.h
         playcc/deal_analyzer.cc
         playcc/deal_analyzer.h
+        playcc/stat_manager.h
 
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)

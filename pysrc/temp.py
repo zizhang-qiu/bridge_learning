@@ -1,4 +1,5 @@
 import copy
+import multiprocessing
 import pickle
 from math import floor
 from typing import Dict, List
@@ -11,19 +12,20 @@ from agent import BridgeAgent
 from create_bridge import create_params
 from common_utils.torch_utils import tensor_dict_to_device
 
-print(torch.__version__)
-print(torch.cuda.is_available())
-import set_path
-
-set_path.append_sys_path()
+# print(torch.__version__)
+# print(torch.cuda.is_available())
+# import set_path
+#
+# set_path.append_sys_path()
 
 import bridge
 import bridgelearn
 import rela
 from agent import BridgeAgent, DEFAULT_VALUE_CONF, DEFAULT_POLICY_CONF
 
-print(dir(bridgelearn))
-params = create_params()
+
+# print(dir(bridgelearn))
+# params = create_params()
 # deal = bridge.example_deals[0]
 # ddt = bridge.example_ddts[0]
 #
@@ -74,13 +76,48 @@ params = create_params()
 #     batch = generator.next_batch("cuda")
 #     print(batch)
 
-times = np.load(r"D:\Projects\bridge\evaluation\exp1\pimc_time.npy")
-print(times)
-print(np.mean(times))
+# times = np.load(r"D:\Projects\bridge\evaluation\exp1\pimc_time.npy")
+# print(times)
+# print(np.mean(times))
 
-# trajectory = [32, 5, 33, 28, 7, 37, 46, 12, 45, 47, 25, 41, 15, 51, 31, 36, 6, 38, 43, 16, 19, 40, 24, 8, 11, 22, 48, 4,
-#               1, 26, 44, 14, 27, 17, 20, 18, 50, 30, 35, 49, 2, 23, 10, 0, 9, 21, 39, 13, 42, 34, 3, 29, 52, 52, 69, 52,
-#               52, 52, 16, 32, 40, 48, 3, 12, 19, 23, 38, 10, 18, 6, 5, 25, 29, 9, 36, 1, 21, 24, 49, 45, 17, 33, 8, 2,
-#               37, 20, 31, 28, 27, 51, 34, 46, 14, 50, 7, 47, 43, 4, 30, 35, 0, 42, 15, 26, 39, 41, 44, 13, 11, 22]
-# state = bridgelearn.construct_state_from_trajectory(trajectory, bridge.default_game)
-# print(state)
+class StatManager:
+    def __init__(self):
+        self.stats = {}
+        self.locks = {}
+
+    def initialize_stat(self, key):
+        with multiprocessing.Lock():
+            self.stats[key] = multiprocessing.Value('i', 0)
+            self.locks[key] = multiprocessing.Lock()
+
+    def update_stat(self, key, value):
+        with self.locks[key]:
+            self.stats[key].value += value
+
+    def get_stats(self):
+        return {key: stat.value for key, stat in self.stats.items()}
+
+
+def worker(stat_manager, key, increment):
+    for _ in range(10):
+        stat_manager.update_stat(key, increment)
+
+
+if __name__ == "__main__":
+    stat_manager = StatManager()
+
+    keys = ["A", "B", "C"]
+    for key in keys:
+        stat_manager.initialize_stat(key)
+
+    processes = []
+    for key in keys:
+        process = multiprocessing.Process(target=worker, args=(stat_manager, key, 1))
+        processes.append(process)
+        process.start()
+
+    for process in processes:
+        process.join()
+
+    final_stats = stat_manager.get_stats()
+    print("Final Stats:", final_stats)

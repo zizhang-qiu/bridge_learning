@@ -7,6 +7,7 @@
 """
 import pprint
 import time
+from typing import Dict
 
 import set_path
 
@@ -51,6 +52,24 @@ class EvaluateConfig:
     root_cut: bool
     save_dir: str
     contract_str: str
+
+
+class StatManager:
+    def __init__(self):
+        self.stats = {}
+        self.locks = {}
+
+    def initialize_stat(self, key: str):
+        with mp.Lock():
+            self.stats[key] = mp.Value('d', 0)
+            self.locks[key] = mp.Lock()
+
+    def update_stat(self, key: str, value: float):
+        with self.locks[key]:
+            self.stats[key].value += value
+
+    def get_stats(self) -> Dict[str, float]:
+        return {key: stat.value for key, stat in self.stats.items()}
 
 
 def get_contract_from_str(contract_str: str) -> bridge.Contract:
@@ -197,6 +216,7 @@ if __name__ == '__main__':
                          args.root_cut,
                          save_dir,
                          args.contract)
+    keys = ["pimc_time", "alpha_mu_time"]
 
     num_deals_played = mp.Value('i', 0)
     num_deals_win_by_alpha_mu = mp.Value('i', 0)

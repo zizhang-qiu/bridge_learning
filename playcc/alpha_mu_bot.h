@@ -4,11 +4,13 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_ALPHA_MU_BOT_H_
 #define BRIDGE_LEARNING_PLAYCC_ALPHA_MU_BOT_H_
+#include <absl/strings/str_format.h>
+
+#include "alpha_mu_search.h"
+#include "bridge_state_without_hidden_info.h"
 #include "pareto_front.h"
 #include "play_bot.h"
 #include "resampler.h"
-#include "alpha_mu_search.h"
-#include "bridge_state_without_hidden_info.h"
 #include "transposition_table.h"
 
 struct AlphaMuConfig {
@@ -18,10 +20,9 @@ struct AlphaMuConfig {
   bool use_transportation_table = true;
   bool root_cut = true;
   bool early_cut = true;
-
 };
 class VanillaAlphaMuBot final : public PlayBot {
- public:
+  public:
   VanillaAlphaMuBot(const std::shared_ptr<Resampler> &resampler, const AlphaMuConfig cfg) :
       resampler_(resampler), cfg_(cfg) {}
 
@@ -32,30 +33,32 @@ class VanillaAlphaMuBot final : public PlayBot {
 
   [[nodiscard]] ParetoFront Search(const ble::BridgeState &state) const;
 
- private:
+  private:
   std::shared_ptr<Resampler> resampler_;
   const AlphaMuConfig cfg_;
 };
 
 class AlphaMuBot final : public PlayBot {
- public:
+  public:
   AlphaMuBot(const std::shared_ptr<Resampler> &resampler, const AlphaMuConfig cfg) :
-      resampler_(resampler),
-      cfg_(cfg),
-      tt_() {}
+      resampler_(resampler), cfg_(cfg), tt_() {}
 
   ble::BridgeMove Act(const ble::BridgeState &state) override;
 
-  [[nodiscard]] ParetoFront Search(const ble::BridgeStateWithoutHiddenInfo &state, int num_max_moves,
-                                   const Worlds &worlds, const ParetoFront &alpha);
+  [[nodiscard]] ParetoFront Search(const ble::BridgeStateWithoutHiddenInfo &state,
+                                   int num_max_moves,
+                                   const Worlds &worlds,
+                                   const ParetoFront &alpha);
 
   const TranspositionTable &GetTT() const { return tt_; }
 
   void SetTT(const TranspositionTable &tt) { tt_ = tt; }
 
+  std::string Name() const override {
+    return absl::StrFormat("AlphaMu, %d worlds, %d max moves", cfg_.num_worlds, cfg_.num_max_moves);
+  }
 
-
- private:
+  private:
   TranspositionTable tt_;
   std::shared_ptr<Resampler> resampler_;
   const AlphaMuConfig cfg_;
