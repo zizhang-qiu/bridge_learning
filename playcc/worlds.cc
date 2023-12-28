@@ -19,12 +19,14 @@ void Worlds::ApplyMove(const ble::BridgeMove &move) {
     if (possible_[i]) {
       if (states_[i].MoveIsLegal(move)) {
         states_[i].ApplyMove(move);
-      } else {
+      }
+      else {
         possible_[i] = false;
       }
     }
   }
 }
+
 std::string Worlds::ToString() const {
   std::string rv;
   for (int i = 0; i < Size(); ++i) {
@@ -32,6 +34,7 @@ std::string Worlds::ToString() const {
   }
   return rv;
 }
+
 std::vector<ble::BridgeMove> Worlds::GetAllPossibleMoves() const {
   SPIEL_CHECK_FALSE(states_.empty());
   const auto game = states_[0].ParentGame();
@@ -55,6 +58,7 @@ std::vector<ble::BridgeMove> Worlds::GetAllPossibleMoves() const {
   }
   return {possible_moves.begin(), possible_moves.end()};
 }
+
 std::ostream &operator<<(ostream &stream, const Worlds &worlds) {
   stream << worlds.ToString();
   return stream;

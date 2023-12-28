@@ -6,6 +6,7 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
 #include <random>
 #include <iostream>
+#include <set>
 
 #include "third_party/dds/src/Memory.h"
 #include "third_party/dds/src/SolverIF.h"
@@ -53,6 +54,8 @@ class BridgeState {
   Player GetDummy() const;
 
   void ApplyMove(const BridgeMove &move);
+
+  void ApplyMoveWithLegalityCheck(const BridgeMove &move);
 
   bool MoveIsLegal(const BridgeMove &move) const;
 

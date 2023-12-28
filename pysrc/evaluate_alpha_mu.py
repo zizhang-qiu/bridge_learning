@@ -28,9 +28,9 @@ from common_utils.value_stats import MultiStats
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_processes", "-p", type=int, default=8)
+    parser.add_argument("--num_processes", "-p", type=int, default=4)
     parser.add_argument("--dd_tolerance", type=int, default=1)
-    parser.add_argument("--num_deals", type=int, default=200)
+    parser.add_argument("--num_deals", type=int, default=5)
     parser.add_argument("--num_worlds", "-w", type=int, default=20)
     parser.add_argument("--num_max_moves", "-m", type=int, default=2)
     parser.add_argument("--early_cut", action="store_true")
@@ -69,17 +69,16 @@ args = parse_args()
 # print(vars(args))
 save_dir = args.save_dir
 logger.add(os.path.join(save_dir, "log.txt"), enqueue=True)
+stats = MultiStats()
 
 
 class Worker(mp.Process):
     def __init__(self, ev_cfg: EvaluateConfig,
                  num_deals_played: mp.Value,
                  num_deals_win_by_alpha_mu: mp.Value,
-                 stats: MultiStats,
                  pid: int):
         super().__init__()
         self.ev_cfg = ev_cfg
-        self.stats = stats
         self.num_deals_played = num_deals_played
         self.num_deals_win_by_alpha_mu = num_deals_win_by_alpha_mu
         self.process_id = pid
@@ -112,30 +111,38 @@ class Worker(mp.Process):
             random_num = np.random.randint(0, 10000)
             resampler.reset_with_params({"seed": str(random_num)})
             while not state1.is_terminal():
+                if self.check_terminated():
+                    break
                 if bridgelearn.is_acting_player_declarer_side(state1):
                     st = time.perf_counter()
                     move = alpha_mu_bot.act(state1)
                     ed = time.perf_counter()
-                    self.stats.feed("alpha_mu_time", ed - st)
+                    stats.feed("alpha_mu_time", ed - st)
                 else:
                     st = time.perf_counter()
                     move = pimc_bot.act(state1)
                     ed = time.perf_counter()
-                    self.stats.feed("pimc_time", ed - st)
+                    stats.feed("pimc_time", ed - st)
                 # print(move)
                 state1.apply_move(move)
 
             # print(state1)
             # self.stats.save_all(self.ev_cfg.save_dir)
-
+            if self.check_terminated():
+                break
             resampler.reset_with_params({"seed": str(random_num)})
             while not state2.is_terminal():
+                if self.check_terminated():
+                    break
                 st = time.perf_counter()
                 move = pimc_bot.act(state2)
                 ed = time.perf_counter()
-                self.stats.feed("pimc_time", ed - st)
+                stats.feed("pimc_time", ed - st)
                 state2.apply_move(move)
             # print(state2)
+
+            if self.check_terminated():
+                break
 
             is_declarer_win_state1 = state1.scores()[contract.declarer] > 0
             is_declarer_win_state2 = state2.scores()[contract.declarer] > 0
@@ -167,6 +174,9 @@ class Worker(mp.Process):
                     state.apply_move(move)
                 return state
 
+    def check_terminated(self):
+        return self.num_deals_played.value >= self.ev_cfg.num_deals
+
 
 class Worker2(mp.Process):
     def __init__(self):
@@ -190,12 +200,12 @@ if __name__ == '__main__':
 
     num_deals_played = mp.Value('i', 0)
     num_deals_win_by_alpha_mu = mp.Value('i', 0)
-    stats = MultiStats()
+
     logger.info(f"Evaluate config:\n{cfg}\n")
 
     workers = []
     for i in range(args.num_processes):
-        w = Worker(cfg, num_deals_played, num_deals_win_by_alpha_mu, stats, i)
+        w = Worker(cfg, num_deals_played, num_deals_win_by_alpha_mu, i)
         workers.append(w)
 
     for w in workers:
