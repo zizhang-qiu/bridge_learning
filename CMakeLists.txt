@@ -157,6 +157,9 @@ add_library(_bridgelearn
         playcc/deal_analyzer.cc
         playcc/deal_analyzer.h
         playcc/stat_manager.h
+        playcc/duplicate_threadloop.h
+        playcc/threaded_queue.h
+        playcc/duplicate_threadloop.cc
 
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
@@ -187,6 +190,9 @@ add_test(transposition_table_test transposition_table_test)
 
 add_executable(bridge_match playcc/match.cc)
 target_link_libraries(bridge_match PRIVATE _bridgelearn)
+
+add_executable(bridge_match2 playcc/match2.cc)
+target_link_libraries(bridge_match2 PRIVATE _bridgelearn)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     pybind11_add_module(bridgelearn rlcc/pybind.cc)
