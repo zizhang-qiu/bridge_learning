@@ -10,7 +10,6 @@ import time
 from typing import Dict
 
 import set_path
-from evaluate_alpha_mu import get_contract_from_str
 
 set_path.append_sys_path()
 import torch
@@ -27,6 +26,16 @@ import bridge
 import bridgelearn
 from common_utils.value_stats import MultiStats
 
+def get_contract_from_str(contract_str: str) -> bridge.Contract:
+    level = int(contract_str[0])
+    denomination_str = ["C", "D", "H", "S", "N"]
+    denomination = bridge.Denomination(denomination_str.index(contract_str[1].upper()))
+    contract = bridge.Contract()
+    contract.level = level
+    contract.denomination = denomination
+    contract.declarer = bridge.Seat.SOUTH
+    contract.double_status = bridge.DoubleStatus.UNDOUBLED
+    return contract
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -60,6 +69,7 @@ class EvaluateConfig:
 
 
 args = parse_args()
+print(vars(args))
 save_dir = args.save_dir
 logger.add(os.path.join(save_dir, "log.txt"), enqueue=True)
 
