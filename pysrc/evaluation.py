@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument("--p1", type=str, default="alpha_mu")
     parser.add_argument("--p2", type=str, default="pimc")
     parser.add_argument("--defender", "-d", type=str, default="dds")
-    parser.add_argument("--num_deals", type=int, default=5)
+    parser.add_argument("--num_deals", type=int, default=1000)
     parser.add_argument("--num_worlds", "-w", type=int, default=20)
     parser.add_argument("--num_max_moves", "-m", type=int, default=2)
     parser.add_argument("--early_cut", action="store_true")
