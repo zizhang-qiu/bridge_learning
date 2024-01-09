@@ -2,6 +2,10 @@
 
 #include <algorithm>
 #include <string>
+#include "bridge_scoring.h"
+
+#include <algorithm>
+#include <string>
 
 namespace bridge_learning_env {
 

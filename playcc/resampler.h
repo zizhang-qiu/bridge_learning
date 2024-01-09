@@ -22,15 +22,18 @@ struct ResampleResult {
 };
 
 class Resampler {
- public:
-  Resampler() = default;
-  virtual ~Resampler() = default;
-  virtual ResampleResult Resample(const ble::BridgeState &state) = 0;
-  virtual void ResetWithParams(const std::unordered_map<std::string, std::string> &) {};
+  public:
+    Resampler() = default;
+
+    virtual ~Resampler() = default;
+
+    virtual ResampleResult Resample(const ble::BridgeState& state) = 0;
+
+    virtual void ResetWithParams(const std::unordered_map<std::string, std::string>&) {}
 };
 
-std::vector<std::array<int, ble::kNumCards>> ResampleMultipleDeals(const std::shared_ptr<Resampler> &resampler,
-                                                                   const ble::BridgeState &state,
+std::vector<std::array<int, ble::kNumCards>> ResampleMultipleDeals(const std::shared_ptr<Resampler>& resampler,
+                                                                   const ble::BridgeState& state,
                                                                    int num_deals);
 
 const std::vector<int> all_cards = ble::Arange(0, ble::kNumCards);
@@ -41,18 +44,19 @@ const std::vector<int> all_cards = ble::Arange(0, ble::kNumCards);
 using ResampleConstraints = std::array<std::array<int, ble::kNumSuits>, ble::kNumPlayers>;
 
 std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndConstraintsFromState(
-    const ble::BridgeState &state);
+  const ble::BridgeState& state);
 
 class UniformResampler final : public Resampler {
- public:
-  explicit UniformResampler(const int seed) : rng_(seed), deck_sampler_() {}
+  public:
+    explicit UniformResampler(const int seed) : rng_(seed), deck_sampler_() {
+    }
 
-  ResampleResult Resample(const ble::BridgeState &state) override;
+    ResampleResult Resample(const ble::BridgeState& state) override;
 
-  void ResetWithParams(const std::unordered_map<std::string, std::string> &params) override;
+    void ResetWithParams(const std::unordered_map<std::string, std::string>& params) override;
 
- private:
-  std::mt19937 rng_;
-  DeckSampler deck_sampler_;
+  private:
+    std::mt19937 rng_;
+    DeckSampler deck_sampler_;
 };
 #endif // BRIDGE_LEARNING_PLAYCC_RESAMPLER_H_

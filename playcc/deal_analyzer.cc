@@ -51,7 +51,7 @@ void DealAnalyzer::Analyze(ble::BridgeState state, AlphaMuBot alpha_mu_bot, PIMC
   while (!state.IsTerminal()) {
     if (IsActingPlayerDeclarerSide(state)) {
       const auto dds_moves = DDSMoves(state);
-      const auto move = alpha_mu_bot.Act(state);
+      const auto move = alpha_mu_bot.Step(state);
       if (std::find(dds_moves.begin(), dds_moves.end(), move) == dds_moves.end() &&
           state.NumDeclarerTricks() < state.GetContract().level + 6) {
         file::File tt_file{absl::StrCat(save_dir_, "/tt.txt"), "w"};
@@ -68,7 +68,7 @@ void DealAnalyzer::Analyze(ble::BridgeState state, AlphaMuBot alpha_mu_bot, PIMC
       }
       state.ApplyMove(move);
     } else {
-      const auto move = pimc_bot.Act(state);
+      const auto move = pimc_bot.Step(state);
       state.ApplyMove(move);
     }
   }

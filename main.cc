@@ -119,7 +119,7 @@ int main() {
                                        ble::kRankChar[ble::DDSRankToRank(fut.rank[i])],
                                        fut.score[i]) << std::endl;
       }
-      auto search_move = alpha_mu_bot.Act(state);
+      auto search_move = alpha_mu_bot.Step(state);
       auto str = alpha_mu_bot.GetTT().Serialize();
       auto logger = FileLogger("D:/Projects/bridge", "tt", "a");
       logger.Print(str);
@@ -130,7 +130,7 @@ int main() {
       std::cout << "Search move: " << search_move << std::endl;
       state.ApplyMove(search_move);
     } else {
-      auto move = pimc_bot.Act(state);
+      auto move = pimc_bot.Step(state);
 //      if (move.CardSuit() == ble::kHeartsSuit && move.CardRank() == 7) {
 //
 ////        std::cout << alpha_mu_bot.GetTT().Serialize() << std::endl;

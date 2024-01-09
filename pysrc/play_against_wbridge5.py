@@ -51,7 +51,7 @@ def _bid_and_play(state: bridge.BridgeState, bots: List[BlueChipBridgeBot], agen
         # play phase
         if state.current_player() in agent_seats:
             # print(state.legal_moves())
-            move = play_bot.act(state)
+            move = play_bot.step(state)
             # print(move)
             # print(search_result.moves, search_result.scores)
             state.apply_move(move)

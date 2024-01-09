@@ -4,7 +4,7 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_ALPHA_MU_BOT_H_
 #define BRIDGE_LEARNING_PLAYCC_ALPHA_MU_BOT_H_
-#include <absl/strings/str_format.h>
+#include "absl/strings/str_format.h"
 
 #include "alpha_mu_search.h"
 #include "bridge_state_without_hidden_info.h"
@@ -21,46 +21,59 @@ struct AlphaMuConfig {
   bool root_cut = true;
   bool early_cut = true;
 };
+
 class VanillaAlphaMuBot final : public PlayBot {
   public:
-  VanillaAlphaMuBot(const std::shared_ptr<Resampler> &resampler, const AlphaMuConfig cfg) :
-      resampler_(resampler), cfg_(cfg) {}
+    VanillaAlphaMuBot(const std::shared_ptr<Resampler>& resampler, const AlphaMuConfig cfg) : resampler_(resampler),
+      cfg_(cfg) {
+    }
 
-  ble::BridgeMove Act(const ble::BridgeState &state) override;
+    ble::BridgeMove Step(const ble::BridgeState& state) override;
 
-  // Act on given worlds.
-  ble::BridgeMove ActWithWorlds(const ble::BridgeState &state, const std::vector<ble::BridgeState> &worlds) const;
+    // Act on given worlds.
+    ble::BridgeMove ActWithWorlds(const ble::BridgeState& state, const std::vector<ble::BridgeState>& worlds) const;
 
-  [[nodiscard]] ParetoFront Search(const ble::BridgeState &state) const;
+    [[nodiscard]] ParetoFront Search(const ble::BridgeState& state) const;
 
   private:
-  std::shared_ptr<Resampler> resampler_;
-  const AlphaMuConfig cfg_;
+    std::shared_ptr<Resampler> resampler_;
+    const AlphaMuConfig cfg_;
 };
 
 class AlphaMuBot final : public PlayBot {
   public:
-  AlphaMuBot(const std::shared_ptr<Resampler> &resampler, const AlphaMuConfig cfg) :
-      resampler_(resampler), cfg_(cfg), tt_() {}
+    AlphaMuBot(const std::shared_ptr<Resampler>& resampler, const AlphaMuConfig cfg) : tt_(), resampler_(resampler),
+      cfg_(cfg) {
+    }
 
-  ble::BridgeMove Act(const ble::BridgeState &state) override;
+    AlphaMuBot(const std::shared_ptr<Resampler>& resampler,
+               const AlphaMuConfig cfg,
+               ble::Player player_id) : tt_(), resampler_(resampler),
+                                        cfg_(cfg), player_id_(player_id) {
+    }
 
-  [[nodiscard]] ParetoFront Search(const ble::BridgeStateWithoutHiddenInfo &state,
-                                   int num_max_moves,
-                                   const Worlds &worlds,
-                                   const ParetoFront &alpha);
+    ble::BridgeMove Step(const ble::BridgeState& state) override;
 
-  const TranspositionTable &GetTT() const { return tt_; }
+    [[nodiscard]] ParetoFront Search(const ble::BridgeStateWithoutHiddenInfo& state,
+                                     int num_max_moves,
+                                     const Worlds& worlds,
+                                     const ParetoFront& alpha);
 
-  void SetTT(const TranspositionTable &tt) { tt_ = tt; }
+    const TranspositionTable& GetTT() const { return tt_; }
 
-  std::string Name() const override {
-    return absl::StrFormat("AlphaMu, %d worlds, %d max moves", cfg_.num_worlds, cfg_.num_max_moves);
-  }
+    void SetTT(const TranspositionTable& tt) { tt_ = tt; }
+
+    std::string Name() const override {
+      return absl::StrFormat("AlphaMu, %d worlds, %d max moves", cfg_.num_worlds, cfg_.num_max_moves);
+    }
 
   private:
-  TranspositionTable tt_;
-  std::shared_ptr<Resampler> resampler_;
-  const AlphaMuConfig cfg_;
+    TranspositionTable tt_;
+    std::shared_ptr<Resampler> resampler_;
+    const AlphaMuConfig cfg_;
+    const ble::Player player_id_{};
 };
+
+std::unique_ptr<PlayBot> MakeAlphaMuBot(ble::Player player_id, AlphaMuConfig cfg);
+
 #endif // BRIDGE_LEARNING_PLAYCC_ALPHA_MU_BOT_H_

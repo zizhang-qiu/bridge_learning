@@ -52,7 +52,7 @@ int EncodeAuction(const BridgeObservation &obs, const int start_offset, std::vec
     }
     else if (item.move.IsBid()) {
       // Should be a bid.
-      int bid_index = BidIndex(item.level, item.denomination);
+      const int bid_index = BidIndex(item.level, item.denomination);
       (*encoding)[offset + (bid_index - kFirstBid) * kSingleBidTensorSize + item.player] = 1;
       last_bid = bid_index;
     }

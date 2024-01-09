@@ -211,7 +211,7 @@ int main(int argc, char **argv) {
       ble::BridgeMove move;
       if (IsActingPlayerDeclarerSide(state1)) {
         const auto st = std::chrono::high_resolution_clock::now();
-        move = player1->Act(state1);
+        move = player1->Step(state1);
         const auto ed = std::chrono::high_resolution_clock::now();
         const auto elapsed = ed - st;
         //        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << std::endl;
@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
       }
       else {
         const auto st = std::chrono::high_resolution_clock::now();
-        move = defender->Act(state1);
+        move = defender->Step(state1);
         const auto ed = std::chrono::high_resolution_clock::now();
         const auto elapsed = ed - st;
         stat_manager.AddValue(defender_str, std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
@@ -236,7 +236,7 @@ int main(int argc, char **argv) {
       ble::BridgeMove move;
       if (IsActingPlayerDeclarerSide(state2)) {
         const auto st = std::chrono::high_resolution_clock::now();
-        move = player2->Act(state2);
+        move = player2->Step(state2);
         const auto ed = std::chrono::high_resolution_clock::now();
         const auto elapsed = ed - st;
         //        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << std::endl;
@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
       }
       else {
         const auto st = std::chrono::high_resolution_clock::now();
-        move = defender->Act(state2);
+        move = defender->Step(state2);
         const auto ed = std::chrono::high_resolution_clock::now();
         const auto elapsed = ed - st;
         stat_manager.AddValue(defender_str, std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());

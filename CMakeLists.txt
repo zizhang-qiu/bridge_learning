@@ -86,7 +86,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set_target_properties(bridge PROPERTIES OUTPUT_NAME "bridge")
 endif ()
 
-add_library(rela_lib rela/batcher.h
+add_library(rela_lib OBJECT
+        rela/batcher.h
         rela/batcher.cc
         rela/tensor_dict.h
         rela/utils.h
@@ -116,7 +117,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 endif ()
 
 
-add_library(_bridgelearn
+add_library(_bridgelearn OBJECT
         rlcc/bridge_env.h
         rlcc/bridge_env.cc
         rlcc/bridge_dataset.h
@@ -124,11 +125,63 @@ add_library(_bridgelearn
         rlcc/bridge_agent.cc
         rlcc/bridge_agent.h
         rlcc/supervise_data_generator.h
+#        playcc/utils.h
+#        playcc/pimc.h
+#        playcc/resampler.h
+#        playcc/deck_sampler.h
+#        playcc/play_bot.h
+#        playcc/play_bot.cc
+#        playcc/cheat_bot.h
+#        playcc/vector_utils.h
+#        playcc/outcome_vector.h
+#        playcc/pareto_front.h
+#        playcc/pareto_front.cc
+#        playcc/outcome_vector.cc
+#        playcc/alpha_mu_search.cc
+#        playcc/alpha_mu_search.h
+#        playcc/utils.cc
+#        playcc/pimc.cc
+#        playcc/resampler.cc
+#        playcc/worlds.cc
+#        playcc/worlds.h
+#        playcc/bridge_state_without_hidden_info.cc
+#        playcc/bridge_state_without_hidden_info.h
+#        playcc/log_utils.cc
+#        playcc/log_utils.h
+#        playcc/alpha_mu_bot.cc
+#        playcc/alpha_mu_bot.h
+#        playcc/transposition_table.cc
+#        playcc/transposition_table.h
+#        playcc/game_tree.h
+#        playcc/logger.h
+#        playcc/file.cc
+#        playcc/file.h
+#        playcc/deal_analyzer.cc
+#        playcc/deal_analyzer.h
+#        playcc/stat_manager.h
+#        playcc/threaded_queue.h
+)
+target_link_libraries(_bridgelearn PUBLIC bridge_lib)
+target_link_libraries(_bridgelearn PUBLIC rela_lib)
+target_include_directories(_bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(_bridgelearn PUBLIC
+        absl::algorithm
+        absl::flags
+        absl::flags_parse
+        absl::flat_hash_map
+        absl::optional
+        absl::random_random
+        absl::str_format
+        absl::strings
+        absl::time)
+
+add_library(_bridgeplay OBJECT
         playcc/utils.h
         playcc/pimc.h
         playcc/resampler.h
         playcc/deck_sampler.h
         playcc/play_bot.h
+        playcc/play_bot.cc
         playcc/cheat_bot.h
         playcc/vector_utils.h
         playcc/outcome_vector.h
@@ -158,12 +211,9 @@ add_library(_bridgelearn
         playcc/deal_analyzer.h
         playcc/stat_manager.h
         playcc/threaded_queue.h
-
 )
-target_link_libraries(_bridgelearn PUBLIC bridge_lib)
-target_link_libraries(_bridgelearn PUBLIC rela_lib)
-target_include_directories(_bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(_bridgelearn PUBLIC
+target_link_libraries(_bridgeplay PUBLIC bridge_lib)
+target_link_libraries(_bridgeplay PUBLIC
         absl::algorithm
         absl::flags
         absl::flags_parse
@@ -173,21 +223,22 @@ target_link_libraries(_bridgelearn PUBLIC
         absl::str_format
         absl::strings
         absl::time)
+target_include_directories(_bridgeplay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(pareto_front_test playcc/unit_tests/pareto_front_test.cc)
-target_link_libraries(pareto_front_test PRIVATE _bridgelearn)
+target_link_libraries(pareto_front_test PRIVATE _bridgeplay)
 add_test(pareto_front_test pareto_front_test)
 
 add_executable(log_utils_test playcc/unit_tests/log_utils_test.cc)
-target_link_libraries(log_utils_test PRIVATE _bridgelearn)
+target_link_libraries(log_utils_test PRIVATE _bridgeplay)
 add_test(log_utils_test log_utils_test)
 
 add_executable(transposition_table_test playcc/unit_tests/transposition_table_test.cc)
-target_link_libraries(transposition_table_test PRIVATE _bridgelearn)
+target_link_libraries(transposition_table_test PRIVATE _bridgeplay)
 add_test(transposition_table_test transposition_table_test)
 
 add_executable(bridge_match playcc/match.cc)
-target_link_libraries(bridge_match PRIVATE _bridgelearn)
+target_link_libraries(bridge_match PRIVATE _bridgeplay)
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -196,26 +247,30 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_libraries(bridgelearn PUBLIC bridge_lib)
     target_link_libraries(bridgelearn PUBLIC rela_lib)
     target_include_directories(bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+    pybind11_add_module(bridgeplay playcc/pybind.cc)
+    target_link_libraries(bridgeplay PUBLIC _bridgeplay)
+    target_include_directories(bridgeplay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()
 
 add_executable(main main.cc)
 target_link_libraries(main PUBLIC bridge_lib)
-target_link_libraries(main PUBLIC rela_lib)
-target_link_libraries(main PUBLIC _bridgelearn)
+#target_link_libraries(main PUBLIC rela_lib)
+target_link_libraries(main PUBLIC _bridgeplay)
 
 
 add_executable(temp test.cc)
 target_link_libraries(temp PUBLIC bridge_lib)
-target_link_libraries(temp PUBLIC rela_lib)
-target_link_libraries(temp PUBLIC _bridgelearn)
+#target_link_libraries(temp PUBLIC rela_lib)
+target_link_libraries(temp PUBLIC _bridgeplay)
 
 
 add_executable(temp2 temp2.cc)
 target_link_libraries(temp2 PUBLIC bridge_lib)
-target_link_libraries(temp2 PUBLIC rela_lib)
-target_link_libraries(temp2 PUBLIC _bridgelearn)
+#target_link_libraries(temp2 PUBLIC rela_lib)
+target_link_libraries(temp2 PUBLIC _bridgeplay)
 
 add_executable(analyze_from_traj_and_tt playcc/analyze_from_traj_and_tt.cc)
 target_link_libraries(analyze_from_traj_and_tt PUBLIC bridge_lib)
-target_link_libraries(analyze_from_traj_and_tt PUBLIC rela_lib)
-target_link_libraries(analyze_from_traj_and_tt PUBLIC _bridgelearn)
+#target_link_libraries(analyze_from_traj_and_tt PUBLIC rela_lib)
+target_link_libraries(analyze_from_traj_and_tt PUBLIC _bridgeplay)

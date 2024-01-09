@@ -1,4 +1,5 @@
 import copy
+import math
 import multiprocessing
 import pickle
 from math import floor
@@ -22,7 +23,6 @@ import bridge
 import bridgelearn
 import rela
 from agent import BridgeAgent, DEFAULT_VALUE_CONF, DEFAULT_POLICY_CONF
-
 
 # print(dir(bridgelearn))
 # params = create_params()
@@ -80,44 +80,56 @@ from agent import BridgeAgent, DEFAULT_VALUE_CONF, DEFAULT_POLICY_CONF
 # print(times)
 # print(np.mean(times))
 
-class StatManager:
-    def __init__(self):
-        self.stats = {}
-        self.locks = {}
-
-    def initialize_stat(self, key):
-        with multiprocessing.Lock():
-            self.stats[key] = multiprocessing.Value('i', 0)
-            self.locks[key] = multiprocessing.Lock()
-
-    def update_stat(self, key, value):
-        with self.locks[key]:
-            self.stats[key].value += value
-
-    def get_stats(self):
-        return {key: stat.value for key, stat in self.stats.items()}
-
-
-def worker(stat_manager, key, increment):
-    for _ in range(10):
-        stat_manager.update_stat(key, increment)
+# class StatManager:
+#     def __init__(self):
+#         self.stats = {}
+#         self.locks = {}
+#
+#     def initialize_stat(self, key):
+#         with multiprocessing.Lock():
+#             self.stats[key] = multiprocessing.Value('i', 0)
+#             self.locks[key] = multiprocessing.Lock()
+#
+#     def update_stat(self, key, value):
+#         with self.locks[key]:
+#             self.stats[key].value += value
+#
+#     def get_stats(self):
+#         return {key: stat.value for key, stat in self.stats.items()}
+#
+#
+# def worker(stat_manager, key, increment):
+#     for _ in range(10):
+#         stat_manager.update_stat(key, increment)
 
 
 if __name__ == "__main__":
-    stat_manager = StatManager()
-
-    keys = ["A", "B", "C"]
-    for key in keys:
-        stat_manager.initialize_stat(key)
-
-    processes = []
-    for key in keys:
-        process = multiprocessing.Process(target=worker, args=(stat_manager, key, 1))
-        processes.append(process)
-        process.start()
-
-    for process in processes:
-        process.join()
-
-    final_stats = stat_manager.get_stats()
-    print("Final Stats:", final_stats)
+    print(f"{math.comb(39, 13) * math.comb(26, 13) * math.comb(13, 13):.2e}")
+    pass
+    # stat_manager = StatManager()
+    #
+    # keys = ["A", "B", "C"]
+    # for key in keys:
+    #     stat_manager.initialize_stat(key)
+    #
+    # processes = []
+    # for key in keys:
+    #     process = multiprocessing.Process(target=worker, args=(stat_manager, key, 1))
+    #     processes.append(process)
+    #     process.start()
+    #
+    # for process in processes:
+    #     process.join()
+    #
+    # final_stats = stat_manager.get_stats()
+    # print("Final Stats:", final_stats)
+    # X = [23.56, 30.34, 56.23, 90.36]
+    # num_x = len(X)
+    # Xd = []
+    # for i in range(num_x):
+    #     Xd.append(sum(X[i:]) / (num_x - i))
+    # print(Xd)
+    # Xd2 = []
+    # for i in range(num_x):
+    #     Xd2.append(sum(Xd[i:]) / (num_x - i))
+    # print(Xd2)]

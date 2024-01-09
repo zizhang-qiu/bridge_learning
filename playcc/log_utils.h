@@ -177,7 +177,7 @@ void SetErrorHandler(ErrorHandler error_handler);
 
 // Floating point comparisons use this as a multiplier on the larger of the two
 // numbers as the threshold.
-inline constexpr float FloatingPointDefaultThresholdRatio() { return 1e-5; }
+inline constexpr float FloatingPointDefaultThresholdRatio() { return 1e-5f; }
 
 // Returns whether the absolute difference between floating point values a and
 // b is less than or equal to FloatingPointThresholdRatio() * max(|a|, |b|).

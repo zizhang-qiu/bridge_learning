@@ -13,7 +13,7 @@ class CheatBot final : public PlayBot {
   public:
   CheatBot() { SetMaxThreads(0); }
 
-  ble::BridgeMove Act(const ble::BridgeState &state) override {
+  ble::BridgeMove Step(const ble::BridgeState &state) override {
     const auto legal_moves = state.LegalMoves();
     const int num_legal_moves = static_cast<int>(legal_moves.size());
     if (num_legal_moves == 1) {

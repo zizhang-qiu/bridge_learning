@@ -69,15 +69,15 @@ int main() {
 
 //  alpha_mu_bot.SetTT(tt);
 
-      auto move = alpha_mu_bot.Act(state);
+      auto move = alpha_mu_bot.Step(state);
       std::cout << "alphamu move: " << move << std::endl;
       resampler->ResetWithParams({{"seed", std::to_string(seed)}});
-      auto pimc_move = pimc_bot.Act(state);
+      auto pimc_move = pimc_bot.Step(state);
       std::cout << "pimc move: " << pimc_move << std::endl;
       state.ApplyMove(move);
     } else {
 //      resampler->ResetWithParams({{"seed", std::to_string(seed)}});
-      auto pimc_move = pimc_bot.Act(state);
+      auto pimc_move = pimc_bot.Step(state);
       state.ApplyMove(pimc_move);
     }
   }

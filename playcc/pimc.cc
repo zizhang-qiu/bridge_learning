@@ -22,11 +22,15 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   futureTricks fut{};
 
   const int res = SolveBoard(dl,
-                             /*target=*/-1,
-                             /*solutions=*/1,
-                             /*mode=*/2,
+                             /*target=*/
+                             -1,
+                             /*solutions=*/
+                             1,
+                             /*mode=*/
+                             2,
                              &fut,
-                             /*threadIndex=*/0);
+                             /*threadIndex=*/
+                             0);
   if (res != RETURN_NO_FAULT) {
     char error_message[80];
     ErrorMessage(res, error_message);
@@ -58,13 +62,15 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   const int num_tricks_declarer_can_win = fut.score[0] + child.NumDeclarerTricks();
   return num_tricks_declarer_can_win < contract.level + 6;
 }
+
 std::pair<ble::BridgeMove, int> GetBestAction(const SearchResult& res) {
   const auto it = std::max_element(res.scores.begin(), res.scores.end());
   const int index = static_cast<int>(std::distance(res.scores.begin(), it));
   return std::make_pair(res.moves[index], res.scores[index]);
 }
+
 SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
-//  const auto legal_moves = state.LegalMoves();
+  //  const auto legal_moves = state.LegalMoves();
   const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
   const int num_legal_moves = static_cast<int>(legal_moves.size());
   //    std::cout << "num legal moves: " << num_legal_moves << std::endl;
@@ -92,13 +98,13 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
   //    //      std::cout << "accumulate scores" << std::endl;
   //  }
   const auto deals = ResampleMultipleDeals(resampler_, state, cfg_.num_worlds);
-//  std::cout << "Deals sampled in pimc:\n" << std::endl;
-//  for (const auto d : deals) {
-//    PrintArray(d);
-//  }
+  //  std::cout << "Deals sampled in pimc:\n" << std::endl;
+  //  for (const auto d : deals) {
+  //    PrintArray(d);
+  //  }
   for (int i = 0; i < cfg_.num_worlds; ++i) {
     auto sampled_state = ConstructStateFromDeal(deals[i], state.ParentGame(), state);
-//    std::cout << sampled_state.ToString() << std::endl;
+    //    std::cout << sampled_state.ToString() << std::endl;
     for (int j = 0; j < num_legal_moves; ++j) {
       const int score = Rollout(sampled_state, legal_moves[j]);
       //        std::cout << score << std::endl;
@@ -107,24 +113,47 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
   }
   return res;
 }
-ble::BridgeMove PIMCBot::Act(const ble::BridgeState &state) {
+
+ble::BridgeMove PIMCBot::Step(const ble::BridgeState& state) {
   SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()), static_cast<int>(ble::Phase::kPlay));
-//  const auto legal_moves = state.LegalMoves();
+  //  const auto legal_moves = state.LegalMoves();
   const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
-  if (const int num_legal_moves = static_cast<int>(legal_moves.size()); num_legal_moves == 1){
-    if(!cfg_.search_with_one_legal_move){
+  if (const int num_legal_moves = static_cast<int>(legal_moves.size()); num_legal_moves == 1) {
+    if (!cfg_.search_with_one_legal_move) {
       return legal_moves[0];
     }
   }
   const SearchResult res = Search(state);
   auto [move, score] = GetBestAction(res);
 
-//  PrintSearchResult(res);
+  //  PrintSearchResult(res);
 
   return move;
 }
+
 void PrintSearchResult(const SearchResult& res) {
   for (int i = 0; i < res.moves.size(); ++i) {
     std::cout << "Move " << res.moves[i].ToString() << ", Score: " << res.scores[i] << "\n";
   }
+}
+
+std::unique_ptr<PlayBot> MakePIMCBot(ble::Player player_id, PIMCConfig cfg) {
+  return std::make_unique<PIMCBot>(nullptr, player_id, cfg);
+}
+
+namespace {
+class PIMCFactory : public BotFactory {
+  public:
+    ~PIMCFactory() = default;
+
+    std::unique_ptr<PlayBot> Create(std::shared_ptr<const ble::BridgeGame> game,
+                                    ble::Player player,
+                                    const ble::GameParameters& bot_params) override {
+      const int num_worlds = ble::ParameterValue<int>(bot_params, "num_worlds", 20);
+      const PIMCConfig cfg{num_worlds, false};
+      return MakePIMCBot(player, cfg);
+    }
+};
+
+REGISTER_PLAY_BOT("pimc", PIMCFactory);
 }

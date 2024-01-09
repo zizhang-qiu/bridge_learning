@@ -24,7 +24,9 @@ from loguru import logger
 
 import bridge
 import bridgelearn
+import bridgeplay
 from common_utils.value_stats import MultiStats
+
 
 def get_contract_from_str(contract_str: str) -> bridge.Contract:
     level = int(contract_str[0])
@@ -36,6 +38,7 @@ def get_contract_from_str(contract_str: str) -> bridge.Contract:
     contract.declarer = bridge.Seat.SOUTH
     contract.double_status = bridge.DoubleStatus.UNDOUBLED
     return contract
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -87,14 +90,14 @@ class Worker(mp.Process):
         self.num_deals_win_by_player2 = num_deals_win_by_player2
         self.process_id = pid
 
-    def create_player(self, player_str: str, pimc_cfg: bridgelearn.PIMCConfig, alpha_mu_cfg: bridgelearn.AlphaMuConfig,
-                      resampler: bridgelearn.Resampler):
+    def create_player(self, player_str: str, pimc_cfg: bridgeplay.PIMCConfig, alpha_mu_cfg: bridgelearn.AlphaMuConfig,
+                      resampler: bridgeplay.Resampler):
         if player_str == "alpha_mu":
-            return bridgelearn.AlphaMuBot(resampler, alpha_mu_cfg)
+            return bridgeplay.AlphaMuBot(resampler, alpha_mu_cfg)
         if player_str == "pimc":
-            return bridgelearn.PIMCBot(resampler, pimc_cfg)
+            return bridgeplay.PIMCBot(resampler, pimc_cfg)
         if player_str == "dds":
-            return bridgelearn.CheatBot()
+            return bridgeplay.CheatBot()
 
         raise ValueError(f"Algorithm {player_str} not supported.")
 
@@ -104,14 +107,14 @@ class Worker(mp.Process):
         np.random.seed(self.process_id)
         contract = get_contract_from_str(self.ev_cfg.contract_str)
 
-        resampler = bridgelearn.UniformResampler(1)
+        resampler = bridgeplay.UniformResampler(1)
 
-        pimc_cfg = bridgelearn.PIMCConfig()
+        pimc_cfg = bridgeplay.PIMCConfig()
         pimc_cfg.num_worlds = self.ev_cfg.num_worlds
         pimc_cfg.search_with_one_legal_move = False
         # pimc_bot = bridgelearn.PIMCBot(resampler, pimc_cfg)
 
-        alpha_mu_cfg = bridgelearn.AlphaMuConfig()
+        alpha_mu_cfg = bridgeplay.AlphaMuConfig()
         alpha_mu_cfg.num_worlds = self.ev_cfg.num_worlds
         alpha_mu_cfg.num_max_moves = self.ev_cfg.num_max_moves
         alpha_mu_cfg.search_with_one_legal_move = False
@@ -132,13 +135,13 @@ class Worker(mp.Process):
             while not state1.is_terminal():
                 if self.check_terminated():
                     break
-                if bridgelearn.is_acting_player_declarer_side(state1):
+                if bridgeplay.is_acting_player_declarer_side(state1):
                     st = time.perf_counter()
-                    move = player1.act(state1)
+                    move = player1.step(state1)
                     ed = time.perf_counter()
                 else:
                     st = time.perf_counter()
-                    move = defender.act(state1)
+                    move = defender.step(state1)
                     ed = time.perf_counter()
                 # print(move)
                 state1.apply_move(move)
@@ -151,13 +154,13 @@ class Worker(mp.Process):
             while not state2.is_terminal():
                 if self.check_terminated():
                     break
-                if bridgelearn.is_acting_player_declarer_side(state2):
+                if bridgeplay.is_acting_player_declarer_side(state2):
                     st = time.perf_counter()
-                    move = player2.act(state2)
+                    move = player2.step(state2)
                     ed = time.perf_counter()
                 else:
                     st = time.perf_counter()
-                    move = defender.act(state2)
+                    move = defender.step(state2)
                     ed = time.perf_counter()
                 state2.apply_move(move)
             # print(state2)
@@ -192,7 +195,7 @@ class Worker(mp.Process):
     def generate_state(self, contract: bridge.Contract) -> bridge.BridgeState:
         while True:
             deal = np.random.permutation(bridge.NUM_CARDS)
-            state = bridgelearn.construct_state_from_deal(deal.tolist(), bridge.default_game)
+            state = bridgeplay.construct_state_from_deal(deal.tolist(), bridge.default_game)
             ddt = state.double_dummy_results()
             if ddt[contract.denomination][contract.declarer] - (contract.level + 6) >= 0:
                 for uid in [52, 52, bridge.bid_index(contract.level, contract.denomination) + 52, 52, 52, 52]:

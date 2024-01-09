@@ -134,12 +134,12 @@ class Worker(mp.Process):
                     break
                 if bridgelearn.is_acting_player_declarer_side(state1):
                     st = time.perf_counter()
-                    move = alpha_mu_bot.act(state1)
+                    move = alpha_mu_bot.step(state1)
                     ed = time.perf_counter()
                     stats.feed("alpha_mu_time", ed - st)
                 else:
                     st = time.perf_counter()
-                    move = pimc_bot.act(state1)
+                    move = pimc_bot.step(state1)
                     ed = time.perf_counter()
                     stats.feed("pimc_time", ed - st)
                 # print(move)
@@ -154,7 +154,7 @@ class Worker(mp.Process):
                 if self.check_terminated():
                     break
                 st = time.perf_counter()
-                move = pimc_bot.act(state2)
+                move = pimc_bot.step(state2)
                 ed = time.perf_counter()
                 stats.feed("pimc_time", ed - st)
                 state2.apply_move(move)

@@ -362,7 +362,7 @@ ble::BridgeState ConstructStateFromTrajectory(const std::vector<int> &trajectory
                                               const std::shared_ptr<ble::BridgeGame> &game) {
   ble::BridgeState state{game};
   const int trajectory_length = static_cast<int>(trajectory.size());
-  for (int i = 0; i < std::min(trajectory_length, ble::kNumCards); ++i) {
+  for (int i = 0; i < min(trajectory_length, ble::kNumCards); ++i) {
     const ble::BridgeMove move = game->GetChanceOutcome(trajectory[i]);
     state.ApplyMove(move);
   }
