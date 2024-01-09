@@ -182,7 +182,7 @@ add_library(_bridgeplay OBJECT
         playcc/deck_sampler.h
         playcc/play_bot.h
         playcc/play_bot.cc
-        playcc/cheat_bot.h
+        playcc/dds_bot.h
         playcc/vector_utils.h
         playcc/outcome_vector.h
         playcc/pareto_front.h
@@ -211,6 +211,7 @@ add_library(_bridgeplay OBJECT
         playcc/deal_analyzer.h
         playcc/stat_manager.h
         playcc/threaded_queue.h
+        playcc/dds_bot.cc
 )
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC

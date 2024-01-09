@@ -6,7 +6,7 @@
 
 #include "playcc/play_bot.h"
 #include "playcc/pimc.h"
-#include "playcc/cheat_bot.h"
+#include "dds_bot.h"
 #include "playcc/alpha_mu_bot.h"
 
 namespace py = pybind11;
@@ -25,9 +25,9 @@ PYBIND11_MODULE(bridgeplay, m) {
 
   py::class_<PlayBot>(m, "PlayBot");
 
-  py::class_<CheatBot, PlayBot>(m, "CheatBot")
+  py::class_<DDSBot, PlayBot>(m, "DDSBot")
       .def(py::init<>())
-      .def("step", &CheatBot::Step);
+      .def("step", &DDSBot::Step);
   //
   py::class_<PIMCConfig>(m, "PIMCConfig")
       .def(py::init<>())

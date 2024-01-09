@@ -10,7 +10,7 @@
 #include "third_party/cxxopts/include/cxxopts.hpp"
 
 #include "alpha_mu_bot.h"
-#include "cheat_bot.h"
+#include "dds_bot.h"
 #include "logger.h"
 #include "pimc.h"
 #include "stat_manager.h"
@@ -101,7 +101,7 @@ std::shared_ptr<PlayBot> CreatePlayer(const std::string &str,
     return std::make_shared<PIMCBot>(resampler, pimc_cfg);
   }
   if (str == "dds") {
-    return std::make_shared<CheatBot>();
+    return std::make_shared<DDSBot>();
   }
   std::cerr << absl::StrFormat("The algorithm %s is not supported, supported algorithms are alpha_mu, pimc and dds.")
             << std::endl;

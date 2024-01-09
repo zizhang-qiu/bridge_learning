@@ -9,7 +9,7 @@
 #include "supervise_data_generator.h"
 #include "playcc/play_bot.h"
 #include "playcc/pimc.h"
-#include "playcc/cheat_bot.h"
+#include "..\playcc\dds_bot.h"
 #include "playcc/alpha_mu_bot.h"
 
 namespace py = pybind11;
