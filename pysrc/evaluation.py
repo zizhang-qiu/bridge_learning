@@ -90,7 +90,7 @@ class Worker(mp.Process):
         self.num_deals_win_by_player2 = num_deals_win_by_player2
         self.process_id = pid
 
-    def create_player(self, player_str: str, pimc_cfg: bridgeplay.PIMCConfig, alpha_mu_cfg: bridgelearn.AlphaMuConfig,
+    def create_player(self, player_str: str, pimc_cfg: bridgeplay.PIMCConfig, alpha_mu_cfg: bridgeplay.AlphaMuConfig,
                       resampler: bridgeplay.Resampler):
         if player_str == "alpha_mu":
             return bridgeplay.AlphaMuBot(resampler, alpha_mu_cfg)
