@@ -89,4 +89,4 @@ if __name__ == '__main__':
                 acc = (torch.argmax(prob, 1) == label).to(torch.float32).mean()
                 print(f"Epoch {i // train_conf['eval_freq']}, acc={acc}, loss={loss}")
 
-            saver.save(policy_net.get_save_dict(), -loss.item(), True)
+            saver.save(policy_net.state_dict(), -loss.item(), save_latest=True)

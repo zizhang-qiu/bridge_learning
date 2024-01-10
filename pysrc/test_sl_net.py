@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     state_dict_files = find_files_in_dir(args.file_dir, ".pth", 2)
     for f in state_dict_files:
-        policy_net.load_state_dict(torch.load(f)["state_dict"])
+        policy_net.load_state_dict(torch.load(f))
         with torch.no_grad():
             digits = policy_net(test_batch["s"])
             prob = torch.nn.functional.softmax(digits, -1)
