@@ -9,7 +9,7 @@ from .assert_utils import *
 from .logger import Logger
 from .mem_utils import get_mem_usage
 from .other_utils import *
-from .saver import TopKSaver
+from .saver import TopkSaver
 from .torch_utils import *
 from .value_stats import *
 from .stopwatch import Stopwatch
