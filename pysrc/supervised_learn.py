@@ -11,7 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm, trange
 
 from net import MLP
-from common_utils.torch_utils import activation_function_from_str, optimizer_from_str
+from common_utils.torch_utils import activation_function_from_str, optimizer_from_str, initialize_fc
 from create_bridge import create_params
 from set_path import append_sys_path
 from common_utils.logger import Logger
@@ -45,6 +45,7 @@ if __name__ == '__main__':
         yaml.dump(net_conf, f)
     net_conf["activation_function"] = activation_function_from_str(net_conf["activation_function"])
     policy_net = MLP.from_conf(net_conf)
+    initialize_fc(policy_net)
     policy_net.to(device=train_conf["device"])
 
     logger = Logger(os.path.join(args.save_dir, "log.txt"), auto_line_feed=True)
