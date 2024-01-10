@@ -1,0 +1,8 @@
+lr : !!float 2e-4
+batch_size : 128
+num_iterations : 1000000
+eval_freq : 1000
+optimizer : adam
+optimizer_args :
+  {}
+device : "cuda"

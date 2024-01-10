@@ -97,7 +97,7 @@ class Worker(mp.Process):
         if player_str == "pimc":
             return bridgeplay.PIMCBot(resampler, pimc_cfg)
         if player_str == "dds":
-            return bridgeplay.CheatBot()
+            return bridgeplay.DDSBot()
 
         raise ValueError(f"Algorithm {player_str} not supported.")
 

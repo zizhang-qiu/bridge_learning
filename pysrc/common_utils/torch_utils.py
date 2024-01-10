@@ -5,7 +5,7 @@
 @file:torch_utils.py
 @time:2023/02/17
 """
-from typing import List, Optional, Sequence, Tuple, Dict
+from typing import List, Optional, Sequence, Tuple, Dict, Type
 
 import torch
 import torch.multiprocessing as mp
@@ -364,3 +364,29 @@ def tensor_dict_to_device(batch: Dict[str, torch.Tensor], device: str = "cuda") 
     for key, value in batch.items():
         res[key] = value.to(device)
     return res
+
+
+def activation_function_from_str(activation_str: str) -> Type[torch.nn.Module]:
+    all_possible_activations = nn.modules.activation.__all__
+    all_possible_activations_lower = [s.lower() for s in all_possible_activations]
+    activation_str = activation_str.lower().strip()
+    if activation_str not in all_possible_activations_lower:
+        raise ValueError(
+            f"{activation_str} is not supported, possible activation functions are \n{all_possible_activations}")
+    index = all_possible_activations_lower.index(activation_str)
+    return eval(f"nn.{all_possible_activations[index]}")
+
+
+def optimizer_from_str(optimizer_str: str, other_optimizers: Optional[List[str]]) -> Type[torch.optim.Optimizer]:
+    all_optimizers = [name for name in dir(torch.optim) if name[0].isupper()]
+    all_optimizers_lower = [s.lower() for s in all_optimizers]
+
+    optimizer_str = optimizer_str.lower().strip()
+    if optimizer_str in all_optimizers_lower:
+        return eval(f"torch.optim.{all_optimizers[all_optimizers_lower.index(optimizer_str)]}")
+    if other_optimizers is not None:
+        other_optimizers_lower = [s.lower() for s in other_optimizers]
+        if optimizer_str in other_optimizers_lower:
+            return eval(other_optimizers[other_optimizers_lower.index(optimizer_str)])
+        raise ValueError
+    raise ValueError

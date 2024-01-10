@@ -1,0 +1,10 @@
+input_size: 480
+output_size: 38
+num_hidden_layers: 4
+hidden_size: 1024
+activation_function: relu
+activation_args :
+  {}
+use_dropout : false
+dropout_prob : 0
+use_layer_norm : false

@@ -23,7 +23,7 @@ class SearchResult:
 class PlayBot: ...
 
 
-class CheatBot(PlayBot):
+class DDSBot(PlayBot):
     def __init__(self):
         ...
 

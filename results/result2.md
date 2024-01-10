@@ -5,3 +5,4 @@
 | alpha mu W=20 M =3 | pimc W=20 | dds       | 7NT      | 10000     | 1681   | 999       | 59.43%   |
 | alpha mu W=20 M =2 | pimc W=20 | pimc W=20 | 7NT      | 10000     | 1716   | 938       | 54.66%   |
 | alpha mu W=20 M =3 | pimc W=20 | pimc W=20 | 7NT      | 10000     | 1715   | 965       | 56.27%   |
+| alpha mu W=40 M =2 | pimc W=40 | pimc W=40 | 7NT      | 10000     | 1612   | 903       | 56.01%   |

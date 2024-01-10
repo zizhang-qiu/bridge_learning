@@ -11,14 +11,14 @@ from tqdm import tqdm
 from agent import BridgeAgent
 
 from create_bridge import create_params
-from common_utils.torch_utils import tensor_dict_to_device
+from common_utils.torch_utils import tensor_dict_to_device, optimizer_from_str
 
 # print(torch.__version__)
 # print(torch.cuda.is_available())
 # import set_path
 #
 # set_path.append_sys_path()
-
+from adan import Adan
 import bridge
 import bridgelearn
 import rela
@@ -104,32 +104,4 @@ from agent import BridgeAgent, DEFAULT_VALUE_CONF, DEFAULT_POLICY_CONF
 
 
 if __name__ == "__main__":
-    print(f"{math.comb(39, 13) * math.comb(26, 13) * math.comb(13, 13):.2e}")
-    pass
-    # stat_manager = StatManager()
-    #
-    # keys = ["A", "B", "C"]
-    # for key in keys:
-    #     stat_manager.initialize_stat(key)
-    #
-    # processes = []
-    # for key in keys:
-    #     process = multiprocessing.Process(target=worker, args=(stat_manager, key, 1))
-    #     processes.append(process)
-    #     process.start()
-    #
-    # for process in processes:
-    #     process.join()
-    #
-    # final_stats = stat_manager.get_stats()
-    # print("Final Stats:", final_stats)
-    # X = [23.56, 30.34, 56.23, 90.36]
-    # num_x = len(X)
-    # Xd = []
-    # for i in range(num_x):
-    #     Xd.append(sum(X[i:]) / (num_x - i))
-    # print(Xd)
-    # Xd2 = []
-    # for i in range(num_x):
-    #     Xd2.append(sum(Xd[i:]) / (num_x - i))
-    # print(Xd2)]
+    opt = optimizer_from_str("adam", ["Adan"])
