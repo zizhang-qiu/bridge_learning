@@ -15,7 +15,7 @@ from common_utils.torch_utils import activation_function_from_str, optimizer_fro
 from create_bridge import create_params
 from set_path import append_sys_path
 from common_utils.logger import Logger
-from common_utils.saver import TopKSaver
+from common_utils.saver import TopkSaver
 from adan import Adan
 
 append_sys_path()
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     logger = Logger(os.path.join(args.save_dir, "log.txt"), auto_line_feed=True)
 
-    saver = TopKSaver(args.save_dir, 10)
+    saver = TopkSaver(args.save_dir, 10)
     logger.write(pformat(net_conf))
     logger.write(pformat(train_conf))
     opt_cls = optimizer_from_str(train_conf["optimizer"], ["Adan"])
@@ -87,6 +87,6 @@ if __name__ == '__main__':
                 # loss = -torch.mean(log_prob * one_hot_label)
                 loss = torch.nn.functional.binary_cross_entropy(prob, one_hot_label.float())
                 acc = (torch.argmax(prob, 1) == label).to(torch.float32).mean()
-                print(f"Epoch {i // train_conf['eval_freq']}, acc={acc}, loss={loss}")
 
-            saver.save(policy_net.state_dict(), -loss.item(), save_latest=True)
+            saved = saver.save(policy_net, policy_net.state_dict(), -loss.item(), save_latest=True)
+            print(f"Epoch {i // train_conf['eval_freq']}, acc={acc}, loss={loss}, model saved={saved}")

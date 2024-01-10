@@ -10,8 +10,8 @@ from typing import List, Tuple
 import torch
 
 
-class TopKSaver:
-    def __init__(self, save_dir: str, topk: int):
+class TopkSaver:
+    def __init__(self, save_dir, topk):
         self.save_dir = save_dir
         self.topk = topk
         self.worse_perf = -float("inf")
@@ -21,14 +21,20 @@ class TopKSaver:
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
 
-    def save(self, state_dict, perf, save_latest=False, force_save_name=None):
+    def save(self, model, state_dict, perf, save_latest=False, force_save_name=None):
         if force_save_name is not None:
-            weight_name = f"{force_save_name}.pth"
+            model_name = "%s.pthm" % force_save_name
+            weight_name = "%s.pthw" % force_save_name
+            if model is not None:
+                model.save(os.path.join(self.save_dir, model_name))
             if state_dict is not None:
                 torch.save(state_dict, os.path.join(self.save_dir, weight_name))
 
         if save_latest:
-            weight_name = "latest.pth"
+            model_name = "latest.pthm"
+            weight_name = "latest.pthw"
+            if model is not None:
+                model.save(os.path.join(self.save_dir, model_name))
             if state_dict is not None:
                 torch.save(state_dict, os.path.join(self.save_dir, weight_name))
 
@@ -37,7 +43,10 @@ class TopKSaver:
             # [print(i) for i in self.perfs]
             return False
 
-        weight_name = f"model{self.worse_perf_idx}.pth"
+        model_name = "model%i.pthm" % self.worse_perf_idx
+        weight_name = "model%i.pthw" % self.worse_perf_idx
+        if model is not None:
+            model.save(os.path.join(self.save_dir, model_name))
         if state_dict is not None:
             torch.save(state_dict, os.path.join(self.save_dir, weight_name))
 
