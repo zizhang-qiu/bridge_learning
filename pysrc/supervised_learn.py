@@ -47,6 +47,7 @@ if __name__ == '__main__':
     policy_net = MLP.from_conf(net_conf)
     initialize_fc(policy_net)
     policy_net.to(device=train_conf["device"])
+    policy_net.train()
 
     logger = Logger(os.path.join(args.save_dir, "log.txt"), auto_line_feed=True)
 
@@ -79,6 +80,7 @@ if __name__ == '__main__':
         # eval
         if i % train_conf["eval_freq"] == 0:
             with torch.no_grad():
+                policy_net.eval()
                 digits = policy_net(valid_batch["s"])
                 prob = torch.nn.functional.softmax(digits, -1)
                 label = valid_batch["label"] - bridge.NUM_CARDS
@@ -90,3 +92,4 @@ if __name__ == '__main__':
 
             saved = saver.save(policy_net, policy_net.state_dict(), -loss.item(), save_latest=True)
             print(f"Epoch {i // train_conf['eval_freq']}, acc={acc}, loss={loss}, model saved={saved}")
+            policy_net.train()

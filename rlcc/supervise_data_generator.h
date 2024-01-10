@@ -15,15 +15,15 @@ namespace rlcc {
 class SuperviseDataGenerator {
  public:
   SuperviseDataGenerator(const std::vector<std::vector<int>> &trajectories,
-                         int batch_size,
+                         const int batch_size,
                          const std::shared_ptr<ble::BridgeGame> &game,
-                         int seed) : trajectories_(trajectories),
-                                     batch_size_(batch_size),
-                                     game_(game),
-                                     encoder_(game),
-                                     rng_(seed) {}
+                         const int seed) : trajectories_(trajectories),
+                                           batch_size_(batch_size),
+                                           encoder_(game),
+                                           game_(game),
+                                           rng_(seed) {}
 
-  rela::TensorDict NextBatch(std::string &device){
+  rela::TensorDict NextBatch(const std::string &device){
     std::vector<rela::TensorDict> obs_labels;
     torch::Device d{device};
     for (int i = 0; i < batch_size_; ++i) {
@@ -31,7 +31,7 @@ class SuperviseDataGenerator {
       assert(current_trajectory.size()>= ble::kNumCards + ble::kNumPlayers);
       index_ = (index_ + 1) % static_cast<int>(trajectories_.size());
       auto dis = std::uniform_int_distribution<int>(ble::kNumCards, static_cast<int>(current_trajectory.size() - 1));
-      auto random_index = dis(rng_);
+      const auto random_index = dis(rng_);
       auto state = std::make_unique<ble::BridgeState>(game_);
       for (int j = 0; j < ble::kNumCards; ++j) {
         auto move = game_->GetChanceOutcome(current_trajectory[j]);
@@ -52,7 +52,7 @@ class SuperviseDataGenerator {
     return rela::tensor_dict::stack(obs_labels, 0);
   }
 
-  rela::TensorDict AllData(std::string &device){
+  rela::TensorDict AllData(const std::string &device) const {
     std::vector<rela::TensorDict> obs_labels;
     torch::Device d{device};
     for(auto current_trajectory : trajectories_){
