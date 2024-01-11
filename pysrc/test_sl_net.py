@@ -31,7 +31,7 @@ import bridgelearn
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file_dir", type=str, default="sl/exp2")
+    parser.add_argument("--file_dir", type=str, default="sl/exp3")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
     parser.add_argument("--device", type=str, default="cuda")
     return parser.parse_args()

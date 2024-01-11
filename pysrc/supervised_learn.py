@@ -27,7 +27,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--net_conf", type=str, default="conf/net.yaml")
     parser.add_argument("--train_conf", type=str, default="conf/sl.yaml")
-    parser.add_argument("--save_dir", type=str, default="sl/exp2")
+    parser.add_argument("--save_dir", type=str, default="sl/exp3")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
     return parser.parse_args()
 

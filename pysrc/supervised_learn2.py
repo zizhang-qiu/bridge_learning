@@ -91,7 +91,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--net_conf", type=str, default="conf/net.yaml")
     parser.add_argument("--train_conf", type=str, default="conf/sl.yaml")
-    parser.add_argument("--save_dir", type=str, default="sl/exp1")
+    parser.add_argument("--save_dir", type=str, default="sl/exp3")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert\sl_data")
     return parser.parse_args()
 
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     )
 
     train_loader = DataLoader(train_dataset, batch_size=train_conf["batch_size"], shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=len(valid_dataset), shuffle=False)
+    valid_loader = DataLoader(valid_dataset, batch_size=train_conf["valid_size"], shuffle=False)
 
     print(
         f"Load dataset successfully! Train dataset has {len(train_dataset)} samples. Valid dataset has {len(valid_dataset)} samples.")
