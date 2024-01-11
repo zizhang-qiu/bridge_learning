@@ -130,7 +130,7 @@ if __name__ == '__main__':
     )
 
     train_loader = DataLoader(train_dataset, batch_size=train_conf["batch_size"], shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=train_conf["valid_size"], shuffle=False)
+    valid_loader = DataLoader(valid_dataset, batch_size=train_conf["valid_batch_size"], shuffle=False)
 
     print(
         f"Load dataset successfully! Train dataset has {len(train_dataset)} samples. Valid dataset has {len(valid_dataset)} samples.")
