@@ -31,7 +31,7 @@ import bridgelearn
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file_dir", type=str, default="sl/exp1")
+    parser.add_argument("--file_dir", type=str, default="sl/exp2")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
     parser.add_argument("--device", type=str, default="cuda")
     return parser.parse_args()
@@ -46,6 +46,7 @@ if __name__ == '__main__':
 
     net_conf["activation_function"] = activation_function_from_str(net_conf["activation_function"])
     policy_net = MLP.from_conf(net_conf).to(args.device)
+    policy_net.eval()
 
     params = create_params()
     game = bridge.BridgeGame(params)

@@ -67,6 +67,7 @@ if __name__ == '__main__':
     valid_batch = valid_generator.all_data(train_conf["device"])
 
     for i in trange(1, train_conf["num_iterations"] + 1):
+        torch.cuda.empty_cache()
         opt.zero_grad()
         batch = train_generator.next_batch(train_conf["device"])
         digits = policy_net(batch["s"])
