@@ -101,7 +101,3 @@ from agent import BridgeAgent, DEFAULT_VALUE_CONF, DEFAULT_POLICY_CONF
 # def worker(stat_manager, key, increment):
 #     for _ in range(10):
 #         stat_manager.update_stat(key, increment)
-
-
-if __name__ == "__main__":
-    opt = optimizer_from_str("adam", ["Adan"])

@@ -142,20 +142,23 @@ if __name__ == '__main__':
 
     def evaluate() -> Tuple[float, float]:
         policy_net.eval()
-        loss_list = []
-        acc_list = []
         with torch.no_grad():
+            log_probs = []
+            labels = []
             for s, label in valid_loader:
                 s = s.to(train_conf["device"])
                 label = label.to(train_conf["device"])
                 digits = policy_net(s)
                 log_prob = torch.nn.functional.log_softmax(digits, -1)
-                loss = cross_entropy(log_prob, label, bridge.NUM_CALLS)
-                loss_list.append(loss.item())
-                accuracy = compute_accuracy(torch.exp(log_prob), label)
-                acc_list.append(accuracy.item())
-        policy_net.train()
-        return np.mean(loss_list).item(), np.mean(acc_list).item()
+                log_probs.append(log_prob)
+                labels.append(label)
+            log_probs = torch.cat(log_probs)
+            probs = torch.exp(log_probs)
+            labels = torch.cat(labels)
+            acc = compute_accuracy(probs, labels)
+            loss = cross_entropy(log_probs, labels, bridge.NUM_CALLS)
+            policy_net.train()
+        return loss.item(), acc.item()
 
 
     while True:
@@ -186,3 +189,5 @@ if __name__ == '__main__':
                 saver.save(None, policy_net.state_dict(), acc, save_latest=True)
             if num_mini_batches == train_conf["num_iterations"]:
                 break
+
+
