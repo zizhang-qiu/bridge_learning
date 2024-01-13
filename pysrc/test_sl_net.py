@@ -40,7 +40,7 @@ import bridgelearn
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file_dir", type=str, default="sl/exp6")
+    parser.add_argument("--file_dir", type=str, default="sl/exp5")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert\sl_data")
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--batch_size", type=int, default=10000)
@@ -92,7 +92,7 @@ if __name__ == '__main__':
             probs = torch.cat(probs)
             labels = torch.cat(labels)
             acc = compute_accuracy(probs, labels)
-            loss = cross_entropy(probs, labels, bridge.NUM_CALLS)
+            loss = cross_entropy(torch.log(probs), labels, bridge.NUM_CALLS)
             if acc > best_acc:
                 best_acc = acc
                 best_model = f
@@ -112,5 +112,4 @@ if __name__ == '__main__':
             labels.append(label)
     probs_tensor = torch.cat(probs)
     labels_tensor = torch.cat(labels)
-    print(probs_tensor, labels_tensor)
     metrics = get_metrics(probs_tensor.cpu(), labels_tensor.cpu(), args.file_dir)

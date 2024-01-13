@@ -81,6 +81,7 @@ ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
   const auto deals = ResampleMultipleDeals(resampler_, state, cfg_.num_worlds);
   const ParetoFront
       front = Search(ble::BridgeStateWithoutHiddenInfo(state), cfg_.num_max_moves, Worlds(deals, state), {});
+  last_iteration_front_ = front;
   auto best = front.BestOutcome();
   if (best.move.MoveType() == bridge_learning_env::BridgeMove::kInvalid) {
     best.move = state.LegalMoves()[0];
@@ -155,7 +156,8 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo& state,
       if (cfg_.root_cut) {
         if (num_max_moves == cfg_.num_max_moves) {
           // Root node.
-          if (tt_.HasKey(state) && tt_[state].BestOutcome().Score() == front.BestOutcome().Score()) {
+          if (last_iteration_front_.has_value() && last_iteration_front_->BestOutcome().Score() == front.BestOutcome().
+            Score()) {
             //            std::cout << "Perform root cut." << std::endl;
             break;
           }

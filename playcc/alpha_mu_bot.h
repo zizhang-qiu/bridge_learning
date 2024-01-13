@@ -72,6 +72,7 @@ class AlphaMuBot final : public PlayBot {
     std::shared_ptr<Resampler> resampler_;
     const AlphaMuConfig cfg_;
     const ble::Player player_id_{};
+    std::optional<ParetoFront> last_iteration_front_{};
 };
 
 std::unique_ptr<PlayBot> MakeAlphaMuBot(ble::Player player_id, AlphaMuConfig cfg);
