@@ -69,6 +69,7 @@ ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
   //  std::cout << "tt size: " << tt_.Table().size() << std::endl;
   if (IsFirstMaxNode(state)) {
     tt_.Clear();
+    last_iteration_front_ = std::optional<ParetoFront>{};
   }
   //  const auto &legal_moves = state.LegalMoves();
   const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
