@@ -91,8 +91,8 @@ add_library(rela_lib OBJECT
         rela/batcher.cc
         rela/tensor_dict.h
         rela/utils.h
-        rela/batch_runner.h
-        rela/batch_runner.cc
+#        rela/batch_runner.h
+#        rela/batch_runner.cc
         rela/thread_loop.h
         rela/context.cc
         rela/context.h
@@ -100,6 +100,13 @@ add_library(rela_lib OBJECT
         rela/transition.cc
         rela/prioritized_replay.h
         rela/logging.h
+        rela/model_locker.cc
+        rela/model_locker.h
+        rela/model.h
+        rela/types.h
+        rela/model.cc
+        rela/model_common.h
+        rela/static_batcher.h
 )
 
 target_include_directories(rela_lib PUBLIC ${TORCH_INCLUDE_DIRS})

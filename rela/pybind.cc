@@ -63,17 +63,17 @@ PYBIND11_MODULE(rela, m) {
       .def("join", &Context::join)
       .def("terminated", &Context::terminated);
 
-  py::class_<BatchRunner, std::shared_ptr<BatchRunner>>(m, "BatchRunner")
-      .def(py::init<
-          py::object,
-          const std::string&,
-          int,
-          const std::vector<std::string>&>())
-      .def(py::init<py::object, const std::string&>())
-      .def("add_method", &BatchRunner::addMethod)
-      .def("start", &BatchRunner::start)
-      .def("stop", &BatchRunner::stop)
-      .def("update_model", &BatchRunner::updateModel)
-      .def("block_call", &BatchRunner::blockCall)
-      .def("set_log_freq", &BatchRunner::setLogFreq);
+  // py::class_<BatchRunner, std::shared_ptr<BatchRunner>>(m, "BatchRunner")
+  //     .def(py::init<
+  //         py::object,
+  //         const std::string&,
+  //         int,
+  //         const std::vector<std::string>&>())
+  //     .def(py::init<py::object, const std::string&>())
+  //     .def("add_method", &BatchRunner::addMethod)
+  //     .def("start", &BatchRunner::start)
+  //     .def("stop", &BatchRunner::stop)
+  //     .def("update_model", &BatchRunner::updateModel)
+  //     .def("block_call", &BatchRunner::blockCall)
+  //     .def("set_log_freq", &BatchRunner::setLogFreq);
 }

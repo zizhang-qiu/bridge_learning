@@ -10,6 +10,7 @@
 #include "bridge_lib/example_cards_ddts.h"
 
 namespace py = pybind11;
+
 namespace bridge_learning_env {
 PYBIND11_MODULE(bridge, m) {
   py::enum_<DoubleStatus>(m, "DoubleStatus")
@@ -121,6 +122,14 @@ PYBIND11_MODULE(bridge, m) {
       .export_values();
 
   py::class_<BridgeMove>(m, "BridgeMove")
+      .def(py::init<>())
+      .def(py::init<
+        const BridgeMove::Type,
+        const Suit,
+        const int,
+        const Denomination,
+        const int,
+        const OtherCalls>())
       .def("move_type", &BridgeMove::MoveType)
       .def("is_bid", &BridgeMove::IsBid)
       .def("bid_level", &BridgeMove::BidLevel)
@@ -219,4 +228,3 @@ PYBIND11_MODULE(bridge, m) {
       .def("type", &CanonicalEncoder::type);
 }
 }
-
