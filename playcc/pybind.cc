@@ -7,11 +7,17 @@
 #include "playcc/play_bot.h"
 #include "playcc/pimc.h"
 #include "dds_bot.h"
+// #include "torch_actor.h"
+// #include "torch_actor_resampler.h"
 #include "playcc/alpha_mu_bot.h"
 
 namespace py = pybind11;
 
 PYBIND11_MODULE(bridgeplay, m) {
+  py::class_<ResampleResult>(m, "ResampleResult")
+      .def_readonly("success",&ResampleResult::success)
+      .def_readonly("result", &ResampleResult::result);
+
   py::class_<Resampler, std::shared_ptr<Resampler>>(m, "Resampler");
 
   py::class_<UniformResampler, Resampler, std::shared_ptr<UniformResampler>>(m, "UniformResampler")
@@ -106,9 +112,9 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def("get_tt", &AlphaMuBot::GetTT)
       .def("set_tt", &AlphaMuBot::SetTT);
 
-  m.def("construct_state_from_deal",
-        py::overload_cast<const std::array<int, ble::kNumCards> &,
-                          const std::shared_ptr<ble::BridgeGame> &>(&ConstructStateFromDeal));
+  // m.def("construct_state_from_deal",
+  //       py::overload_cast<const std::array<int, ble::kNumCards> &,
+  //                         const std::shared_ptr<ble::BridgeGame> &>(&ConstructStateFromDeal));
 
   m.def("construct_state_from_trajectory", &ConstructStateFromTrajectory);
 
@@ -127,4 +133,14 @@ PYBIND11_MODULE(bridgeplay, m) {
                           const std::shared_ptr<const ble::BridgeGame> &,
                           ble::Player,
                           const ble::GameParameters &>(&LoadBot));
+  // py::class_<TorchActor, std::shared_ptr<TorchActor>>(m, "TorchActor")
+  //     .def(py::init<std::shared_ptr<rela::ModelLocker>>())
+  //     .def("get_policy", &TorchActor::GetPolicy)
+  //     .def("get_belief", &TorchActor::GetBelief);
+  //
+  // py::class_<TorchActorResampler, Resampler, std::shared_ptr<TorchActorResampler>>(m, "TorchActorResampler")
+  //     .def(py::init<const std::shared_ptr<TorchActor> &,
+  //                   const std::shared_ptr<ble::BridgeGame> &,
+  //                   const int>())
+  //     .def("resample", &TorchActorResampler::Resample);
 }

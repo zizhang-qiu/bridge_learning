@@ -18,5 +18,7 @@ using TorchTensorDict = torch::Dict<std::string, torch::Tensor>;
 using TorchJitInput = std::vector<torch::jit::IValue>;
 using TorchJitOutput = torch::jit::IValue;
 using TorchJitModel = torch::jit::script::Module;
+
+using TensorDictFuture = std::function<TensorDict()>;
 }
 #endif //BRIDGE_LEARNING_RELA_TYPES_H_

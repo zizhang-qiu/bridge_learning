@@ -19,10 +19,13 @@ T ParameterValue(const GameParameters& params, const std::string& key, T default
 
 template<>
 int ParameterValue(const GameParameters& params, const std::string& key, int default_value);
+
 template<>
 double ParameterValue(const GameParameters& params, const std::string& key, double default_value);
+
 template<>
 std::string ParameterValue(const GameParameters& params, const std::string& key, std::string default_value);
+
 template<>
 bool ParameterValue(const GameParameters& params, const std::string& key, bool default_value);
 
@@ -62,29 +65,53 @@ std::string StrCat(const Args&... args) {
 
 std::vector<std::string> StrSplit(const std::string& str, char delimiter);
 
+template<class... Args>
+void AssertWithMessage(bool condition, Args&&... args) {
+  if (!condition) {
+    const std::string msg = StrCat(std::forward<Args>(args)...);
+    std::cerr << msg << std::endl;
+    abort();
+  }
+}
+
+// fprintf(stderr, "Input requirements failed at %s:%d in %s: %s\n", __FILE__, __LINE__, __func__, #expr)
 #if defined(NDEBUG)
-#define REQUIRE(expr)                                                                                              \
-  (expr ? (void)0                                                                                                  \
-        : (fprintf(stderr, "Input requirements failed at %s:%d in %s: %s\n", __FILE__, __LINE__, __func__, #expr), \
-           std::abort()))
+#define REQUIRE(expr) \
+  bridge_learning_env::AssertWithMessage(expr, #expr, "check failed at ", __FILE__, ":", __LINE__, ". ");
+#define REQUIRE_EQ(x, y)\
+  bridge_learning_env::AssertWithMessage((x) == (y), #x " == " #y, " check failed at ", __FILE__, ":", __LINE__, \
+": ", (x), " vs ", (y), ". ");
+#define REQUIRE_VECTOR_EQ(vec1, vec2) \
+do { \
+if ((vec1) != (vec2)) { \
+std::cerr << "Assertion failed: Vectors not equal at " << __FILE__ << ":" << __LINE__ << std::endl; \
+std::cerr << "Vector 1: "; \
+PrintVector((vec1)); \
+std::cerr << "Vector 2: "; \
+PrintVector((vec2)); \
+std::abort(); \
+} \
+} while (0)
 #else
 #define REQUIRE(expr) assert(expr)
+#define REQUIRE_EQ(x, y) assert((x)==(y))
+#define REQUIRE_VECTOR_EQ(vec1, vec2) assert((vec1)==(vec2))
 #endif
 
-#if defined(NDEBUG)
-#define REQUIRE_EQ(expr1, expr2)                                                     \
-  (expr1 == expr2 ? (void)0                                                          \
-                  : (fprintf(stderr,                                                 \
-                             "Input requirements failed at %s:%d in %s: %s vs %s\n", \
-                             __FILE__,                                               \
-                             __LINE__,                                               \
-                             __func__,                                               \
-                             #expr1,                                                 \
-                             #expr2),                                                \
-                     std::abort()))
-#else
-#define REQUIRE_EQ(expr1, expr2) assert(expr1 == expr2)
-#endif
+// #if defined(NDEBUG)
+// #define REQUIRE_EQ(expr1, expr2)                                                     \
+//   (expr1 == expr2 ? (void)0                                                          \
+//                   : (fprintf(stderr,                                                 \
+//                              "Input requirements failed at %s:%d in %s: %s vs %s\n", \
+//                              __FILE__,                                               \
+//                              __LINE__,                                               \
+//                              __func__,                                               \
+//                              #expr1,                                                 \
+//                              #expr2),                                                \
+//                      std::abort()))
+// #else
+// #define REQUIRE_EQ(expr1, expr2) assert(expr1 == expr2)
+// #endif
 } // namespace bridge_learning_env
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_UTILS_H

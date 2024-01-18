@@ -7,16 +7,16 @@ using Phase = ble::Phase;
 
 namespace rlcc {
 
-BridgeEnv::BridgeEnv(const ble::GameParameters& params, bool verbose)
+BridgeEnv::BridgeEnv(const ble::GameParameters& params, const bool verbose)
     : params_(params), game_(params_), state_(nullptr), verbose_(verbose),
+      encoder_(std::make_shared<ble::BridgeGame>(game_)),
       last_active_player_(ble::kChancePlayerId),
       last_move_(ble::BridgeMove::kInvalid,
-          /*suit=*/ble::kInvalidSuit,
-          /*rank=*/-1,
-          /*denomination=*/ble::kInvalidDenomination,
-          /*level=*/-1,
-          /*other_call=*/ble::kNotOtherCall),
-      encoder_(std::make_shared<ble::BridgeGame>(game_)) {
+                 /*suit=*/ble::kInvalidSuit,
+                 /*rank=*/-1,
+                 /*denomination=*/ble::kInvalidDenomination,
+                 /*level=*/-1,
+                 /*other_call=*/ble::kNotOtherCall) {
   if (verbose_) {
     std::cout << "Bridge game created, with parameters:\n";
     for (const auto &item : params) {
@@ -63,15 +63,15 @@ void BridgeEnv::ResetWithDeck(const std::vector<int> &cards) {
     state_->ApplyMove(move);
   }
 }
-void BridgeEnv::Step(const ble::BridgeMove move) {
+void BridgeEnv::Step(const ble::BridgeMove& move) {
   RELA_CHECK(!Terminated())
   last_active_player_ = state_->CurrentPlayer();
   last_move_ = move;
   state_->ApplyMove(move);
 }
 
-void BridgeEnv::Step(int uid) {
-  auto move = GetMove(uid);
+void BridgeEnv::Step(const int uid) {
+  const auto move = GetMove(uid);
   Step(move);
 }
 
@@ -84,12 +84,12 @@ rela::TensorDict BridgeEnv::Feature() const {
   if (Terminated()) {
     return TerminalFeature();
   }
-  ble::BridgeObservation observation = ble::BridgeObservation(*state_, state_->CurrentPlayer());
-  auto encoding = encoder_.Encode(observation);
-  auto legal_moves = observation.LegalMoves();
+  const auto observation = ble::BridgeObservation(*state_, state_->CurrentPlayer());
+  const auto encoding = encoder_.Encode(observation);
+  const auto& legal_moves = observation.LegalMoves();
   std::vector<float> legal_move_mask(ble::kNumCalls, 0);
   for (const auto &move : legal_moves) {
-    int uid = game_.GetMoveUid(move);
+    const int uid = game_.GetMoveUid(move);
     legal_move_mask[uid - ble::kBiddingActionBase] = 1;
   }
   rela::TensorDict res = {

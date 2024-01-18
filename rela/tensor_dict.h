@@ -206,6 +206,64 @@ inline TorchTensorDict toTorchDict(const TensorDict& tensorDict,
   }
   return dict;
 }
+
+inline void print(const TensorDict& tensorDict) {
+  for (const auto& kv : tensorDict) {
+    std::cout << kv.first << ":\n" << kv.second << std::endl;
+  }
+}
+
+inline TensorDict join(const TensorVecDict& dict, int64_t dim) {
+  TensorDict result;
+  for (const auto& it : dict) {
+    result.emplace(it.first, torch::stack(it.second, dim));
+  }
+  return result;
+}
+
+inline void tensorVecDictAppend(TensorVecDict& batch, const TensorDict& input) {
+  for (auto& name2tensor : input) {
+    auto it = batch.find(name2tensor.first);
+    if (it == batch.end()) {
+      std::vector<torch::Tensor> singleton = {name2tensor.second};
+      batch.insert({name2tensor.first, singleton});
+    } else {
+      it->second.push_back(name2tensor.second);
+    }
+  }
+}
+
+inline void assertKeyExists(const TensorDict& tensorDict,
+                            const std::vector<std::string>& keys) {
+  for (const auto& k : keys) {
+    if (tensorDict.find(k) == tensorDict.end()) {
+      std::cout << "Key " << k << " does not exist! " << std::endl;
+      std::cout << "Checking keys: " << std::endl;
+      for (const auto& kk : keys) {
+        std::cout << kk << ", ";
+      }
+      std::cout << std::endl;
+      assert(false);
+    }
+  }
+}
+
+inline void _combineTensorDictArgs(TensorDict& combined,
+                                   int i,
+                                   const TensorDict& d) {
+  for (const auto& kv : d) {
+    combined[std::to_string(i) + "." + kv.first] = kv.second;
+  }
+}
+
+inline TensorDict combineTensorDictArgs(const TensorDict& d1,
+                                        const TensorDict& d2) {
+  TensorDict res;
+  _combineTensorDictArgs(res, 0, d1);
+  _combineTensorDictArgs(res, 1, d2);
+  return res;
+}
+
 }
 }
 

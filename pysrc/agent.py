@@ -1,21 +1,55 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import torch
+from torch import nn
+
 from net import MLP
 
-DEFAULT_POLICY_CONF = {
-    "num_fc_layers": 4,
-    "in_dim": 480,
-    "out_dim": 38,
-    "hid_dim": 2048
-}
 
-DEFAULT_VALUE_CONF = {
-    "num_fc_layers": 4,
-    "in_dim": 480,
-    "out_dim": 1,
-    "hid_dim": 2048
-}
+class BridgeA2CModel(torch.jit.ScriptModule):
+
+    def __init__(self, policy_conf: Dict, value_conf: Dict, belief_conf: Dict):
+        super().__init__()
+        self.policy_net = MLP.from_conf(policy_conf)
+        self.value_net = MLP.from_conf(value_conf)
+        self.belief_net = MLP.from_conf(belief_conf)
+
+    @torch.jit.script_method
+    def get_policy(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        # if obs["s"]
+        digits = self.policy_net.forward(obs["s"])
+        reply = {
+            "pi": torch.nn.functional.softmax(digits, dim=-1)
+        }
+        return reply
+
+    @torch.jit.script_method
+    def get_belief(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        digits = self.belief_net.forward(obs["s"])
+        reply = {
+            "belief": torch.nn.functional.sigmoid(digits)
+        }
+        return reply
+
+    @torch.jit.script_method
+    def act(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        policy = self.get_policy(obs)
+        legal_policy = policy["pi"] * obs["legal_moves"]
+        greedy_a = torch.argmax(legal_policy) + 52
+        stochastic_a = torch.multinomial(legal_policy, 1).squeeze() + 52
+        reply = {
+            "pi": policy["pi"],
+            "greedy_a": greedy_a,
+            "a": stochastic_a
+        }
+        return reply
+
+    @torch.jit.script_method
+    def compute_priority(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        batchsize = obs["s"].size(0)
+        # print(f"Computing priority, batchsize: {batchsize}")
+        priority = torch.ones(batchsize, 1)
+        return {"priority": priority}
 
 
 class BridgeAgent(torch.jit.ScriptModule):

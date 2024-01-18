@@ -9,13 +9,13 @@
 #include <vector>
 
 namespace rela::utils{
-inline int getProduct(const std::vector<int64_t>& nums) {
-  int prod = 1;
-  for (auto v : nums) {
-    prod *= v;
-  }
-  return prod;
-}
+// inline int getProduct(const std::vector<int64_t>& nums) {
+//   int prod = 1;
+//   for (auto v : nums) {
+//     prod *= v;
+//   }
+//   return prod;
+// }
 
 template <typename T>
 inline std::vector<T> pushLeft(T left, const std::vector<T>& vals) {

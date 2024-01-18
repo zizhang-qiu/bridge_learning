@@ -5,6 +5,45 @@
 #include "utils.h"
 
 namespace rela{
+Transition Transition::makeBatch(std::vector<Transition> transitions, int batchdim, const std::string& device) {
+  assert(transitions.size() >= 1);
+
+  TensorVecDict ds;
+
+  // std::cout << "#transitions: " << transitions.size() << std::endl;
+  // int num_empty = 0;
+
+  for (size_t i = 0; i < transitions.size(); i++) {
+    // if (i == 0) utils::tensorDictPrint(transitions[i].d);
+    // if (transitions[i].empty()) num_empty ++;
+    rela::tensor_dict::tensorVecDictAppend(ds, transitions[i].d);
+  }
+
+  Transition batch;
+  batch.d = rela::tensor_dict::join(ds, batchdim);
+  // std::cout << "num_empty: " << num_empty << ", Combined size:";
+  // utils::tensorDictPrint(batch.d);
+
+  if (device != "cpu") {
+    auto d = torch::Device(device);
+    auto toDevice = [&](const torch::Tensor& t) { return t.to(d); };
+    batch.d = rela::tensor_dict::apply(batch.d, toDevice);
+  }
+  return batch;
+}
+
+Transition Transition::padLike() const {
+  Transition pad;
+  pad.d = rela::tensor_dict::zerosLike(d);
+  return pad;
+}
+
+TorchJitInput Transition::toJitInput(const torch::Device& device) const {
+  TorchJitInput input;
+  input.push_back(rela::tensor_dict::toTorchDict(d, device));
+  return input;
+}
+
 FFTransition FFTransition::index(int i) const {
   FFTransition element;
 

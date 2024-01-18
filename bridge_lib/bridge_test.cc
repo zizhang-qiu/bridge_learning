@@ -339,7 +339,8 @@ void DoubleDummyTest() {
         flattened_ddt[index++] = res;
       }
     }
-    REQUIRE_EQ(flattened_ddt, expected_ddt);
+    REQUIRE_VECTOR_EQ(flattened_ddt, expected_ddt);
+    // std::cout << (flattened_ddt == expected_ddt) << std::endl;
   }
 }
 }

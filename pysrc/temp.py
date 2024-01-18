@@ -19,21 +19,23 @@ from common_utils.torch_utils import tensor_dict_to_device, optimizer_from_str
 #
 # set_path.append_sys_path()
 from adan import Adan
+import rela
 import bridge
 import bridgelearn
-import rela
-from agent import BridgeAgent, DEFAULT_VALUE_CONF, DEFAULT_POLICY_CONF
+
+import bridgeplay
+from agent import BridgeAgent, BridgeA2CModel
+from net import MLP
 
 # print(dir(bridgelearn))
-# params = create_params()
+params = create_params()
 # deal = bridge.example_deals[0]
 # ddt = bridge.example_ddts[0]
 #
 # env = bridgelearn.BridgeEnv(params, False)
 # env.reset_with_deck_and_double_dummy_results(deal, ddt)
 #
-# bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_ddts)
-
+bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_ddts)
 
 # print(bridge_dataset.size())
 # data = bridge_dataset.next()
@@ -101,3 +103,114 @@ from agent import BridgeAgent, DEFAULT_VALUE_CONF, DEFAULT_POLICY_CONF
 # def worker(stat_manager, key, increment):
 #     for _ in range(10):
 #         stat_manager.update_stat(key, increment)
+
+env = bridgelearn.BridgeEnv(params, False)
+
+env.set_bridge_dataset(bridge_dataset)
+env.reset_with_bridge_data()
+
+f = env.feature()
+print(f)
+
+# model = BridgeA2CModel({}, {})
+# model.to("cuda")
+#
+
+
+# import torch._C
+#
+# cmake_cxx_flags = []
+# for name in ["COMPILER_TYPE", "STDLIB", "BUILD_ABI"]:
+#     val = getattr(torch._C, f"_PYBIND11_{name}")
+#     # print(val, getattr(torch._C, f"_PYBIND11_{name}"))
+#     if val is not None:
+#         # print([f'-DPYBIND11_{name}=\\"{val}\\"'])
+#         cmake_cxx_flags += [fr'-DPYBIND11_{name}=\"{val}\"']
+# print(" ".join(cmake_cxx_flags), end="")
+
+belief_net = MLP.from_conf(dict(
+    activation_function="gelu",
+    num_hidden_layers=4,
+    input_size=480,
+    output_size=3 * 52,
+    hidden_size=1024
+))
+
+state_dict = torch.load("latest.pth")
+print(state_dict)
+
+print(belief_net.state_dict())
+belief_net.load_state_dict(state_dict)
+
+agent = BridgeA2CModel(
+    policy_conf=dict(
+        hidden_size=2048,
+        num_hidden_layers=6,
+        use_layer_norm=True,
+        activation_function="gelu",
+        use_dropout=True,
+        dropout_prob=0.0
+    ),
+    value_conf=dict(
+        hidden_size=2048,
+        num_hidden_layers=6,
+        use_layer_norm=True,
+        activation_function="gelu",
+        output_size=1
+    ),
+    belief_conf=dict(
+        activation_function="gelu",
+        num_hidden_layers=4,
+        input_size=480,
+        output_size=3 * 52,
+        hidden_size=1024
+    )
+)
+agent.policy_net.load_state_dict(torch.load("sl/exp6/model0.pthw"))
+agent.belief_net.load_state_dict(torch.load("latest.pth"))
+agent.to("cuda")
+
+
+
+model_locker = rela.ModelLocker([agent], "cuda")
+torch_actor = bridgeplay.TorchActor(model_locker)
+
+policy = torch_actor.get_policy(f)
+print(policy)
+
+belief = torch_actor.get_belief(f)
+print(belief)
+
+models = rela.Models()
+processor = rela.BatchProcessor(model_locker, "act", 10, "cuda")
+models.add("act", processor)
+
+
+belief_actor = rela.BeliefActor(models, 3, 1.0, None)
+
+
+
+#
+# while env.ble_state().current_phase() == bridge.Phase.AUCTION:
+#     pi = torch_actor.get_policy(env.feature())
+#     action_uid = pi["pi"].argmax()
+#     env.step(action_uid + 52)
+# print(env)
+# belief = torch_actor.get_belief(env.feature())
+# print(belief)
+# # print(bridge.CanonicalEncoder(env.ble_game()).encode(
+# #     bridge.BridgeObservation(env.ble_state(), env.ble_state().current_player())))
+# # resampler = bridgeplay.UniformResampler(1)
+# torch.manual_seed(1)
+# resampler = bridgeplay.TorchActorResampler(torch_actor, env.ble_game(), 1)
+# for i in range(1000):
+#     res = resampler.resample(env.ble_state())
+#     # print(res)
+#     # print(res.result)
+#     print(res.success)
+#     if res.success:
+#         print(res.result)
+
+# state2 = bridgeplay.construct_state_from_deal(res.result, env.ble_game())
+# print(state2)
+

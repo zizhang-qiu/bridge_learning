@@ -4,13 +4,12 @@ from typing import Dict, Union, Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-
-
+from common_utils import activation_function_from_str
 
 
 def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden_size: int,
-               activation_function: nn.Module, activation_args: Optional[Dict] = None, use_dropout: bool = False,
+               activation_function: Union[nn.Module, str], activation_args: Optional[Dict] = None,
+               use_dropout: bool = False,
                dropout_prob: float = 0.5, use_layer_norm: bool = False) -> nn.Module:
     """
     Create a Multi-Layer Perceptron (MLP) model.
@@ -30,6 +29,8 @@ def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden
         nn.Module: Constructed MLP model.
     """
     layers = []
+    if isinstance(activation_function, str):
+        activation_function = activation_function_from_str(activation_function)
 
     # Add input layer to the first hidden layer
     layers.append(nn.Linear(input_size, hidden_size))
@@ -127,7 +128,7 @@ class MLP(torch.jit.ScriptModule):
         torch.save(save_dict, save_path)
 
     @classmethod
-    def from_conf(cls, conf: Dict[str, Union[int, bool, Dict, nn.Module]]) -> MLP:
+    def from_conf(cls, conf: Dict[str, Union[int, bool, Dict, nn.Module, str]]) -> MLP:
         return cls(**conf)
 
     @classmethod

@@ -9,6 +9,36 @@
 
 namespace rela {
 
+class Transition {
+    public:
+    Transition() = default;
+
+    Transition(TensorDict& d)
+        : d(d) {
+    }
+
+    static Transition makeBatch(std::vector<Transition> transitions, int batchdim,
+                                const std::string& device);
+
+    // Transition index(int i) const;
+
+    Transition padLike() const;
+
+    TorchJitInput toJitInput(const torch::Device& device) const;
+
+    bool empty() const {
+        bool anyEmpty = false;
+        for (const auto& kv : d) {
+            if (kv.second.dim() == 0) {
+                anyEmpty = true;
+            }
+        }
+        return anyEmpty;
+    }
+
+    TensorDict d;
+};
+
 class FFTransition {
  public:
   FFTransition() = default;

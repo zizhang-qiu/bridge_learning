@@ -1,18 +1,20 @@
 //
 // Created by qzz on 2023/9/23.
 //
+
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+
 
 #include "bridge_env.h"
 #include "bridge_dataset.h"
 #include "supervise_data_generator.h"
+#include "rela/thread_loop.h"
 
 namespace py = pybind11;
 using namespace rlcc;
 
 PYBIND11_MODULE(bridgelearn, m) {
-
   py::class_<BridgeData>(m, "BridgeData")
       .def(py::init<>())
       .def_readwrite("deal", &BridgeData::deal)
@@ -34,7 +36,7 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def("set_bridge_dataset", &BridgeEnv::SetBridgeDataset)
       .def("reset_with_bridge_data", &BridgeEnv::ResetWithBridgeData)
       .def("step",
-           py::overload_cast<ble::BridgeMove>(&BridgeEnv::Step)
+           py::overload_cast<const ble::BridgeMove &>(&BridgeEnv::Step)
       )
       .def("step",
            py::overload_cast<int>(&BridgeEnv::Step)
@@ -71,5 +73,6 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def("next_batch", &SuperviseDataGenerator::NextBatch)
       .def("all_data", &SuperviseDataGenerator::AllData);
 
-
+  // py::class_<BeliefGenThreadloop, rela::ThreadLoop, std::shared_ptr<BeliefGenThreadloop>>(m, "BeliefGenThreadloop")
+  //     .def(py::init<const std::shared_ptr<BeliefActor> &>());
 }

@@ -33,7 +33,7 @@ class BridgeEnv {
 
   void ResetWithBridgeData();
 
-  void Step(ble::BridgeMove move);
+  void Step(const ble::BridgeMove& move);
 
   void Step(int uid);
 

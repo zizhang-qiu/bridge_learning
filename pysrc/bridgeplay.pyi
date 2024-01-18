@@ -1,15 +1,22 @@
 from typing import List, Dict, Optional
 import bridge
+import rela
+
 
 class Resampler:
     pass
+
+
+class ResampleResult:
+    success: bool
+    result: List[int]
 
 
 class UniformResampler(Resampler):
     def __init__(self, seed: int):
         ...
 
-    def resample(self) -> List[int]:
+    def resample(self) -> ResampleResult:
         ...
 
     def reset_with_params(self, params: Dict[str, str]): ...
@@ -145,3 +152,17 @@ def construct_state_from_trajectory(trajectory: List[int], game: bridge.BridgeGa
 
 
 def is_acting_player_declarer_side(state: bridge.BridgeState) -> bool: ...
+
+
+class TorchActor:
+    def __init__(self, model_locker: rela.ModelLocker): ...
+
+    def get_policy(self, obs: rela.TensorDict) -> rela.TensorDict: ...
+
+    def get_belief(self, obs: rela.TensorDict) -> rela.TensorDict: ...
+
+
+class TorchActorResampler:
+    def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int): ...
+
+    def resample(self, state: bridge.BridgeState) -> ResampleResult: ...

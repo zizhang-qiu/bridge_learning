@@ -96,6 +96,8 @@ class BridgeState {
   Trick &CurrentTrick() { return tricks_[num_cards_played_ / kNumPlayers]; }
   const Trick &CurrentTrick() const { return tricks_[num_cards_played_ / kNumPlayers]; }
 
+  std::array<Trick, kNumTricks> Tricks() const{return tricks_;}
+
   int NumCardsPlayed() const { return num_cards_played_; }
 
   std::vector<BridgeHand> OriginalDeal() const;

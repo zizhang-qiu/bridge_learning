@@ -222,7 +222,7 @@ PYBIND11_MODULE(bridge, m) {
       .value("CANONICAL", ObservationEncoder::Type::kCanonical);
 
   py::class_<CanonicalEncoder, ObservationEncoder>(m, "CanonicalEncoder")
-      .def(py::init<std::shared_ptr<BridgeGame>>())
+      .def(py::init<std::shared_ptr<BridgeGame>, int>())
       .def("shape", &CanonicalEncoder::Shape)
       .def("encode", &CanonicalEncoder::Encode)
       .def("type", &CanonicalEncoder::type);

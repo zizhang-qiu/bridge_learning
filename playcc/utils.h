@@ -32,12 +32,35 @@ std::vector<T> FlattenVector(const std::vector<std::vector<T>> &nested_vector) {
 
 std::array<int, ble::kNumCards> HandsToCardIndices(const std::vector<ble::BridgeHand> &hands);
 
-ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> &deal,
-                                        const std::shared_ptr<ble::BridgeGame> &game);
 
-ble::BridgeState ConstructStateFromDeal(const std::array<int, ble::kNumCards> &deal,
+template<typename Container>
+ble::BridgeState ConstructStateFromDeal(const Container &deal,
+                                        const std::shared_ptr<ble::BridgeGame> &game) {
+  SPIEL_CHECK_EQ(deal.size(), ble::kNumCards);
+  auto state = ble::BridgeState(game);
+  for (int i = 0; i < ble::kNumCards; ++i) {
+    ble::BridgeMove move = game->GetChanceOutcome(deal[i]);
+    state.ApplyMove(move);
+  }
+  return state;
+}
+
+template<typename Container>
+ble::BridgeState ConstructStateFromDeal(const Container &deal,
                                         const std::shared_ptr<ble::BridgeGame> &game,
-                                        const ble::BridgeState &original_state);
+                                        const ble::BridgeState &original_state) {
+  auto state = ble::BridgeState(game);
+  for (int i = 0; i < ble::kNumCards; ++i) {
+    ble::BridgeMove move = game->GetChanceOutcome(deal[i]);
+    state.ApplyMove(move);
+  }
+  const auto &history = original_state.History();
+  for (int i = ble::kNumCards; i < history.size(); ++i) {
+    ble::BridgeMove move = history[i].move;
+    state.ApplyMove(move);
+  }
+  return state;
+}
 
 ble::BridgeState ConstructStateFromTrajectory(const std::vector<int> &trajectory,
                                               const std::shared_ptr<ble::BridgeGame> &game);
@@ -77,8 +100,10 @@ std::vector<int> FindSetBitPositions(int decimalNumber);
 
 std::vector<ble::BridgeMove> GetMovesFromFutureTricks(const futureTricks &fut);
 
-template<typename T, typename RNG>
-T UniformSample(const std::vector<T> &vec, RNG &rng) {
+void ApplyRandomMove(ble::BridgeState& state, std::mt19937& rng);
+
+template<typename T>
+T UniformSample(const std::vector<T> &vec, std::mt19937 &rng) {
   // Check if the vector is not empty
   if (vec.empty()) {
     throw std::out_of_range("Vector is empty");
