@@ -14,7 +14,7 @@ inline constexpr int kSingleBidTensorSize = kNumPlayers * 3; // For a single bid
 inline constexpr int kBiddingHistoryTensorSize = kSingleBidTensorSize * kNumBidLevels * kNumDenominations;
 inline constexpr int kCardTensorSize = kNumCards;
 inline constexpr int kPlayerSeatTensorSize = kNumPlayers;
-inline constexpr int kBiddingTensorSize =
+inline constexpr int kAuctionTensorSize =
     kVulnerabilityTensorSize
     + kOpeningPassTensorSize
     + kBiddingHistoryTensorSize
@@ -31,7 +31,8 @@ int EncodeAuction(const BridgeObservation& obs,
 
 int EncodePlayerHand(const BridgeObservation& obs,
                      int start_offset,
-                     std::vector<int>* encoding);
+                     std::vector<int>* encoding,
+                     int relative_player);
 
 int EncodeContract(const BridgeObservation& obs,
                    int start_offset,
@@ -42,17 +43,17 @@ int EncodeVulnerabilityDeclarer(const BridgeObservation& obs,
                                 std::vector<int>* encoding);
 
 int EncodeDummyHand(const BridgeObservation& obs,
-                     int start_offset,
-                     std::vector<int>* encoding);
+                    int start_offset,
+                    std::vector<int>* encoding);
 
 int EncodePlayedTricks(const BridgeObservation& obs,
-                     int start_offset,
-                     std::vector<int>* encoding,
-                     int num_tricks);
+                       int start_offset,
+                       std::vector<int>* encoding,
+                       int num_tricks);
 
 int EncodeNumTricksWon(const BridgeObservation& obs,
-                     int start_offset,
-                     std::vector<int>* encoding);
+                       int start_offset,
+                       std::vector<int>* encoding);
 
 class CanonicalEncoder : public ObservationEncoder {
   public:
@@ -65,6 +66,8 @@ class CanonicalEncoder : public ObservationEncoder {
     [[nodiscard]] std::vector<int> Encode(const BridgeObservation& obs) const override;
 
     [[nodiscard]] std::vector<int> Shape() const override;
+
+    std::vector<int> EncodeOtherHands(const BridgeObservation& obs) const;
 
     [[nodiscard]] ObservationEncoder::Type type() const override {
       return ObservationEncoder::Type::kCanonical;
@@ -82,6 +85,8 @@ class CanonicalEncoder : public ObservationEncoder {
           + kNumTricks // Number of tricks we have won
           + kNumTricks; // Number of tricks they have won
     }
+
+    int GetAuctionTensorSize() const { return kAuctionTensorSize; }
 
   private:
     const std::shared_ptr<BridgeGame> parent_game_;

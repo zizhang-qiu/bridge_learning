@@ -1,8 +1,8 @@
-lr : !!float 2e-4
+lr : !!float 1e-5
 batch_size : 1024
 valid_batch_size : 10000
 num_iterations : 1000000
-eval_freq : 1000
+eval_freq : 100
 optimizer : adam
 optimizer_args :
   {}

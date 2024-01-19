@@ -227,7 +227,8 @@ inline void tensorVecDictAppend(TensorVecDict& batch, const TensorDict& input) {
     if (it == batch.end()) {
       std::vector<torch::Tensor> singleton = {name2tensor.second};
       batch.insert({name2tensor.first, singleton});
-    } else {
+    }
+    else {
       it->second.push_back(name2tensor.second);
     }
   }
@@ -263,6 +264,22 @@ inline TensorDict combineTensorDictArgs(const TensorDict& d1,
   _combineTensorDictArgs(res, 1, d2);
   return res;
 }
+
+inline TensorDict toDevice(const TensorDict& dict,
+  const torch::Device& device) {
+  TensorDict res{};
+  for (const auto &kv : dict) {
+    res[kv.first] = kv.second.to(device);
+  }
+  return res;
+}
+
+inline TensorDict toDevice(const TensorDict& dict,
+  const std::string& device) {
+  const auto d = torch::Device{device};
+  return toDevice(dict, d);
+}
+
 
 }
 }

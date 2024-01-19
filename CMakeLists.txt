@@ -244,8 +244,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_libraries(temp PUBLIC bridge_lib)
     target_link_libraries(temp PUBLIC rela_lib)
     target_link_libraries(temp PUBLIC _bridgeplay)
-endif ()
+    target_link_libraries(temp PUBLIC _bridgelearn)
 
+endif ()
 
 #add_executable(main main.cc)
 #target_link_libraries(main PUBLIC bridge_lib)

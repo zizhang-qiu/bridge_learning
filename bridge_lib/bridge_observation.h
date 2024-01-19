@@ -52,6 +52,8 @@ class BridgeObservation {
 
     int NumDeclarerTricks() const { return num_declarer_tricks_; }
 
+    Player Dummy() const { return Partner(contract_.declarer); }
+
   private:
     int cur_player_offset_; // offset of current_player_ from observing_player
     Player observing_player_;

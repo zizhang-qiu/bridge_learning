@@ -5,11 +5,10 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-
 #include "bridge_env.h"
 #include "bridge_dataset.h"
 #include "supervise_data_generator.h"
-#include "rela/thread_loop.h"
+#include "belief_data_gen.h"
 
 namespace py = pybind11;
 using namespace rlcc;
@@ -75,4 +74,12 @@ PYBIND11_MODULE(bridgelearn, m) {
 
   // py::class_<BeliefGenThreadloop, rela::ThreadLoop, std::shared_ptr<BeliefGenThreadloop>>(m, "BeliefGenThreadloop")
   //     .def(py::init<const std::shared_ptr<BeliefActor> &>());
+
+  py::class_<BeliefDataGen, std::shared_ptr<BeliefDataGen>>(m, "BeliefDataGen")
+      .def(py::init<const std::vector<std::vector<int>> &, // trajectories
+                    const int, //batch size
+                    const std::shared_ptr<ble::BridgeGame> & //game
+      >())
+      .def("next_batch", &BeliefDataGen::NextBatch)
+      .def("all_data", &BeliefDataGen::AllData);
 }

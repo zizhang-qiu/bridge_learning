@@ -221,10 +221,13 @@ PYBIND11_MODULE(bridge, m) {
   py::enum_<ObservationEncoder::Type>(m, "EncoderType")
       .value("CANONICAL", ObservationEncoder::Type::kCanonical);
 
+  m.attr("AUCTION_TENSOR_SIZE") = kAuctionTensorSize;
   py::class_<CanonicalEncoder, ObservationEncoder>(m, "CanonicalEncoder")
       .def(py::init<std::shared_ptr<BridgeGame>, int>())
       .def("shape", &CanonicalEncoder::Shape)
       .def("encode", &CanonicalEncoder::Encode)
+      .def("get_play_tensor_size", &CanonicalEncoder::GetPlayTensorSize)
+      .def("get_auction_tensor_size", &CanonicalEncoder::GetAuctionTensorSize)
       .def("type", &CanonicalEncoder::type);
 }
 }

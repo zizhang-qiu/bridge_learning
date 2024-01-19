@@ -63,9 +63,12 @@ int EncodeAuction(const BridgeObservation& obs, const int start_offset, std::vec
   return offset - start_offset;
 }
 
-int EncodePlayerHand(const BridgeObservation& obs, const int start_offset, std::vector<int>* encoding) {
+int EncodePlayerHand(const BridgeObservation& obs,
+                     const int start_offset,
+                     std::vector<int>* encoding,
+                     const int relative_player) {
   int offset = start_offset;
-  const auto& cards = obs.Hands()[0].Cards();
+  const auto& cards = obs.Hands()[relative_player].Cards();
   REQUIRE(cards.size() <= kNumCardsPerHand);
   for (const BridgeCard& card : cards) {
     REQUIRE(card.IsValid());
@@ -110,7 +113,7 @@ int EncodeContract(const BridgeObservation& obs, const int start_offset, std::ve
   const Player relative_declarer = (contract.declarer + kNumPlayers - obs.ObservingPlayer()) % kNumPlayers;
   (*encoding)[offset + relative_declarer] = 1;
   offset += kNumPlayers;
-  REQUIRE_EQ(offset - start_offset, kNumBidLevels + kNumDenominations);
+  REQUIRE_EQ(offset - start_offset, kNumBidLevels + kNumDenominations + kNumDoubleStatus + kNumPlayers);
   return offset - start_offset;
 }
 
@@ -157,10 +160,10 @@ int EncodePlayedTricks(const BridgeObservation& obs,
   if (obs.CurrentPhase() != Phase::kGameOver) {
     int leader = tricks[current_trick].Leader();
     for (int i = 0; i < this_trick_cards_played; ++i) {
-      const auto item = play_history[this_trick_cards_played + i];
-      const int relative_player = PlayerToOffset(item.player, obs.ObservingPlayer());
+      const auto item = play_history[current_trick + i];
+      // const int relative_player = PlayerToOffset(item.player, obs.ObservingPlayer());
       const int card_index = CardIndex(item.suit, item.rank);
-      (*encoding)[offset + relative_player * kNumCards + card_index] = 1;
+      (*encoding)[offset + item.player * kNumCards + card_index] = 1;
     }
   }
 
@@ -170,9 +173,9 @@ int EncodePlayedTricks(const BridgeObservation& obs,
   for (int j = current_trick - 1; j >= std::max(0, current_trick - num_tricks + 1); --j) {
     for (int i = 0; i < kNumPlayers; ++i) {
       const auto item = play_history[this_trick_start - kNumPlayers * (current_trick - j) + i];
-      const int relative_player = PlayerToOffset(item.player, obs.ObservingPlayer());
+      // const int relative_player = PlayerToOffset(item.player, obs.ObservingPlayer());
       const int card_index = CardIndex(item.suit, item.rank);
-      (*encoding)[offset + relative_player * kNumCards + card_index] = 1;
+      (*encoding)[offset + item.player * kNumCards + card_index] = 1;
     }
     offset += kNumPlayers * kNumCards;
   }
@@ -202,7 +205,18 @@ int EncodeNumTricksWon(const BridgeObservation& obs, const int start_offset, std
 }
 
 std::vector<int> CanonicalEncoder::Shape() const {
-  return {std::max(kBiddingTensorSize, GetPlayTensorSize())};
+  return {std::max(kAuctionTensorSize, GetPlayTensorSize())};
+}
+
+std::vector<int> CanonicalEncoder::EncodeOtherHands(const BridgeObservation& obs) const {
+  std::vector<int> encoding((kNumPlayers - 1) * kNumCards, 0);
+  int offset = 0;
+  const auto& hands = obs.Hands();
+  for (int relative_player = 1; relative_player <= 3; ++relative_player) {
+    offset += EncodePlayerHand(obs, offset, &encoding, relative_player);
+  }
+  REQUIRE_EQ(offset, (kNumPlayers - 1) * kNumCards);
+  return encoding;
 }
 
 std::vector<int> CanonicalEncoder::Encode(const BridgeObservation& obs) const {
@@ -212,17 +226,23 @@ std::vector<int> CanonicalEncoder::Encode(const BridgeObservation& obs) const {
 
   // Play phase.
   if (obs.NumCardsPlayed() > 0) {
+    // 0~18
     offset += EncodeContract(obs, offset, &encoding);
+    // 19~20
     offset += EncodeVulnerabilityDeclarer(obs, offset, &encoding);
-    offset += EncodePlayerHand(obs, offset, &encoding);
-    offset += EncodeDummyHand(obs, offset, &encoding);
+    // 21~72
+    offset += EncodePlayerHand(obs, offset, &encoding,/*relative_player=*/0);
+    // 73~124
+    offset += EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/obs.Dummy());
+    // 125~2828 (Assuming 13 tricks).
     offset += EncodePlayedTricks(obs, offset, &encoding, num_tricks_in_observation_);
+    // 2829~2854
     offset += EncodeNumTricksWon(obs, offset, &encoding);
   }
   else {
     offset += EncodeVulnerabilityBoth(obs, parent_game_, offset, &encoding);
     offset += EncodeAuction(obs, offset, &encoding);
-    offset += EncodePlayerHand(obs, offset, &encoding);
+    offset += EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/0);
   }
 
   REQUIRE(offset <= encoding.size());

@@ -77,7 +77,7 @@ void AssertWithMessage(bool condition, Args&&... args) {
 // fprintf(stderr, "Input requirements failed at %s:%d in %s: %s\n", __FILE__, __LINE__, __func__, #expr)
 #if defined(NDEBUG)
 #define REQUIRE(expr) \
-  bridge_learning_env::AssertWithMessage(expr, #expr, "check failed at ", __FILE__, ":", __LINE__, ". ");
+  bridge_learning_env::AssertWithMessage(expr, #expr, ", check failed at ", __FILE__, ":", __LINE__, ". ");
 #define REQUIRE_EQ(x, y)\
   bridge_learning_env::AssertWithMessage((x) == (y), #x " == " #y, " check failed at ", __FILE__, ":", __LINE__, \
 ": ", (x), " vs ", (y), ". ");
