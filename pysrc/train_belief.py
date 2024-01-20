@@ -20,6 +20,7 @@ import set_path
 from net import MLP
 from common_utils import Logger, TopkSaver, optimizer_from_str
 from create_bridge import create_params
+from agent import BridgeBeliefModel
 
 set_path.append_sys_path()
 
@@ -32,7 +33,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--net_conf", type=str, default="conf/belief_net.yaml")
     parser.add_argument("--train_conf", type=str, default="conf/sl.yaml")
-    parser.add_argument("--save_dir", type=str, default="belief_sl/exp1")
+    parser.add_argument("--save_dir", type=str, default="belief_sl/exp3")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
     return parser.parse_args()
 
@@ -55,7 +56,8 @@ def compute_hand_acc(pred: torch.Tensor, hand_label: torch.Tensor):
     same_count = np.zeros(shape=[pred.shape[0], bridge.NUM_PLAYERS - 1], dtype=np.int32)
     for relative_player in range(1, bridge.NUM_PLAYERS):
         current_pred = pred[:, (relative_player - 1) * bridge.NUM_CARDS:relative_player * bridge.NUM_CARDS].clone()
-        current_label = label[:, (relative_player - 1) * bridge.NUM_CARDS:relative_player * bridge.NUM_CARDS].clone()
+        current_label = hand_label[:,
+                        (relative_player - 1) * bridge.NUM_CARDS:relative_player * bridge.NUM_CARDS].clone()
         assert current_label.shape[1] == bridge.NUM_CARDS
         assert current_pred.shape[1] == bridge.NUM_CARDS
         _, pred_cards = torch.topk(current_pred, bridge.NUM_CARDS_PER_HAND, dim=1)
@@ -82,6 +84,9 @@ if __name__ == '__main__':
         yaml.dump(net_conf, f)
 
     belief_net = MLP.from_conf(net_conf)
+
+    # net_conf["output_size"] = net_conf["hidden_size"]
+    # belief_net = BridgeBeliefModel(net_conf, 107)
     belief_net.to(device=train_conf["device"])
     belief_net.train()
 
@@ -96,7 +101,6 @@ if __name__ == '__main__':
 
     train_dataset = pickle.load(open(os.path.join(dataset_dir, "train.pkl"), "rb"))
     valid_dataset = pickle.load(open(os.path.join(dataset_dir, "valid.pkl"), "rb"))
-    test_dataset = pickle.load(open(os.path.join(dataset_dir, "test.pkl"), "rb"))
 
     # print(valid_dataset[0])
     train_dataset = extract_available_trajectories(train_dataset)
@@ -113,17 +117,20 @@ if __name__ == '__main__':
     opt_cls = optimizer_from_str(train_conf["optimizer"], ["Adan"])
     opt = opt_cls(params=belief_net.parameters(), lr=train_conf["lr"], **train_conf["optimizer_args"])
     loss_func = torch.nn.CrossEntropyLoss()
+    # loss_func = torch.nn.MSELoss()
     # Main loop.
 
     for i in trange(1, train_conf["num_iterations"] + 1):
         torch.cuda.empty_cache()
         opt.zero_grad()
         batch = train_generator.next_batch(train_conf["device"])
-        digits = belief_net(batch["s"])
-        prob = torch.nn.functional.sigmoid(digits)
+        digits = belief_net.forward(batch["s"])
+        # loss = belief_net.loss(batch)
+        # print(loss)
+        digits = torch.nn.functional.sigmoid(digits)
         label = batch["belief"].to(train_conf["device"])
-        # loss = -torch.mean(log_prob * one_hot_label)
-        loss = loss_func(prob, label)
+        # # loss = -torch.mean(log_prob * one_hot_label)
+        loss = loss_func(digits, label)
         loss.backward()
         opt.step()
 
@@ -132,14 +139,16 @@ if __name__ == '__main__':
             with torch.no_grad():
                 belief_net.eval()
                 digits = belief_net(valid_batch["s"])
-                prob = torch.nn.functional.sigmoid(digits)
+                digits = torch.nn.functional.sigmoid(digits)
                 label = valid_batch["belief"].to(train_conf["device"])
                 # loss = -torch.mean(log_prob * one_hot_label)
-                loss = loss_func(prob, label)
+                loss = loss_func(digits, label)
                 # acc = (torch.argmax(prob, 1) == label).to(torch.float32).mean()
-                same_count, acc_per_player, acc = compute_hand_acc(prob, label)
+                same_count, acc_per_player, acc = compute_hand_acc(digits, label)
                 # print(acc_per_player, acc, sep="\n")
 
             saved = saver.save(None, belief_net.state_dict(), acc.item(), save_latest=True)
-            logger.write(f"Epoch {i // train_conf['eval_freq']}, loss={loss}, acc={acc.item()}, model saved={saved}")
+            logger.write(f"Epoch {i // train_conf['eval_freq']}, loss={loss}, "
+                         f"acc={acc.item()}, "
+                         f"model saved={saved}")
             belief_net.train()

@@ -7,10 +7,12 @@
 #include "rela/utils.h"
 
 std::vector<int> NoPlayTrajectory(const std::vector<int>& trajectory) {
-  if (const size_t size = trajectory.size(); size == ble::kNumCards + ble::kNumPlayers) {
+  if (const size_t size = trajectory.size();
+    size == ble::kNumCards + ble::kNumPlayers) {
     return trajectory;
   }
-  return std::vector<int>(trajectory.begin(), trajectory.end() - ble::kNumCards);
+  return std::vector<int>(trajectory.begin(),
+                          trajectory.end() - ble::kNumCards);
 }
 
 rela::TensorDict BeliefDataGen::NextBatch(const std::string& device) {
@@ -20,13 +22,14 @@ rela::TensorDict BeliefDataGen::NextBatch(const std::string& device) {
     if (cached_data_[index_].empty()) {
       // If we didn't get the feature and belief, get them and cache.
       auto current_trajectory = trajectories_[index_];
-      rela::TensorDict obs_label = GetDataFromTrajectory(current_trajectory, device);
+      rela::TensorDict obs_label = GetDataFromTrajectory(
+          current_trajectory, device);
       obs_labels.push_back(obs_label);
       cached_data_[index_] = obs_label;
-    }
-    else {
+    } else {
       // If we already have features, use it.
-      obs_labels.push_back(rela::tensor_dict::toDevice(cached_data_[index_], device));
+      obs_labels.push_back(
+          rela::tensor_dict::toDevice(cached_data_[index_], device));
     }
     // Update index.
     index_ = (index_ + 1) % static_cast<int>(trajectories_.size());
@@ -42,21 +45,23 @@ rela::TensorDict BeliefDataGen::AllData(const std::string& device) {
       // If we didn't get the feature and belief, get them and cache.
 
       // rela::utils::printVector(trajectories_[i]);
-      rela::TensorDict obs_label = GetDataFromTrajectory(trajectories_[i], device);
+      rela::TensorDict obs_label = GetDataFromTrajectory(
+          trajectories_[i], device);
 
       cached_data_[i] = obs_label;
       obs_labels.push_back(obs_label);
-    }
-    else {
+    } else {
       // If we already have features, use it.
-      obs_labels.push_back(rela::tensor_dict::toDevice(cached_data_[i], device));
+      obs_labels.
+          push_back(rela::tensor_dict::toDevice(cached_data_[i], device));
     }
   }
   return rela::tensor_dict::stack(obs_labels, 0);
 }
 
-rela::TensorDict BeliefDataGen::GetDataFromTrajectory(const std::vector<int>& trajectory,
-                                                      const std::string& device) const {
+rela::TensorDict BeliefDataGen::GetDataFromTrajectory(
+    const std::vector<int>& trajectory,
+    const std::string& device) const {
   // RELA_CHECK_GE(trajectory.back(), ble::kBiddingActionBase);
 
   torch::Device d{device};
@@ -73,13 +78,20 @@ rela::TensorDict BeliefDataGen::GetDataFromTrajectory(const std::vector<int>& tr
     state->ApplyMove(move);
   }
 
-  const auto observation = ble::BridgeObservation(*state, state->CurrentPlayer());
+  const auto observation = ble::BridgeObservation(
+      *state, state->CurrentPlayer());
   auto encoding = encoder_.Encode(observation);
-  encoding = std::vector<int>(encoding.begin(), encoding.begin() + encoder_.GetAuctionTensorSize());
+  encoding = std::vector<int>(encoding.begin(),
+                              encoding.begin()
+                              + encoder_.GetAuctionTensorSize());
   const auto label = encoder_.EncodeOtherHands(observation);
+  const auto belief_he_one_hot = encoder_.EncodeOtherHandEvaluationsOneHot(observation);
+  const auto belief_he = encoder_.EncodeOtherHandEvaluations(observation);
   rela::TensorDict obs_label = {
-    {"s", torch::tensor(encoding, {torch::kFloat32}).to(d)},
-    {"belief", torch::tensor(label, {torch::kFloat32}).to(d)}
+      {"s", torch::tensor(encoding, {torch::kFloat32}).to(d)},
+      {"belief", torch::tensor(label, {torch::kFloat32}).to(d)},
+      {"belief_he_one_hot", torch::tensor(belief_he, {torch::kFloat32}).to(d)},
+    {"belief_he", torch::tensor(belief_he, {torch::kFloat32}).to(d)}
   };
   return obs_label;
 }

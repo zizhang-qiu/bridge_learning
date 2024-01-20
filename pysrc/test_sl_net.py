@@ -7,35 +7,24 @@
 """
 import argparse
 import os
-import pickle
-import pprint
 from typing import Optional
 
-import numpy as np
 import torch
-import torchmetrics
 import yaml
-from pprint import pformat
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 
-from matplotlib import pyplot as plt
-from torch.nn.functional import one_hot
-
-from torch.utils.data import Dataset, DataLoader
-from tqdm import tqdm, trange
-
-from net import MLP
-from common_utils.torch_utils import activation_function_from_str, optimizer_from_str
-from create_bridge import create_params
 from common_utils import Logger
-from supervised_learn2 import BiddingDataset, cross_entropy, compute_accuracy
-from set_path import append_sys_path
 from common_utils.file_utils import find_files_in_dir
+from common_utils.torch_utils import activation_function_from_str
 from compute_sl_metric import get_metrics
-from adan import Adan
+from create_bridge import create_params
+from net import MLP
+from set_path import append_sys_path
+from supervised_learn2 import BiddingDataset, cross_entropy, compute_accuracy
 
 append_sys_path()
 import bridge
-import bridgelearn
 
 
 def parse_args():
@@ -69,7 +58,7 @@ if __name__ == '__main__':
     print(len(test_dataset))
 
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
-    logger:Optional[Logger] = None
+    logger: Optional[Logger] = None
     if args.save:
         logger = Logger(os.path.join(args.file_dir, "test.txt"), True, auto_line_feed=True)
     state_dict_files = find_files_in_dir(args.file_dir, ".pth", 2)

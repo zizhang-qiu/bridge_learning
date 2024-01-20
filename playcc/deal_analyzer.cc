@@ -7,7 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 
-std::vector<ble::BridgeMove> DealAnalyzer::DDSMoves(const ble::BridgeState &state) {
+std::vector<ble::BridgeMove> DDSMoves(const ble::BridgeState &state) {
   SetMaxThreads(0);
   auto dl = StateToDDSDeal(state);
   futureTricks fut{};

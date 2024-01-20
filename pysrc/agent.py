@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import torch
 from torch import nn
@@ -84,3 +84,35 @@ class SimpleAgent(torch.jit.ScriptModule):
         policy *= obs["legal_move"]
         a = torch.argmax(policy) + 52
         return a
+
+
+class BridgeBeliefModel(torch.jit.ScriptModule):
+    def __init__(self, conf: Dict, output_size: int):
+        super().__init__()
+        self.net = MLP.from_conf(conf)
+        self.target_key = "belief_he"
+        self.pred1 = nn.Linear(self.net.output_size, output_size)
+        self.pred2 = nn.Linear(self.net.output_size, output_size)
+        self.pred3 = nn.Linear(self.net.output_size, output_size)
+
+    def forward(self, obs: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        digits = self.net(obs["s"])
+        pred1 = torch.nn.functional.sigmoid(self.pred1(digits))
+        pred2 = torch.nn.functional.sigmoid(self.pred2(digits))
+        pred3 = torch.nn.functional.sigmoid(self.pred3(digits))
+        return pred1, pred2, pred3
+
+    def loss(self, batch: Dict[str, torch.Tensor]):
+        pred1, pred2, pred3 = self.forward(batch)
+        ground_truth = batch[self.target_key]
+        bits_per_player = ground_truth.shape[1] // 3
+        g_truth1 = ground_truth[:, :bits_per_player]
+        g_truth2 = ground_truth[:, bits_per_player:2 * bits_per_player]
+        g_truth3 = ground_truth[:, 2 * bits_per_player:]
+        loss_func = nn.BCELoss()
+        loss = loss_func(pred1, g_truth1) + loss_func(pred2, g_truth2) + loss_func(pred3, g_truth3)
+        return loss
+
+    def accuracy(self, batch: Dict[str, torch.Tensor]):
+        pred1, pred2, pred3 = self.forward(batch)
+        ground_truth = batch[self.target_key]

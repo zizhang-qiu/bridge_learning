@@ -2,6 +2,7 @@ import copy
 import math
 import multiprocessing
 import pickle
+import random
 from math import floor
 from typing import Dict, List
 
@@ -104,13 +105,8 @@ bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_
 #     for _ in range(10):
 #         stat_manager.update_stat(key, increment)
 
-env = bridgelearn.BridgeEnv(params, False)
 
-env.set_bridge_dataset(bridge_dataset)
-env.reset_with_bridge_data()
 
-f = env.feature()
-print(f)
 
 # model = BridgeA2CModel({}, {})
 # model.to("cuda")
@@ -137,9 +133,9 @@ belief_net = MLP.from_conf(dict(
 ))
 
 state_dict = torch.load("latest.pth")
-print(state_dict)
-
-print(belief_net.state_dict())
+# print(state_dict)
+#
+# print(belief_net.state_dict())
 belief_net.load_state_dict(state_dict)
 
 agent = BridgeA2CModel(
@@ -160,20 +156,37 @@ agent = BridgeA2CModel(
     ),
     belief_conf=dict(
         activation_function="gelu",
-        num_hidden_layers=4,
+        num_hidden_layers=6,
         input_size=480,
         output_size=3 * 52,
-        hidden_size=1024
+        hidden_size=2048
     )
 )
 agent.policy_net.load_state_dict(torch.load("sl/exp6/model0.pthw"))
-agent.belief_net.load_state_dict(torch.load("latest.pth"))
+agent.belief_net.load_state_dict(torch.load("belief_sl/exp3/model2.pthw"))
 agent.to("cuda")
 
+batch_runner = rela.BatchRunner(agent, "cuda", 100, ["get_policy", "get_belief"])
+batch_runner.start()
+torch_actor = bridgeplay.TorchActor(batch_runner)
+
+env = bridgelearn.BridgeEnv(params, False)
+
+env.set_bridge_dataset(bridge_dataset)
+env.reset_with_bridge_data()
+
+while env.ble_state().current_phase() == bridge.Phase.AUCTION:
+    f = env.feature()
+    f["s"] = f["s"][:480]
+    policy = torch_actor.get_policy(f)
+    action_uid = policy["pi"].argmax() + 52
+    env.step(action_uid)
 
 
-model_locker = rela.ModelLocker([agent], "cuda")
-torch_actor = bridgeplay.TorchActor(model_locker)
+print(env)
+
+f = env.feature()
+f["s"] = f["s"][:480]
 
 policy = torch_actor.get_policy(f)
 print(policy)
@@ -181,13 +194,42 @@ print(policy)
 belief = torch_actor.get_belief(f)
 print(belief)
 
-models = rela.Models()
-processor = rela.BatchProcessor(model_locker, "act", 10, "cuda")
-models.add("act", processor)
+# torch_sampler = bridgeplay.TorchActorResampler(torch_actor, bridge.default_game, 23)
+#
+# success_cnt = 0
+# for i in range(1000):
+#     res = torch_sampler.resample(env.ble_state())
+#     if res.success:
+#         success_cnt += 1
+# print(success_cnt)
+cfg = bridgeplay.TorchOpeningLeadBotConfig()
+cfg.num_worlds = 20
+cfg.num_max_sample = 1000
+cfg.fill_with_uniform_sample = True
+bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, cfg)
+move = bot.step(env.ble_state())
+print(move)
 
+dds_bot = bridgeplay.load_bot("dds", bridge.default_game, 0)
+dds_move = dds_bot.step(env.ble_state())
+print(dds_move)
+moves = bridgeplay.dds_moves(env.ble_state())
+print(moves)
+# batcher = rela.Batcher(100)
+# fut = batcher.send(f)
+#
+# print(fut.is_null())
+#
+# batch = batcher.get()
+#
+# batch = tensor_dict_to_device(batch, "cuda")
+# print(batch)
+# print(agent.policy_net)
+# agent.policy_net(batch["s"])
 
-belief_actor = rela.BeliefActor(models, 3, 1.0, None)
+# policy = agent.get_policy(tensor_dict_to_device(batch, "cuda"))
 
+# print(policy)
 
 
 #

@@ -25,7 +25,7 @@ class Worlds {
   Worlds(const std::vector<std::array<int, ble::kNumCards>> &deals, const ble::BridgeState &state) :
       possible_(deals.size(), true) {
     for (const auto &deal : deals) {
-      auto s = ConstructStateFromDeal(deal, state.ParentGame(), state);
+      auto s = ConstructStateFromDealAndOriginalState(deal, state.ParentGame(), state);
       states_.push_back(s);
     }
   }

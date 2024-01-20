@@ -46,7 +46,7 @@ ble::BridgeState ConstructStateFromDeal(const Container &deal,
 }
 
 template<typename Container>
-ble::BridgeState ConstructStateFromDeal(const Container &deal,
+ble::BridgeState ConstructStateFromDealAndOriginalState(const Container &deal,
                                         const std::shared_ptr<ble::BridgeGame> &game,
                                         const ble::BridgeState &original_state) {
   auto state = ble::BridgeState(game);

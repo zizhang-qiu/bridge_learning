@@ -103,7 +103,7 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
   //    PrintArray(d);
   //  }
   for (int i = 0; i < cfg_.num_worlds; ++i) {
-    auto sampled_state = ConstructStateFromDeal(deals[i], state.ParentGame(), state);
+    auto sampled_state = ConstructStateFromDealAndOriginalState(deals[i], state.ParentGame(), state);
     //    std::cout << sampled_state.ToString() << std::endl;
     for (int j = 0; j < num_legal_moves; ++j) {
       const int score = Rollout(sampled_state, legal_moves[j]);

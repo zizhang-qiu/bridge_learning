@@ -13,16 +13,12 @@ ble::BridgeMove DDSBot::Step(const ble::BridgeState& state) {
   futureTricks fut{};
 
   const int res = SolveBoard(dl,
-                             /*target=*/
-                             -1,
-                             /*solutions=*/
-                             1,
+                             /*target=*/-1,
+                             /*solutions=*/1,
                              // We only want one card.
-                             /*mode=*/
-                             2,
+                             /*mode=*/2,
                              &fut,
-                             /*threadIndex=*/
-                             0);
+                             /*threadIndex=*/0);
   if (res != RETURN_NO_FAULT) {
     char error_message[80];
     ErrorMessage(res, error_message);
@@ -32,12 +28,12 @@ ble::BridgeMove DDSBot::Step(const ble::BridgeState& state) {
   //    std::cout << "suit: " << fut.suit[0] << std::endl;
   //    std::cout << "rank: " << fut.rank[0] << std::endl;
   const ble::BridgeMove move{
-    /*move_type=*/ble::BridgeMove::Type::kPlay,
-    /*suit=*/ble::DDSSuitToSuit(fut.suit[0]),
-    /*rank=*/ble::DDSRankToRank(fut.rank[0]),
-    /*denomination=*/ble::kInvalidDenomination,
-    /*level=*/-1,
-    /*other_call=*/ble::kNotOtherCall
+      /*move_type=*/ble::BridgeMove::Type::kPlay,
+                    /*suit=*/ble::DDSSuitToSuit(fut.suit[0]),
+                    /*rank=*/ble::DDSRankToRank(fut.rank[0]),
+                    /*denomination=*/ble::kInvalidDenomination,
+                    /*level=*/-1,
+                    /*other_call=*/ble::kNotOtherCall
   };
   return move;
 }
@@ -53,7 +49,8 @@ class DDSFactory : public BotFactory {
 
     std::unique_ptr<PlayBot> Create(std::shared_ptr<const ble::BridgeGame> game,
                                     ble::Player player,
-                                    const ble::GameParameters& bot_params) override {
+                                    const ble::GameParameters&
+                                    bot_params) override {
       return MakeDDSBot(player);
     }
 };

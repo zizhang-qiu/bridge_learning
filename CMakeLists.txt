@@ -191,10 +191,12 @@ add_library(_bridgeplay OBJECT
         playcc/stat_manager.h
         playcc/threaded_queue.h
         playcc/dds_bot.cc
-#        playcc/torch_actor.cc
-#        playcc/torch_actor.h
-#        playcc/torch_actor_resampler.cc
-#        playcc/torch_actor_resampler.h
+        playcc/torch_actor.cc
+        playcc/torch_actor.h
+        playcc/torch_actor_resampler.cc
+        playcc/torch_actor_resampler.h
+        playcc/torch_opening_lead_bot.cc
+        playcc/torch_opening_lead_bot.h
 )
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC rela_lib)

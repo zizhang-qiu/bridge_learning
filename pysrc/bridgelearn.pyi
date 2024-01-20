@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import torch
 
@@ -39,7 +39,7 @@ class BridgeEnv:
 
     def reset_with_deck_and_double_dummy_results(self, deal: List[int], double_dummy_results: List[int]): ...
 
-    def step(self, move: Optional[bridge.BridgeMove, int]): ...
+    def step(self, move: Union[bridge.BridgeMove, int]): ...
 
     def terminated(self) -> bool: ...
 

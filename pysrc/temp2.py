@@ -5,26 +5,46 @@
 @file: temp2.py
 @time: 2024/1/17 15:06
 """
+import os
+import pickle
+
 import torch
 import torch.nn.functional as F
+import yaml
 
-# 定义行数和每行的元素个数
-random_targets = torch.ones(size=[5, 52])
+from net import MLP
+from train_belief import extract_available_trajectories
 
-indices = torch.multinomial(random_targets, num_samples=13, replacement=False)
-print(indices)
+from set_path import append_sys_path
+append_sys_path()
+import bridgelearn
+import bridge
 
-random_targets.scatter_(1, indices, 0)
-random_targets = 1-random_targets
+conf = yaml.full_load(open("belief_sl/exp2/net.yaml"))
 
-input = torch.randn(5, 52, requires_grad=True)
-input = torch.sigmoid(input)
-# target = torch.randn(3, 5).softmax(dim=1)
-print(input, random_targets, sep="\n")
-loss = F.cross_entropy(input, random_targets, reduction="mean")
-print(loss)
-loss2 = F.binary_cross_entropy(input, random_targets)
-print(loss2)
+device = "cuda"
+batch_size = 10000
+net = MLP.from_conf(conf)
+net.load_state_dict(torch.load("belief_sl/exp2/model9.pthw"))
+net.to(device)
 
-target = torch.empty(3, dtype=torch.long).random_(5)
-print(target)
+dataset_dir = r"D:\Projects\bridge_research\expert"
+
+test_dataset = pickle.load(open(os.path.join(dataset_dir, "test.pkl"), "rb"))
+test_dataset = extract_available_trajectories(test_dataset)[:10]
+test_gen = bridgelearn.BeliefDataGen(test_dataset, batch_size, bridge.default_game)
+test_batch = test_gen.all_data(device)
+
+
+digits = net(test_batch["s"])
+
+round_digits = torch.round(digits)
+
+print(digits)
+
+label = test_batch["belief_he"]
+
+for i in range(10):
+    print(round_digits[i], label[i], sep="\n")
+
+

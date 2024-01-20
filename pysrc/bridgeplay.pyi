@@ -27,7 +27,8 @@ class SearchResult:
     scores: List[int]
 
 
-class PlayBot: ...
+class PlayBot:
+    def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
 
 
 class DDSBot(PlayBot):
@@ -155,7 +156,7 @@ def is_acting_player_declarer_side(state: bridge.BridgeState) -> bool: ...
 
 
 class TorchActor:
-    def __init__(self, model_locker: rela.ModelLocker): ...
+    def __init__(self, runner: rela.BatchRunner): ...
 
     def get_policy(self, obs: rela.TensorDict) -> rela.TensorDict: ...
 
@@ -166,3 +167,22 @@ class TorchActorResampler:
     def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int): ...
 
     def resample(self, state: bridge.BridgeState) -> ResampleResult: ...
+
+
+class TorchOpeningLeadBotConfig:
+    num_max_sample: int = 1000
+    num_worlds: int = 20
+    fill_with_uniform_sample: bool = True
+    verbose: bool
+
+
+class TorchOpeningLeadBot(PlayBot):
+    def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int, cfg: TorchOpeningLeadBotConfig): ...
+
+    def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
+
+
+def load_bot(name: str, game: bridge.BridgeGame, player: bridge.Player) -> PlayBot: ...
+
+
+def dds_moves(state: bridge.BridgeState) -> List[bridge.BridgeMove]: ...

@@ -5,11 +5,8 @@
 #include "pybind11/stl.h"
 #include "torch/extension.h"
 
-// #include "batch_runner.h"
+#include "batch_runner.h"
 #include "batcher.h"
-// #include "../rlcc/belief_actor.h"
-// #include "model_locker.h"
-// #include "model.h"
 #include "context.h"
 // #include "future_actor.h"
 #include "prioritized_replay.h"
@@ -31,11 +28,11 @@ PYBIND11_MODULE(rela, m) {
       .def_readwrite("seq_len", &RNNTransition::seqLen);
 
   py::class_<RNNPrioritizedReplay, std::shared_ptr<RNNPrioritizedReplay>>(
-        m,
-        "RNNPrioritizedReplay")
+          m,
+          "RNNPrioritizedReplay")
       .def(py::init<
-        int, // capacity,
-        int, // seed,
+        int,   // capacity,
+        int,   // seed,
         float, // alpha, priority exponent
         float, // beta, importance sampling exponent
         int>())
@@ -47,10 +44,11 @@ PYBIND11_MODULE(rela, m) {
       .def("update_priority", &RNNPrioritizedReplay::updatePriority)
       .def("get", &RNNPrioritizedReplay::get);
 
-  py::class_<TensorDictReplay, std::shared_ptr<TensorDictReplay>>(m, "TensorDictReplay")
+  py::class_<TensorDictReplay, std::shared_ptr<TensorDictReplay>>(
+          m, "TensorDictReplay")
       .def(py::init<
-        int, // capacity,
-        int, // seed,
+        int,   // capacity,
+        int,   // seed,
         float, // alpha, priority exponent
         float, // beta, importance sampling exponent
         int>())
@@ -86,14 +84,15 @@ PYBIND11_MODULE(rela, m) {
   //     .def("add", &Models::add, py::keep_alive<1, 2>());
 
   py::class_<PrioritizedReplay2, std::shared_ptr<PrioritizedReplay2>>(
-        m,
-        "PrioritizedReplay2")
-      .def(py::init<int, // capacity,
-                    int, // seed,
+          m,
+          "PrioritizedReplay2")
+      .def(py::init<int,   // capacity,
+                    int,   // seed,
                     float, // alpha, priority exponent
                     float, // beta, importance sampling exponent
-                    bool, // whther we do prefetch
-                    int>()) //batchdim axis (usually it is 0, if we use LSTM then this can be 1)
+                    bool,  // whther we do prefetch
+                    int>())
+      //batchdim axis (usually it is 0, if we use LSTM then this can be 1)
       .def("size", &PrioritizedReplay2::size)
       .def("num_add", &PrioritizedReplay2::numAdd)
       .def("sample", &PrioritizedReplay2::sample)
@@ -108,17 +107,25 @@ PYBIND11_MODULE(rela, m) {
   //                   const float,
   //                   const std::shared_ptr<PrioritizedReplay2> &>());
 
-  // py::class_<BatchRunner, std::shared_ptr<BatchRunner>>(m, "BatchRunner")
-  //     .def(py::init<
-  //         py::object,
-  //         const std::string&,
-  //         int,
-  //         const std::vector<std::string>&>())
-  //     .def(py::init<py::object, const std::string&>())
-  //     .def("add_method", &BatchRunner::addMethod)
-  //     .def("start", &BatchRunner::start)
-  //     .def("stop", &BatchRunner::stop)
-  //     .def("update_model", &BatchRunner::updateModel)
-  //     .def("block_call", &BatchRunner::blockCall)
-  //     .def("set_log_freq", &BatchRunner::setLogFreq);
+  py::class_<BatchRunner, std::shared_ptr<BatchRunner>>(m, "BatchRunner")
+      .def(py::init<
+        py::object,
+        const std::string&,
+        int,
+        const std::vector<std::string>&>())
+      .def(py::init<py::object, const std::string&>())
+      .def("add_method", &BatchRunner::addMethod)
+      .def("start", &BatchRunner::start)
+      .def("stop", &BatchRunner::stop)
+      .def("update_model", &BatchRunner::updateModel)
+      .def("block_call", &BatchRunner::blockCall)
+      .def("set_log_freq", &BatchRunner::setLogFreq);
+
+  py::class_<FutureReply, std::shared_ptr<FutureReply>>(m, "FutureReply")
+      .def("get", &FutureReply::get)
+      .def("is_null", &FutureReply::isNull);
+  py::class_<Batcher, std::shared_ptr<Batcher>>(m, "Batcher")
+      .def(py::init<int>()) // batchsize
+      .def("send", &Batcher::send)
+      .def("get", &Batcher::get);
 }

@@ -10,6 +10,8 @@
 
 namespace ble = bridge_learning_env;
 
+std::vector<ble::BridgeMove> DDSMoves(const ble::BridgeState &state);
+
 // A deal analyzer analyzes a deal played by alphamu bot and dds
 // to find which move is not optimal.
 class DealAnalyzer {
@@ -23,7 +25,6 @@ class DealAnalyzer {
 
   void Analyze(ble::BridgeState state, AlphaMuBot alpha_mu_bot, PIMCBot pimc_bot);
 
-  static std::vector<ble::BridgeMove> DDSMoves(const ble::BridgeState &state);
  private:
   const std::string save_dir_;
 

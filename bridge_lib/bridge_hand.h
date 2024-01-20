@@ -8,42 +8,53 @@
 #include <array>
 
 #include "bridge_card.h"
+
 namespace bridge_learning_env {
-
-class BridgeHand {
- public:
-  BridgeHand() = default;
-
-  BridgeHand(const BridgeHand &hand) = default;
-
-  [[nodiscard]] const std::vector<BridgeCard> &Cards() const { return cards_; }
-
-  void AddCard(const BridgeCard &card);
-
-  void RemoveFromHand(Suit suit, int rank, std::vector<BridgeCard> *played_cards);
-
-  [[nodiscard]] std::string ToString() const;
-
-  bool IsFullHand() const { return cards_.size() == kNumCardsPerHand; }
-
-  int HighCardPoints() const;
-
-  int ControlValue() const;
-
-  int ZarHighCardPoints() const;
-
-  bool IsCardInHand(BridgeCard card) const;
-
-  std::array<int, kNumSuits> SuitLength() const;
-
-  std::array<std::vector<BridgeCard>, kNumSuits> CardsBySuits() const;
-
- private:
-  std::vector<BridgeCard> cards_;
+struct HandEvaluation {
+  int hcp;
+  int control;
+  int zar_hcp;
+  int zar_dp;
+  std::array<int, kNumSuits> suit_length;
 };
 
-std::ostream &operator<<(std::ostream &stream, const BridgeHand &hand);
+class BridgeHand {
+  public:
+    BridgeHand() = default;
 
+    BridgeHand(const BridgeHand& hand) = default;
+
+    [[nodiscard]] const std::vector<BridgeCard>& Cards() const { return cards_; }
+
+    void AddCard(const BridgeCard& card);
+
+    void RemoveFromHand(Suit suit, int rank, std::vector<BridgeCard>* played_cards);
+
+    [[nodiscard]] std::string ToString() const;
+
+    bool IsFullHand() const { return cards_.size() == kNumCardsPerHand; }
+
+    int HighCardPoints() const;
+
+    int ControlValue() const;
+
+    int ZarHighCardPoints() const;
+
+    bool IsCardInHand(BridgeCard card) const;
+
+    std::array<int, kNumSuits> SuitLength() const;
+
+    int ZarDistributionPoints() const;
+
+    std::array<std::vector<BridgeCard>, kNumSuits> CardsBySuits() const;
+
+    HandEvaluation GetHandEvaluation() const;
+
+  private:
+    std::vector<BridgeCard> cards_;
+};
+
+std::ostream& operator<<(std::ostream& stream, const BridgeHand& hand);
 } // bridge
 
 #endif //BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HAND_H_

@@ -95,6 +95,7 @@ PYBIND11_MODULE(bridge, m) {
   py::class_<BridgeCard>(m, "BridgeCard")
       .def(py::init<>())
       .def(py::init<Suit, int>())
+      .def("__eq__", &BridgeCard::operator==)
       .def("is_valid", &BridgeCard::IsValid)
       .def("suit", &BridgeCard::CardSuit)
       .def("rank", &BridgeCard::Rank)
@@ -130,6 +131,7 @@ PYBIND11_MODULE(bridge, m) {
         const Denomination,
         const int,
         const OtherCalls>())
+      .def("__eq__", &BridgeMove::operator==)
       .def("move_type", &BridgeMove::MoveType)
       .def("is_bid", &BridgeMove::IsBid)
       .def("bid_level", &BridgeMove::BidLevel)
@@ -166,7 +168,8 @@ PYBIND11_MODULE(bridge, m) {
       .def("is_partnership_vulnerable", &BridgeGame::IsPartnershipVulnerable)
       .def("dealer", &BridgeGame::Dealer)
       .def("get_move", &BridgeGame::GetMove)
-      .def("get_move_uid", py::overload_cast<BridgeMove>(&BridgeGame::GetMoveUid, py::const_))
+      .def("get_move_uid",
+           py::overload_cast<BridgeMove>(&BridgeGame::GetMoveUid, py::const_))
       .def("get_chance_outcome", &BridgeGame::GetChanceOutcome)
       .def("pick_random_chance", &BridgeGame::PickRandomChance);
 
@@ -181,6 +184,7 @@ PYBIND11_MODULE(bridge, m) {
 
   py::class_<BridgeState>(m, "BridgeState")
       .def(py::init<std::shared_ptr<BridgeGame>>())
+      .def("__eq__", &BridgeState::operator==)
       .def("hands", &BridgeState::Hands)
       .def("history", &BridgeState::History)
       .def("current_player", &BridgeState::CurrentPlayer)
@@ -191,11 +195,14 @@ PYBIND11_MODULE(bridge, m) {
       .def("chance_outcome_prob", &BridgeState::ChanceOutcomeProb)
       .def("apply_random_chance", &BridgeState::ApplyRandomChance)
       .def("current_phase", &BridgeState::CurrentPhase)
-      .def("legal_moves", py::overload_cast<>(&BridgeState::LegalMoves, py::const_))
-      .def("legal_moves", py::overload_cast<Player>(&BridgeState::LegalMoves, py::const_))
+      .def("legal_moves",
+           py::overload_cast<>(&BridgeState::LegalMoves, py::const_))
+      .def("legal_moves",
+           py::overload_cast<Player>(&BridgeState::LegalMoves, py::const_))
       .def("score_for_contracts", &BridgeState::ScoreForContracts)
       .def("clone", &BridgeState::Clone)
-      .def("double_dummy_results", &BridgeState::DoubleDummyResults, py::arg("dds_order") = false)
+      .def("double_dummy_results", &BridgeState::DoubleDummyResults,
+           py::arg("dds_order") = false)
       .def("uid_history", &BridgeState::UidHistory)
       .def("is_chance_node", &BridgeState::IsChanceNode)
       .def("num_cards_played", &BridgeState::NumCardsPlayed)
