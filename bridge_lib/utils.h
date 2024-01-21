@@ -29,6 +29,8 @@ std::string ParameterValue(const GameParameters& params, const std::string& key,
 template<>
 bool ParameterValue(const GameParameters& params, const std::string& key, bool default_value);
 
+std::string GameParametersToString(const GameParameters& params);
+
 template<typename... Args>
 std::string StrFormat(const std::string& format, Args... args) {
   const int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'

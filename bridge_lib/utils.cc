@@ -50,6 +50,25 @@ bool ParameterValue<bool>(const GameParameters &params, const std::string &key,
       iter->second == "True";
 }
 
+std::string GameParametersToString(const GameParameters& params) {
+  std::string str{};
+  if(params.empty()){return "";}
+  if (params.count("name")){str = params.at("name");}
+  str.push_back('(');
+  bool first = true;
+  for(const auto& [key, value] : params) {
+    if (key!="name") {
+      if(!first) str.push_back(',');
+      str.append(key);
+      str.append("=");
+      str.append(value);
+      first = false;
+    }
+  }
+  str.push_back(')');
+  return str;
+}
+
 std::vector<int> Arange(int start, int end) {
   std::vector<int> rv(end - start);
   for (int i = start; i < end; ++i) {

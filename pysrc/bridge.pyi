@@ -127,7 +127,7 @@ class BridgeHand:
     def cards(self) -> List[BridgeCard]:
         ...
 
-    def add_cards(self, card: BridgeCard):
+    def add_card(self, card: BridgeCard):
         ...
 
     def remove_from_hand(self, suit: Suit, rank: int, played_cards: List[BridgeCard]):

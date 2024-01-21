@@ -75,8 +75,8 @@ def parse_args():
     parser.add_argument("--belief_model_dir", type=str, default="belief_sl/exp3")
     parser.add_argument("--belief_model_name", type=str, default="model2.pthw")
 
-    parser.add_argument("--num_worlds", type=int, default=20)
-    parser.add_argument("--num_max_sample", type=int, default=1000)
+    parser.add_argument("--num_worlds", type=int, default=100)
+    parser.add_argument("--num_max_sample", type=int, default=10000)
     parser.add_argument("--fill_with_uniform_sample", type=int, default=1)
 
     parser.add_argument("--device", type=str, default="cuda")

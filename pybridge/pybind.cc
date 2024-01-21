@@ -11,6 +11,14 @@
 
 namespace py = pybind11;
 
+void CheckPyTupleSize(const py::tuple& t, const size_t size) {
+  if (t.size() != size) {
+    std::cerr << "The tuple needs " << size << " items, but got " << t.size() <<
+        " items!" << std::endl;
+    std::abort();
+  }
+}
+
 namespace bridge_learning_env {
 PYBIND11_MODULE(bridge, m) {
   py::enum_<DoubleStatus>(m, "DoubleStatus")
@@ -100,7 +108,19 @@ PYBIND11_MODULE(bridge, m) {
       .def("suit", &BridgeCard::CardSuit)
       .def("rank", &BridgeCard::Rank)
       .def("index", &BridgeCard::Index)
-      .def("__repr__", &BridgeCard::ToString);
+      .def("__repr__", &BridgeCard::ToString)
+      .def(py::pickle(
+          [](const BridgeCard& card) {
+            //__getstate__
+            return py::make_tuple(card.CardSuit(), card.Rank());
+          },
+          [](const py::tuple& t) {
+            //__setstate__
+            CheckPyTupleSize(t, 2);
+            const BridgeCard card{t[0].cast<Suit>(), t[1].cast<int>()};
+            return card;
+          }
+          ));
 
   py::class_<BridgeHand>(m, "BridgeHand")
       .def(py::init<>())
@@ -113,7 +133,22 @@ PYBIND11_MODULE(bridge, m) {
       .def("control_value", &BridgeHand::ControlValue)
       .def("zar_high_card_points", &BridgeHand::ZarHighCardPoints)
       .def("is_card_in_hand", &BridgeHand::IsCardInHand)
-      .def("__repr__", &BridgeHand::ToString);
+      .def("__repr__", &BridgeHand::ToString)
+      .def(py::pickle(
+          [](const BridgeHand& hand) {
+            //__getstate__
+            return py::make_tuple(hand.Cards());
+          },
+          [](const py::tuple& t) {
+            //__setstate__
+            CheckPyTupleSize(t, 1);
+            BridgeHand hand{};
+            const auto cards = t[0].cast<std::vector<BridgeCard>>();
+            for (const auto card : cards) {
+              hand.AddCard(card);
+            }
+            return hand;
+          }));
 
   py::enum_<BridgeMove::Type>(m, "MoveType")
       .value("INVALID", BridgeMove::Type::kInvalid)
@@ -125,11 +160,11 @@ PYBIND11_MODULE(bridge, m) {
   py::class_<BridgeMove>(m, "BridgeMove")
       .def(py::init<>())
       .def(py::init<
-        const BridgeMove::Type,
-        const Suit,
-        const int,
-        const Denomination,
-        const int,
+        const BridgeMove::Type, // move type
+        const Suit,             // suit
+        const int,              // rank
+        const Denomination,     //denomination
+        const int,              // bid level
         const OtherCalls>())
       .def("__eq__", &BridgeMove::operator==)
       .def("move_type", &BridgeMove::MoveType)
@@ -139,7 +174,33 @@ PYBIND11_MODULE(bridge, m) {
       .def("card_suit", &BridgeMove::CardSuit)
       .def("card_rank", &BridgeMove::CardRank)
       .def("other_call", &BridgeMove::OtherCall)
-      .def("__repr__", &BridgeMove::ToString);
+      .def("__repr__", &BridgeMove::ToString)
+      .def(py::pickle(
+          [](const BridgeMove& move) {
+            //__getstate__
+            // Use same order as constructor.
+            return py::make_tuple(move.MoveType(), move.CardSuit(),
+                                  move.CardRank(), move.BidDenomination(),
+                                  move.BidLevel(), move.OtherCall());
+          },
+          [](const py::tuple& t) {
+            //__setstate__
+            CheckPyTupleSize(t, 6);
+            const auto move_type = t[0].cast<BridgeMove::Type>();
+            const Suit suit = t[1].cast<Suit>();
+            const int rank = t[2].cast<int>();
+            const auto denomination = t[3].cast<Denomination>();
+            const int level = t[4].cast<int>();
+            const auto other_call = t[5].cast<OtherCalls>();
+            const BridgeMove move{
+                /*move_type=*/move_type,
+                              /*suit=*/suit,
+                              /*rank=*/rank,
+                              /*denomination=*/denomination,
+                              /*level=*/level,
+                              /*other_call=*/other_call};
+            return move;
+          }));
 
   py::class_<BridgeHistoryItem>(m, "BridgeHistoryItem")
       .def_readonly("move", &BridgeHistoryItem::move)
@@ -150,7 +211,39 @@ PYBIND11_MODULE(bridge, m) {
       .def_readonly("level", &BridgeHistoryItem::level)
       .def_readonly("denomination", &BridgeHistoryItem::denomination)
       .def_readonly("other_call", &BridgeHistoryItem::other_call)
-      .def("__repr__", &BridgeHistoryItem::ToString);
+      .def("__repr__", &BridgeHistoryItem::ToString)
+      .def(py::pickle([](const BridgeHistoryItem& item) {
+                        //__getstate__
+                        return py::make_tuple(item.move,
+                                              item.player,
+                                              item.deal_to_player,
+                                              item.suit,
+                                              item.rank,
+                                              item.denomination,
+                                              item.level,
+                                              item.other_call);
+                      },
+                      [](const py::tuple& t) {
+                        //__setstate__
+                        CheckPyTupleSize(t, 8);
+                        const auto move = t[0].cast<BridgeMove>();
+                        const auto player = t[1].cast<Player>();
+                        const auto deal_to_player = t[2].cast<Player>();
+                        const auto suit = t[3].cast<Suit>();
+                        const int rank = t[4].cast<int>();
+                        const auto denomination = t[5].cast<Denomination>();
+                        const int level = t[6].cast<int>();
+                        const auto other_call = t[7].cast<OtherCalls>();
+                        BridgeHistoryItem item{move};
+                        item.player = player;
+                        item.deal_to_player = deal_to_player;
+                        item.suit = suit;
+                        item.rank = rank;
+                        item.denomination = denomination;
+                        item.level = level;
+                        item.other_call = other_call;
+                        return item;
+                      }));
 
   py::class_<BridgeGame, std::shared_ptr<BridgeGame>>(m, "BridgeGame")
       .def(py::init<const GameParameters>())
@@ -171,7 +264,34 @@ PYBIND11_MODULE(bridge, m) {
       .def("get_move_uid",
            py::overload_cast<BridgeMove>(&BridgeGame::GetMoveUid, py::const_))
       .def("get_chance_outcome", &BridgeGame::GetChanceOutcome)
-      .def("pick_random_chance", &BridgeGame::PickRandomChance);
+      .def("pick_random_chance", &BridgeGame::PickRandomChance)
+      .def("__repr__", &BridgeGame::ToString)
+      .def(py::pickle([](const BridgeGame& game) {
+                        //__getstate__
+                        return py::make_tuple(game.IsDealerVulnerable(),
+                                              game.IsNonDealerVulnerable(),
+                                              game.Dealer(),
+                                              game.Seed());
+                      },
+                      [](const py::tuple& t) {
+                        //__setstate__
+                        CheckPyTupleSize(t, 4);
+                        const bool is_dealer_vulnerable = t[0].cast<bool>();
+                        const bool is_non_dealer_vulnerable = t[1].cast<bool>();
+                        const auto dealer = t[2].cast<Player>();
+                        const int seed = t[3].cast<int>();
+                        const GameParameters parameters{
+                            {"is_dealer_vulnerable",
+                             std::to_string(is_dealer_vulnerable)},
+                            {"is_non_dealer_vulnerable",
+                             std::to_string(is_non_dealer_vulnerable)},
+                            {"dealer", std::to_string(dealer)},
+                            {"seed", std::to_string(seed)}
+                        };
+                        const BridgeGame game{parameters};
+                        return game;
+                      }
+          ));
 
   m.attr("default_game") = default_game;
 
@@ -211,10 +331,29 @@ PYBIND11_MODULE(bridge, m) {
       .def("deal_history", &BridgeState::DealHistory)
       .def("auction_history", &BridgeState::AuctionHistory)
       .def("play_history", &BridgeState::PlayHistory)
-      .def("__repr__", &BridgeState::ToString);
+      .def("__repr__", &BridgeState::ToString)
+      .def(py::pickle([](const BridgeState& state) {
+                        //__setstate__
+                        //For a BridgeState, we need track parent game and action history.
+                        return py::make_tuple(state.ParentGame().get(),
+                                              state.History());
+                      }, [](const py::tuple& t) {
+                        //__getstate__
+                        CheckPyTupleSize(t, 2);
+                        const auto game = std::make_shared<BridgeGame>(
+                            t[0].cast<BridgeGame>());
+                        const auto move_history = t[1].cast<std::vector<
+                          BridgeHistoryItem>>();
+                        BridgeState state{game};
+                        for (const auto& item : move_history) {
+                          state.ApplyMove(item.move);
+                        }
+                        return state;
+                      }));
 
   py::class_<BridgeObservation>(m, "BridgeObservation")
-      .def(py::init<const BridgeState, Player>())
+      .def(py::init<const BridgeState&, Player>())
+      .def(py::init<const BridgeState&>())
       .def("cur_player_offset", &BridgeObservation::CurPlayerOffset)
       .def("auction_history", &BridgeObservation::AuctionHistory)
       .def("hands", &BridgeObservation::Hands)
