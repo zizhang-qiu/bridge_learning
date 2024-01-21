@@ -251,7 +251,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_libraries(temp PUBLIC rela_lib)
     target_link_libraries(temp PUBLIC _bridgeplay)
     target_link_libraries(temp PUBLIC _bridgelearn)
-    target_link_libraries(temp PUBLIC ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
+    target_link_libraries(temp PUBLIC ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES} ${Python3_LIBRARIES})
     target_include_directories(temp PUBLIC ${Python3_INCLUDE_DIRS})
 endif ()
 
