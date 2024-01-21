@@ -10,6 +10,7 @@
 // #include "torch_actor.h"
 // #include "torch_actor_resampler.h"
 #include "deal_analyzer.h"
+#include "opening_lead_evaluation_thread_loop.h"
 #include "torch_actor.h"
 #include "torch_actor_resampler.h"
 #include "torch_opening_lead_bot.h"
@@ -146,6 +147,14 @@ PYBIND11_MODULE(bridgeplay, m) {
                           const std::shared_ptr<const ble::BridgeGame>&,
                           ble::Player,
                           const ble::GameParameters&>(&LoadBot));
+
+  py::class_<DDSEvaluator, std::shared_ptr<DDSEvaluator>>(m, "DDSEvaluator")
+      .def(py::init<>())
+      .def("rollout", &DDSEvaluator::Rollout)
+      .def("play_deal_to_dds_deal", &DDSEvaluator::PlayStateToDDSdeal)
+      .def("auction_deal_to_dds_table_deal",
+           &DDSEvaluator::AuctionStateToDDSddTableDeal);
+
   py::class_<TorchActor, std::shared_ptr<TorchActor>>(m, "TorchActor")
       .def(py::init<std::shared_ptr<rela::BatchRunner>>())
       .def("get_policy", &TorchActor::GetPolicy)
@@ -172,8 +181,36 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def(py::init<const std::shared_ptr<TorchActor>&,
                     const std::shared_ptr<ble::BridgeGame>&,
                     const int, // seed
-                    const TorchOpeningLeadBotConfig&>())
+                    const std::shared_ptr<DDSEvaluator>&,
+                    const TorchOpeningLeadBotConfig&>(),
+           py::arg("torch_actor"),
+           py::arg("game"),
+           py::arg("seed"),
+           py::arg("evaluator"),
+           py::arg("cfg"))
       .def("step", &TorchOpeningLeadBot::Step);
 
   m.def("dds_moves", &DDSMoves);
+
+  py::class_<ThreadedQueue<int>, std::shared_ptr<ThreadedQueue<int>>>(
+          m, "ThreadedQueueInt")
+      .def(py::init<int>(), py::arg("max_size"))
+      .def("pop", py::overload_cast<>(&ThreadedQueue<int>::Pop))
+      .def("empty", &ThreadedQueue<int>::Empty)
+      .def("size", &ThreadedQueue<int>::Size);
+
+  py::class_<OpeningLeadEvaluationThreadLoop, rela::ThreadLoop, std::shared_ptr<
+               OpeningLeadEvaluationThreadLoop>>(
+          m, "OpeningLeadEvaluationThreadLoop")
+      .def(py::init<const std::shared_ptr<DDSEvaluator>&,
+                    const std::shared_ptr<PlayBot>&,         //bot
+                    const std::shared_ptr<ble::BridgeGame>&, //game
+                    const std::vector<std::vector<int>>&,    //trajectories
+                    ThreadedQueue<int>*,                     //queue
+                    const int,                               //thread_idx
+                    const bool>(),                           //verbose
+           py::arg("dds_evaluator"), py::arg("bot"), py::arg("game"),
+           py::arg("trajectories"), py::arg("bot_evaluation"),
+           py::arg("thread_idx") = 0,
+           py::arg("verbose") = false);
 }

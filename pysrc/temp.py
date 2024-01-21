@@ -1,6 +1,7 @@
 import copy
 import math
 import multiprocessing
+import os
 import pickle
 import random
 from math import floor
@@ -13,6 +14,7 @@ from agent import BridgeAgent
 
 from create_bridge import create_params
 from common_utils.torch_utils import tensor_dict_to_device, optimizer_from_str
+from common_utils import allocate_list_uniformly
 
 # print(torch.__version__)
 # print(torch.cuda.is_available())
@@ -27,6 +29,7 @@ import bridgelearn
 import bridgeplay
 from agent import BridgeAgent, BridgeA2CModel
 from net import MLP
+from train_belief import extract_available_trajectories
 
 # print(dir(bridgelearn))
 params = create_params()
@@ -106,8 +109,6 @@ bridge_dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_
 #         stat_manager.update_stat(key, increment)
 
 
-
-
 # model = BridgeA2CModel({}, {})
 # model.to("cuda")
 #
@@ -182,7 +183,6 @@ while env.ble_state().current_phase() == bridge.Phase.AUCTION:
     action_uid = policy["pi"].argmax() + 52
     env.step(action_uid)
 
-
 print(env)
 
 f = env.feature()
@@ -206,15 +206,17 @@ cfg = bridgeplay.TorchOpeningLeadBotConfig()
 cfg.num_worlds = 20
 cfg.num_max_sample = 1000
 cfg.fill_with_uniform_sample = True
-bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, cfg)
-move = bot.step(env.ble_state())
-print(move)
+cfg.verbose = True
+dds_evaluator = bridgeplay.DDSEvaluator()
+# bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
+# move = bot.step(env.ble_state())
+# print(move)
 
-dds_bot = bridgeplay.load_bot("dds", bridge.default_game, 0)
-dds_move = dds_bot.step(env.ble_state())
-print(dds_move)
-moves = bridgeplay.dds_moves(env.ble_state())
-print(moves)
+# dds_bot = bridgeplay.load_bot("dds", bridge.default_game, 0)
+# dds_move = dds_bot.step(env.ble_state())
+# print(dds_move)
+# moves = bridgeplay.dds_moves(env.ble_state())
+# print(moves)
 # batcher = rela.Batcher(100)
 # fut = batcher.send(f)
 #
@@ -256,3 +258,43 @@ print(moves)
 # state2 = bridgeplay.construct_state_from_deal(res.result, env.ble_game())
 # print(state2)
 
+# Load dataset
+dataset_dir = r"D:\Projects\bridge_research\expert"
+with open(os.path.join(dataset_dir, "test.txt"), "r") as f:
+    lines = f.readlines()
+test_dataset = []
+
+for i in range(len(lines)):
+    line = lines[i].split(" ")
+    test_dataset.append([int(x) for x in line])
+
+test_dataset = extract_available_trajectories(test_dataset)[:10]
+
+
+context = rela.Context()
+q = bridgeplay.ThreadedQueueInt(10000)
+
+num_threads = 3
+datasets = allocate_list_uniformly(test_dataset, num_threads)
+print(len(datasets))
+for d in datasets:
+    print(len(d))
+
+for i in range(num_threads):
+    torch_actor = bridgeplay.TorchActor(batch_runner)
+    bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
+    t = bridgeplay.OpeningLeadEvaluationThreadLoop(dds_evaluator, bot, bridge.default_game,
+                                                   test_dataset[i * 20:(i + 1) * 20], q, i, verbose=True)
+
+#     num_t = context.push_thread_loop(t)
+#     print(num_t)
+#
+# context.start()
+# context.join()
+#
+# res = []
+# while not q.empty():
+#     num = q.pop()
+#     res.append(num)
+#
+# print(res)

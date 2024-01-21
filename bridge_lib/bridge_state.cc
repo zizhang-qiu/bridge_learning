@@ -35,28 +35,22 @@ BridgeState::BridgeState(std::shared_ptr<BridgeGame> parent_game)
 void BridgeState::AdvanceToNextPlayer() {
   if (!deck_.Empty()) {
     current_player_ = kChancePlayerId;
-  }
-  else if (phase_ == Phase::kAuction) {
+  } else if (phase_ == Phase::kAuction) {
     if (move_history_.size() == kNumCards) {
       current_player_ = dealer_;
-    }
-    else {
+    } else {
       current_player_ = (current_player_ + 1) % kNumPlayers;
     }
-  }
-  else if (phase_ == Phase::kPlay) {
+  } else if (phase_ == Phase::kPlay) {
     if (num_cards_played_ == 0) {
       current_player_ = (contract_.declarer + 1) % kNumPlayers;
-    }
-    else if (num_cards_played_ % kNumPlayers == 0) {
+    } else if (num_cards_played_ % kNumPlayers == 0) {
       // Winner leads next round.
       current_player_ = last_round_winner_;
-    }
-    else {
+    } else {
       current_player_ = (current_player_ + 1) % kNumPlayers;
     }
-  }
-  else {
+  } else {
     current_player_ = kInvalidPlayer;
   }
 }
@@ -82,7 +76,8 @@ bool BridgeState::PlayIsLegal(const BridgeMove& move) const {
   if (phase_ != Phase::kPlay) {
     return false;
   }
-  if (!hands_[current_player_].IsCardInHand({move.CardSuit(), move.CardRank()})) {
+  if (!hands_[current_player_].
+    IsCardInHand({move.CardSuit(), move.CardRank()})) {
     return false;
   }
   if (num_cards_played_ % kNumPlayers == 0) {
@@ -136,7 +131,8 @@ void BridgeState::ApplyMove(const BridgeMove& move) {
       history.deal_to_player = PlayerToDeal();
       history.suit = move.CardSuit();
       history.rank = move.CardRank();
-      hands_[history.deal_to_player].AddCard(deck_.DealCard(move.CardSuit(), move.CardRank()));
+      hands_[history.deal_to_player].AddCard(
+          deck_.DealCard(move.CardSuit(), move.CardRank()));
       if (deck_.Empty()) {
         phase_ = Phase::kAuction;
       }
@@ -151,8 +147,7 @@ void BridgeState::ApplyMove(const BridgeMove& move) {
         if (contract_.level == 0) {
           phase_ = Phase::kGameOver;
           ScoreUp();
-        }
-        else {
+        } else {
           phase_ = Phase::kPlay;
         }
       }
@@ -160,19 +155,22 @@ void BridgeState::ApplyMove(const BridgeMove& move) {
     case BridgeMove::kPlay:
       history.suit = move.CardSuit();
       history.rank = move.CardRank();
-      hands_[current_player_].RemoveFromHand(move.CardSuit(), move.CardRank(), &played_cards_);
+      hands_[current_player_].RemoveFromHand(move.CardSuit(), move.CardRank(),
+                                             &played_cards_);
       if (num_cards_played_ % kNumPlayers == 0) {
         // A new round
-        CurrentTrick() = Trick(current_player_, contract_.denomination, CardIndex(move.CardSuit(), move.CardRank()));
-      }
-      else {
-        CurrentTrick().Play(current_player_, CardIndex(move.CardSuit(), move.CardRank()));
+        CurrentTrick() = Trick(current_player_, contract_.denomination,
+                               CardIndex(move.CardSuit(), move.CardRank()));
+      } else {
+        CurrentTrick().Play(current_player_,
+                            CardIndex(move.CardSuit(), move.CardRank()));
       } {
         const Player winner = CurrentTrick().Winner();
         ++num_cards_played_;
         if (num_cards_played_ % kNumPlayers == 0) {
           last_round_winner_ = winner;
-          if (Partnership(last_round_winner_) == Partnership(contract_.declarer)) {
+          if (Partnership(last_round_winner_) ==
+              Partnership(contract_.declarer)) {
             ++num_declarer_tricks_;
           }
         }
@@ -202,11 +200,13 @@ Player BridgeState::PlayerToDeal() const {
   return (kNumCards - deck_.Size()) % kNumPlayers;
 }
 
-std::pair<std::vector<BridgeMove>, std::vector<double>> BridgeState::ChanceOutcomes() const {
+std::pair<std::vector<BridgeMove>, std::vector<double>>
+BridgeState::ChanceOutcomes() const {
   std::pair<std::vector<BridgeMove>, std::vector<double>> rv;
   const int max_outcome_uid = ParentGame()->MaxChanceOutcomes();
   for (int uid = 0; uid < max_outcome_uid; ++uid) {
-    if (BridgeMove move = ParentGame()->GetChanceOutcome(uid); MoveIsLegal(move)) {
+    if (BridgeMove move = ParentGame()->GetChanceOutcome(uid);
+      MoveIsLegal(move)) {
       rv.first.push_back(move);
       rv.second.push_back(ChanceOutcomeProb(move));
     }
@@ -215,7 +215,8 @@ std::pair<std::vector<BridgeMove>, std::vector<double>> BridgeState::ChanceOutco
 }
 
 double BridgeState::ChanceOutcomeProb(const BridgeMove& move) const {
-  return static_cast<double>(deck_.CardInDeck(move.CardSuit(), move.CardRank())) / static_cast<double>(deck_.Size());
+  return static_cast<double>(deck_.CardInDeck(move.CardSuit(), move.CardRank()))
+         / static_cast<double>(deck_.Size());
 }
 
 void BridgeState::ApplyRandomChance() {
@@ -241,7 +242,9 @@ std::vector<BridgeMove> BridgeState::LegalMoves(const Player player) const {
   return legal_moves;
 }
 
-std::vector<BridgeMove> BridgeState::LegalMoves() const { return LegalMoves(current_player_); }
+std::vector<BridgeMove> BridgeState::LegalMoves() const {
+  return LegalMoves(current_player_);
+}
 
 std::vector<BridgeHand> BridgeState::OriginalDeal() const {
   std::vector<BridgeHand> rv(kNumPlayers);
@@ -275,9 +278,13 @@ std::string BridgeState::ToString() const {
 
 std::string BridgeState::FormatVulnerability() const {
   const bool is_ns_vulnerable =
-      Partnership(dealer_) == Partnership(kNorth) ? is_dealer_vulnerable_ : is_non_dealer_vulnerable_;
+      Partnership(dealer_) == Partnership(kNorth)
+        ? is_dealer_vulnerable_
+        : is_non_dealer_vulnerable_;
   const bool is_ew_vulnerable =
-      Partnership(dealer_) == Partnership(kEast) ? is_dealer_vulnerable_ : is_non_dealer_vulnerable_;
+      Partnership(dealer_) == Partnership(kEast)
+        ? is_dealer_vulnerable_
+        : is_non_dealer_vulnerable_;
   if (is_ns_vulnerable && is_ew_vulnerable) {
     return "Vul: All\n";
   }
@@ -291,12 +298,12 @@ std::string BridgeState::FormatVulnerability() const {
 }
 
 std::string BridgeState::FormatDeal() const {
-  std::string rv = StrCat("Dealer is ", kPlayerChar[ParentGame()->Dealer()], ".\n");
+  std::string rv = StrCat("Dealer is ", kPlayerChar[ParentGame()->Dealer()],
+                          ".\n");
   std::vector<BridgeHand> hands;
   if (IsTerminal()) {
     hands = OriginalDeal();
-  }
-  else {
+  } else {
     hands = hands_;
   }
   for (const Player player : kAllSeats) {
@@ -321,7 +328,8 @@ std::string BridgeState::FormatAuction() const {
 
 std::string BridgeState::FormatPlay() const {
   REQUIRE(num_cards_played_ > 0);
-  std::string rv = "\nContract is " + contract_.ToString() + "\n\nN  E  S  W  N  E  S";
+  std::string rv = "\nContract is " + contract_.ToString() +
+                   "\n\nN  E  S  W  N  E  S";
   Player player = (1 + contract_.declarer) % kNumPlayers;
   Trick trick{kInvalidPlayer, kNoTrump, 0};
   for (int i = 0; i < num_cards_played_; ++i) {
@@ -331,18 +339,17 @@ std::string BridgeState::FormatPlay() const {
       }
       rv += "\n";
       rv += std::string(3 * player, ' ');
-    }
-    else {
+    } else {
       player = (1 + player) % kNumPlayers;
     }
 
-    const auto item = move_history_[move_history_.size() - num_cards_played_ + i];
+    const auto item = move_history_[
+      move_history_.size() - num_cards_played_ + i];
     const auto card = CardIndex(item.suit, item.rank);
     // A new trick
     if (i % kNumPlayers == 0) {
       trick = Trick(player, contract_.denomination, card);
-    }
-    else {
+    } else {
       trick.Play(player, card);
     }
     rv += CardString(card);
@@ -359,14 +366,13 @@ void BridgeState::ScoreUp() {
     for (const Player pl : kAllSeats) {
       scores_[pl] = 0;
     }
-  }
-  else {
-    const int declarer_score = Score(contract_, num_declarer_tricks_, is_dealer_vulnerable_);
+  } else {
+    const int declarer_score = Score(contract_, num_declarer_tricks_,
+                                     is_dealer_vulnerable_);
     for (const Player pl : kAllSeats) {
       if (Partnership(pl) == Partnership(contract_.declarer)) {
         scores_[pl] = declarer_score;
-      }
-      else {
+      } else {
         scores_[pl] = -declarer_score;
       }
     }
@@ -393,12 +399,14 @@ void BridgeState::ComputeDoubleDummyTricks() const {
     const auto original_hands = OriginalDeal();
     for (const Player pl : kAllSeats) {
       for (const auto card : original_hands[pl].Cards()) {
-        dd_table_deal.cards[pl][SuitToDDSSuit(card.CardSuit())] += 1 << (2 + card.Rank());
+        dd_table_deal.cards[pl][SuitToDDSSuit(card.CardSuit())] += 1 << (
+          2 + card.Rank());
       }
     }
 
     DDS_EXTERNAL(SetMaxThreads)(0);
-    if (const int return_code = DDS_EXTERNAL(CalcDDtable)(dd_table_deal, &double_dummy_results_.value());
+    if (const int return_code = DDS_EXTERNAL(CalcDDtable)(
+          dd_table_deal, &double_dummy_results_.value());
       return_code != RETURN_NO_FAULT) {
       char error_message[80];
       DDS_EXTERNAL(ErrorMessage)(return_code, error_message);
@@ -408,13 +416,17 @@ void BridgeState::ComputeDoubleDummyTricks() const {
   }
 }
 
-std::array<std::array<int, kNumPlayers>, kNumDenominations> BridgeState::DoubleDummyResults(bool dds_order) const {
+std::array<std::array<int, kNumPlayers>, kNumDenominations>
+BridgeState::DoubleDummyResults(bool dds_order) const {
   REQUIRE(phase_ >= Phase::kAuction);
   if (!double_dummy_results_.has_value()) {
     ComputeDoubleDummyTricks();
   }
-  std::array<std::array<int, kNumPlayers>, kNumDenominations> double_dummy_results{};
-  std::memcpy(double_dummy_results.data(), double_dummy_results_.value().resTable, sizeof(double_dummy_results));
+  std::array<std::array<int, kNumPlayers>, kNumDenominations>
+      double_dummy_results{};
+  std::memcpy(double_dummy_results.data(),
+              double_dummy_results_.value().resTable,
+              sizeof(double_dummy_results));
   if (!dds_order) {
     std::swap(double_dummy_results[0], double_dummy_results[3]);
     std::swap(double_dummy_results[1], double_dummy_results[2]);
@@ -422,31 +434,40 @@ std::array<std::array<int, kNumPlayers>, kNumDenominations> BridgeState::DoubleD
   return double_dummy_results;
 }
 
-void BridgeState::SetDoubleDummyResults(const std::vector<int>& double_dummy_tricks) const {
+void BridgeState::SetDoubleDummyResults(
+    const std::vector<int>& double_dummy_tricks) const {
   REQUIRE(double_dummy_tricks.size() == kNumDenominations * kNumPlayers);
 
   auto double_dummy_results = ddTableResults{};
-  for (const auto denomination : {kClubsTrump, kDiamondsTrump, kHeartsTrump, kSpadesTrump, kNoTrump}) {
+  for (const auto denomination : {kClubsTrump, kDiamondsTrump, kHeartsTrump,
+                                  kSpadesTrump, kNoTrump}) {
     for (const auto player : {kNorth, kEast, kSouth, kWest}) {
       const auto index = denomination * kNumPlayers + player;
-      double_dummy_results.resTable[DenominationToDDSStrain(denomination)][player] = double_dummy_tricks[index];
+      double_dummy_results.resTable[DenominationToDDSStrain(denomination)][
+        player] = double_dummy_tricks[index];
     }
   }
   double_dummy_results_ = double_dummy_results;
 }
 
-void BridgeState::SetDoubleDummyResults(const array<int, kNumPlayers * kNumDenominations>& double_dummy_tricks) const {
+void BridgeState::SetDoubleDummyResults(
+    const array<int, kNumPlayers * kNumDenominations>& double_dummy_tricks)
+const {
   auto double_dummy_results = ddTableResults{};
-  for (const auto denomination : {kClubsTrump, kDiamondsTrump, kHeartsTrump, kSpadesTrump, kNoTrump}) {
+  for (const auto denomination : {kClubsTrump, kDiamondsTrump, kHeartsTrump,
+                                  kSpadesTrump, kNoTrump}) {
     for (const auto player : {kNorth, kEast, kSouth, kWest}) {
       const auto index = denomination * kNumPlayers + player;
-      double_dummy_results.resTable[DenominationToDDSStrain(denomination)][player] = double_dummy_tricks[index];
+      double_dummy_results.resTable[DenominationToDDSStrain(denomination)][
+        player] = double_dummy_tricks[index];
     }
   }
   double_dummy_results_ = double_dummy_results;
 }
 
-std::vector<int> BridgeState::ScoreForContracts(const Player player, const vector<int>& contracts) const {
+std::vector<int> BridgeState::ScoreForContracts(const Player player,
+                                                const vector<int>& contracts)
+const {
   // Storage for the number of tricks.
   std::array<std::array<int, kNumPlayers>, kNumDenominations> dd_tricks{};
 
@@ -454,11 +475,11 @@ std::vector<int> BridgeState::ScoreForContracts(const Player player, const vecto
     // If we have already computed double-dummy results, use them.
     for (int declarer = 0; declarer < kNumPlayers; ++declarer) {
       for (int trumps = 0; trumps < kNumDenominations; ++trumps) {
-        dd_tricks[trumps][declarer] = double_dummy_results_->resTable[DDSStrainToDenomination(trumps)][declarer];
+        dd_tricks[trumps][declarer] = double_dummy_results_->resTable[
+          DDSStrainToDenomination(trumps)][declarer];
       }
     }
-  }
-  else {
+  } else {
     {
       // This performs some sort of global initialization; unclear
       // exactly what.
@@ -469,7 +490,7 @@ std::vector<int> BridgeState::ScoreForContracts(const Player player, const vecto
     // Working storage for DD calculation.
     const auto thread_data = std::make_unique<ThreadData>();
     const auto transposition_table = std::make_unique<TransTableL>();
-    transposition_table->SetMemoryDefault(95); // megabytes
+    transposition_table->SetMemoryDefault(95);  // megabytes
     transposition_table->SetMemoryMaximum(160); // megabytes
     transposition_table->MakeTT();
     thread_data->transTable = transposition_table.get();
@@ -478,13 +499,15 @@ std::vector<int> BridgeState::ScoreForContracts(const Player player, const vecto
     std::set<int> suits;
     for (const auto index : contracts) {
       const auto& contract = kAllContracts[index];
-      if (contract.level > 0) suits.emplace(contract.denomination);
+      if (contract.level > 0)
+        suits.emplace(contract.denomination);
     }
     // Build the deal
     ::deal dl{};
     for (const Player pl : kAllSeats) {
       for (const auto card : hands_[pl].Cards()) {
-        dl.remainCards[pl][SuitToDDSSuit(card.CardSuit())] += 1 << (2 + card.Rank());
+        dl.remainCards[pl][SuitToDDSSuit(card.CardSuit())] += 1 << (
+          2 + card.Rank());
       }
     }
     for (int k = 0; k <= 2; k++) {
@@ -501,7 +524,8 @@ std::vector<int> BridgeState::ScoreForContracts(const Player player, const vecto
       std::set<int> declarers;
       for (const auto index : contracts) {
         const auto& contract = kAllContracts[index];
-        if (contract.level > 0 && contract.denomination == suit) declarers.emplace(contract.declarer);
+        if (contract.level > 0 && contract.denomination == suit)
+          declarers.emplace(contract.declarer);
       }
 
       // Analyze the deal for each declarer.
@@ -513,39 +537,37 @@ std::vector<int> BridgeState::ScoreForContracts(const Player player, const vecto
         if (!first_declarer.has_value()) {
           // First time we're calculating this trump suit.
           if (const int return_code = SolveBoardInternal(thread_data.get(),
-                                                         dl,
-                                                         /*target=*/
-                                                         -1,
-                                                         // Find max number of tricks
-                                                         /*solutions=*/
-                                                         1,
-                                                         // Just the tricks (no card-by-card result)
-                                                         /*mode=*/
-                                                         2,
-                                                         // Unclear
-                                                         &fut // Output
-            );
+                  dl,
+                  /*target=*/-1,   // Find max number of tricks
+                  /*solutions=*/1, // Just the tricks (no card-by-card result)
+                  /*mode=*/2,      // Unclear
+                  &fut             // Output
+                );
             return_code != RETURN_NO_FAULT) {
             char error_message[80];
             DDS_EXTERNAL(ErrorMessage)(return_code, error_message);
             std::cerr << "double dummy solver: " << error_message << std::endl;
             std::exit(1);
           }
-          dd_tricks[DDSStrainToDenomination(suit)][declarer] = 13 - fut.score[0];
+          dd_tricks[DDSStrainToDenomination(suit)][declarer] =
+              13 - fut.score[0];
           first_declarer = declarer;
           first_tricks = 13 - fut.score[0];
-        }
-        else {
+        } else {
           // Reuse data from last time.
-          const int hint = Partnership(declarer) == Partnership(*first_declarer) ? *first_tricks : 13 - *first_tricks;
-          if (const int return_code = SolveSameBoard(thread_data.get(), dl, &fut, hint);
+          const int hint = Partnership(declarer) == Partnership(*first_declarer)
+                             ? *first_tricks
+                             : 13 - *first_tricks;
+          if (const int return_code = SolveSameBoard(
+                thread_data.get(), dl, &fut, hint);
             return_code != RETURN_NO_FAULT) {
             char error_message[80];
             DDS_EXTERNAL(ErrorMessage)(return_code, error_message);
             std::cerr << "double dummy solver: " << error_message << std::endl;
             std::exit(1);
           }
-          dd_tricks[DDSStrainToDenomination(suit)][declarer] = 13 - fut.score[0];
+          dd_tricks[DDSStrainToDenomination(suit)][declarer] =
+              13 - fut.score[0];
         }
       }
     }
@@ -558,15 +580,20 @@ std::vector<int> BridgeState::ScoreForContracts(const Player player, const vecto
     const int declarer_score = (contract.level == 0)
                                  ? 0
                                  : Score(contract,
-                                         dd_tricks[contract.denomination][contract.declarer],
+                                         dd_tricks[contract.denomination][
+                                           contract.declarer],
                                          IsPlayerVulnerable(contract.declarer));
-    scores.push_back(Partnership(contract.declarer) == Partnership(player) ? declarer_score : -declarer_score);
+    scores.push_back(Partnership(contract.declarer) == Partnership(player)
+                       ? declarer_score
+                       : -declarer_score);
   }
   return scores;
 }
 
 bool BridgeState::IsPlayerVulnerable(Player player) const {
-  return Partnership(player) == Partnership(dealer_) ? is_dealer_vulnerable_ : is_non_dealer_vulnerable_;
+  return Partnership(player) == Partnership(dealer_)
+           ? is_dealer_vulnerable_
+           : is_non_dealer_vulnerable_;
 }
 
 std::vector<int> BridgeState::UidHistory() const {
@@ -575,8 +602,7 @@ std::vector<int> BridgeState::UidHistory() const {
   for (const auto item : move_history_) {
     if (item.move.MoveType() == BridgeMove::kDeal) {
       uid_history.push_back(parent_game_->GetChanceOutComeUid(item.move));
-    }
-    else {
+    } else {
       uid_history.push_back(parent_game_->GetMoveUid(item.move));
     }
   }
@@ -618,7 +644,8 @@ Player BridgeState::GetDummy() const {
   return Partner(contract_.declarer);
 }
 
-std::vector<BridgeHistoryItem> BridgeState::SpecifiedHistory(const BridgeMove::Type type) const {
+std::vector<BridgeHistoryItem> BridgeState::SpecifiedHistory(
+    const BridgeMove::Type type) const {
   std::vector<BridgeHistoryItem> specified_history;
   for (const auto& item : move_history_) {
     if (item.move.MoveType() == type) {
@@ -638,7 +665,8 @@ std::string BridgeState::Serialize() const {
     std::string dd;
     for (const Denomination denomination : kAllDenominations) {
       for (Player player = 0; player < kNumPlayers; ++player) {
-        dd += std::to_string(double_dummy_results_->resTable[denomination][player]) + "\n";
+        dd += std::to_string(
+            double_dummy_results_->resTable[denomination][player]) + "\n";
       }
     }
     rv += "Double Dummy Results\n" + dd;
@@ -646,35 +674,39 @@ std::string BridgeState::Serialize() const {
   return rv;
 }
 
-BridgeState BridgeState::Deserialize(const std::string& str, const std::shared_ptr<BridgeGame>& game) {
+BridgeState BridgeState::Deserialize(const std::string& str,
+                                     const std::shared_ptr<BridgeGame>& game) {
   BridgeState state{game};
   if (str.empty()) {
     return state;
   }
   std::vector<std::string> lines = StrSplit(str, '\n');
 
-  const auto separator = std::find(lines.begin(), lines.end(), "Double Dummy Results");
+  const auto separator = std::find(lines.begin(), lines.end(),
+                                   "Double Dummy Results");
   // Double-dummy results.
   if (separator != lines.end()) {
     ddTableResults double_dummy_results{};
     auto it = separator;
     int i = 0;
     while (++it != lines.end()) {
-      if (it->empty()) continue;
-      double_dummy_results.resTable[i / kNumPlayers][i % kNumPlayers] = std::stol(*it);
+      if (it->empty())
+        continue;
+      double_dummy_results.resTable[i / kNumPlayers][i % kNumPlayers] =
+          std::stol(*it);
       ++i;
     }
     state.double_dummy_results_ = double_dummy_results;
   }
 
   for (int i = 0; i < std::distance(lines.begin(), separator); ++i) {
-    if (lines[i].empty()) continue;
+    if (lines[i].empty())
+      continue;
     const int action_uid = std::stoi(lines[i]);
     BridgeMove move{};
     if (i < kNumCards) {
       move = game->GetChanceOutcome(action_uid);
-    }
-    else {
+    } else {
       move = game->GetMove(action_uid);
     }
     state.ApplyMove(move);

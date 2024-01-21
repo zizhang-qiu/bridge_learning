@@ -5,6 +5,7 @@
 @file: evaluate_opening_lead.py
 @time: 2024/1/20 13:44
 """
+import contextlib
 import pickle
 import pprint
 import time
@@ -14,6 +15,7 @@ import yaml
 
 import set_path
 from agent import BridgeA2CModel
+import common_utils
 
 set_path.append_sys_path()
 import torch
@@ -46,27 +48,6 @@ def load_net_conf_and_state_dict(model_dir: str, model_name: str, net_conf_filen
     return conf, state_dict
 
 
-def evaluate_once(traj: List[int], bot: bridgeplay.PlayBot):
-    state = bridgeplay.construct_state_from_deal(traj[:bridge.NUM_CARDS], GAME)
-    action_idx = bridge.NUM_CARDS
-
-    # Bidding.
-    while state.current_phase() == bridge.Phase.AUCTION:
-        move = GAME.get_move(traj[action_idx])
-        state.apply_move(move)
-        action_idx += 1
-
-    # Opening lead.
-    wbridge5_opening_lead = GAME.get_move(traj[action_idx])
-    # print(wbridge5_opening_lead)
-    bot_opening_lead = bot.step(state)
-    # print(bot_opening_lead)
-    dds_moves = bridgeplay.dds_moves(state)
-    # print(dds_moves)
-
-    return wbridge5_opening_lead in dds_moves, bot_opening_lead in dds_moves
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
@@ -75,9 +56,11 @@ def parse_args():
     parser.add_argument("--belief_model_dir", type=str, default="belief_sl/exp3")
     parser.add_argument("--belief_model_name", type=str, default="model2.pthw")
 
-    parser.add_argument("--num_worlds", type=int, default=100)
-    parser.add_argument("--num_max_sample", type=int, default=10000)
+    parser.add_argument("--num_worlds", type=int, default=20)
+    parser.add_argument("--num_max_sample", type=int, default=1000)
     parser.add_argument("--fill_with_uniform_sample", type=int, default=1)
+
+    parser.add_argument("--num_threads", type=int, default=8)
 
     parser.add_argument("--device", type=str, default="cuda")
     return parser.parse_args()
@@ -96,6 +79,7 @@ if __name__ == '__main__':
         test_dataset.append([int(x) for x in line])
 
     test_dataset = extract_available_trajectories(test_dataset)
+    datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_threads)
 
     # Load networks
     policy_conf, policy_state_dict = load_net_conf_and_state_dict(args.policy_model_dir, args.policy_model_name)
@@ -117,28 +101,33 @@ if __name__ == '__main__':
     agent.to(args.device)
     print("Network loaded.")
 
+    dds_evaluator = bridgeplay.DDSEvaluator()
     # Create torch actor
     batch_runner = rela.BatchRunner(agent, args.device, 100, ["get_policy", "get_belief"])
     batch_runner.start()
-    torch_actor = bridgeplay.TorchActor(batch_runner)
 
-    # Create bots.
     cfg = bridgeplay.TorchOpeningLeadBotConfig()
     cfg.num_worlds = args.num_worlds
     cfg.num_max_sample = args.num_max_sample
     cfg.fill_with_uniform_sample = bool(args.fill_with_uniform_sample)
     cfg.verbose = False
-    torch_bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, cfg)
-    print("Bot created.")
+    q = bridgeplay.ThreadedQueueInt(int(1.25 * len(test_dataset)))
+    context = rela.Context()
+    for i in range(args.num_threads):
+        torch_actor = bridgeplay.TorchActor(batch_runner)
+        bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
+        t = bridgeplay.OpeningLeadEvaluationThreadLoop(dds_evaluator, bot, bridge.default_game,
+                                                       datasets[i], q, i, verbose=True)
+        context.push_thread_loop(t)
+    print("Threads created. Evaluation start.")
 
-    # Evaluate for each deal
-    num_wbridge5_match = 0
-    num_bot_match = 0
-    for i, trajectory in enumerate(test_dataset):
-        wbridge5_match, bot_match = evaluate_once(trajectory, torch_bot)
-        num_wbridge5_match += int(wbridge5_match)
-        num_bot_match += int(bot_match)
-        print(f"wbridge5: {num_wbridge5_match}/{i + 1}, bot: {num_bot_match}/{i + 1}")
+    context.start()
+    context.join()
 
-    print(f"num wbridge5 match: {num_wbridge5_match}/{len(test_dataset)}.")
-    print(f"num bot match: {num_bot_match}/{len(test_dataset)}.")
+    res = []
+    while not q.empty():
+        num = q.pop()
+        res.append(num)
+
+    print(res)
+    print(f"Num match: {np.sum(res) / len(res)}")

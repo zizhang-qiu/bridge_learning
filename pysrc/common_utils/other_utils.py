@@ -9,7 +9,7 @@ import datetime
 import os
 import platform
 import random
-from typing import List, Any
+from typing import List, Any, Union
 
 import numpy as np
 import torch
@@ -142,6 +142,16 @@ def allocate_tasks_uniformly(num_processes: int, num_tasks: int) -> List[int]:
         task_counts[i] += 1
 
     return task_counts
+
+
+def allocate_list_uniformly(tasks: Union[List, np.ndarray], num_parts: int) -> List:
+    size = len(tasks)
+    task_counts = allocate_tasks_uniformly(num_parts, size)
+    indices = np.cumsum([0] + task_counts)
+    res = []
+    for i in range(len(indices) - 1):
+        res.append(tasks[indices[i]:indices[i + 1]])
+    return res
 
 
 def to_str_list(l: List[Any]) -> List[str]:

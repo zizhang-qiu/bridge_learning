@@ -197,6 +197,10 @@ add_library(_bridgeplay OBJECT
         playcc/torch_actor_resampler.h
         playcc/torch_opening_lead_bot.cc
         playcc/torch_opening_lead_bot.h
+        playcc/opening_lead_evaluation_thread_loop.cc
+        playcc/opening_lead_evaluation_thread_loop.h
+        playcc/dds_evaluator.cc
+        playcc/dds_evaluator.h
 )
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC rela_lib)

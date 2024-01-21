@@ -31,6 +31,7 @@ ble::BridgeMove TorchOpeningLeadBot::Step(const ble::BridgeState& state) {
   while (num_sample_times < cfg_.num_max_sample
          && num_sampled_worlds < cfg_.num_worlds) {
     const auto resample_result = resampler_.Resample(state);
+    // std::cout << "result: " << resample_result.success << std::endl;
     ++num_sample_times;
     if (resample_result.success) {
       const auto sampled_state = ConstructStateFromDealAndOriginalState(
@@ -48,6 +49,7 @@ ble::BridgeMove TorchOpeningLeadBot::Step(const ble::BridgeState& state) {
   if (cfg_.fill_with_uniform_sample) {
     while (num_sampled_worlds < cfg_.num_worlds) {
       const auto resample_result = uniform_resampler_.Resample(state);
+      // std::cout << "result: " << resample_result.success << std::endl;
       ++num_sample_times;
       if (resample_result.success) {
         const auto sampled_state = ConstructStateFromDealAndOriginalState(
@@ -74,7 +76,8 @@ ble::BridgeMove TorchOpeningLeadBot::Step(const ble::BridgeState& state) {
   // For each sampled worlds, use double dummy result as evaluation.
   for (const auto& sampled_state : states) {
     for (int i = 0; i < num_legal_moves; ++i) {
-      const int score = Rollout(sampled_state, legal_moves[i]);
+      const int score = evaluator_->Rollout(sampled_state, legal_moves[i],
+                                            state.CurrentPlayer());
       res.scores[i] += score;
     }
   }

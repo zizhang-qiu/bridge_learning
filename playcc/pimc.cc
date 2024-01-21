@@ -22,15 +22,11 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   futureTricks fut{};
 
   const int res = SolveBoard(dl,
-                             /*target=*/
-                             -1,
-                             /*solutions=*/
-                             1,
-                             /*mode=*/
-                             2,
+                             /*target=*/-1,    // Maximum number of tricks
+                             /*solutions=*/1,  // One card
+                             /*mode=*/2,       // Reuse tt
                              &fut,
-                             /*threadIndex=*/
-                             0);
+                             /*threadIndex=*/0);
   if (res != RETURN_NO_FAULT) {
     char error_message[80];
     ErrorMessage(res, error_message);
@@ -42,24 +38,28 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   // The player act at original state is declarer side.
   if (const bool is_max_node = IsActingPlayerDeclarerSide(state); is_max_node) {
     // The player act at child state is declarer side.
-    if (ble::Partnership(child_player) == ble::Partnership(state.CurrentPlayer())) {
+    if (ble::Partnership(child_player) == ble::Partnership(
+            state.CurrentPlayer())) {
       return fut.score[0] + child.NumDeclarerTricks() >= contract.level + 6;
-    }
-    else {
+    } else {
       // The player act at child state is defender side.
-      return num_tricks_left - fut.score[0] + child.NumDeclarerTricks() >= contract.level + 6;
+      return num_tricks_left - fut.score[0] + child.NumDeclarerTricks() >=
+             contract.level + 6;
     }
   }
 
   // The player act at original state is defender side.
-  if (ble::Partnership(child_player) == ble::Partnership(state.CurrentPlayer())) {
+  if (ble::Partnership(child_player) ==
+      ble::Partnership(state.CurrentPlayer())) {
     // The player act at child state is defender side.
     // Defender side wins if declarer win less tricks than (target level + 6)
-    const int num_tricks_declarer_can_win = num_tricks_left - fut.score[0] + child.NumDeclarerTricks();
+    const int num_tricks_declarer_can_win =
+        num_tricks_left - fut.score[0] + child.NumDeclarerTricks();
     return num_tricks_declarer_can_win < contract.level + 6;
   }
   // The player act at child state is declarer side.
-  const int num_tricks_declarer_can_win = fut.score[0] + child.NumDeclarerTricks();
+  const int num_tricks_declarer_can_win =
+      fut.score[0] + child.NumDeclarerTricks();
   return num_tricks_declarer_can_win < contract.level + 6;
 }
 
@@ -103,7 +103,8 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
   //    PrintArray(d);
   //  }
   for (int i = 0; i < cfg_.num_worlds; ++i) {
-    auto sampled_state = ConstructStateFromDealAndOriginalState(deals[i], state.ParentGame(), state);
+    auto sampled_state = ConstructStateFromDealAndOriginalState(
+        deals[i], state.ParentGame(), state);
     //    std::cout << sampled_state.ToString() << std::endl;
     for (int j = 0; j < num_legal_moves; ++j) {
       const int score = Rollout(sampled_state, legal_moves[j]);
@@ -115,10 +116,12 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
 }
 
 ble::BridgeMove PIMCBot::Step(const ble::BridgeState& state) {
-  SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()), static_cast<int>(ble::Phase::kPlay));
+  SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()),
+                 static_cast<int>(ble::Phase::kPlay));
   //  const auto legal_moves = state.LegalMoves();
   const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
-  if (const int num_legal_moves = static_cast<int>(legal_moves.size()); num_legal_moves == 1) {
+  if (const int num_legal_moves = static_cast<int>(legal_moves.size());
+    num_legal_moves == 1) {
     if (!cfg_.search_with_one_legal_move) {
       return legal_moves[0];
     }
@@ -133,7 +136,8 @@ ble::BridgeMove PIMCBot::Step(const ble::BridgeState& state) {
 
 void PrintSearchResult(const SearchResult& res) {
   for (int i = 0; i < res.moves.size(); ++i) {
-    std::cout << "Move " << res.moves[i].ToString() << ", Score: " << res.scores[i] << "\n";
+    std::cout << "Move " << res.moves[i].ToString() << ", Score: " << res.scores
+        [i] << "\n";
   }
 }
 
@@ -148,8 +152,10 @@ class PIMCFactory : public BotFactory {
 
     std::unique_ptr<PlayBot> Create(std::shared_ptr<const ble::BridgeGame> game,
                                     ble::Player player,
-                                    const ble::GameParameters& bot_params) override {
-      const int num_worlds = ble::ParameterValue<int>(bot_params, "num_worlds", 20);
+                                    const ble::GameParameters&
+                                    bot_params) override {
+      const int num_worlds = ble::ParameterValue<int>(
+          bot_params, "num_worlds", 20);
       const PIMCConfig cfg{num_worlds, false};
       return MakePIMCBot(player, cfg);
     }

@@ -18,6 +18,7 @@ bool CheckDealLegality(const Container& cards) {
 
 ResampleResult TorchActorResampler::Resample(const ble::BridgeState& state) {
   rela::TensorDict belief;
+  // std::cout <<"Enter resample" << std::endl;
   if (state == state_) {
     // If state equals with cached state, reuse belief.
     belief = belief_;

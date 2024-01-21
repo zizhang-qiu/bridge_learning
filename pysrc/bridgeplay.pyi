@@ -177,7 +177,8 @@ class TorchOpeningLeadBotConfig:
 
 
 class TorchOpeningLeadBot(PlayBot):
-    def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int, cfg: TorchOpeningLeadBotConfig): ...
+    def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int, evaluator: DDSEvaluator,
+                 cfg: TorchOpeningLeadBotConfig): ...
 
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
 
@@ -186,3 +187,31 @@ def load_bot(name: str, game: bridge.BridgeGame, player: bridge.Player) -> PlayB
 
 
 def dds_moves(state: bridge.BridgeState) -> List[bridge.BridgeMove]: ...
+
+
+class DDSEvaluator:
+    def __init__(self): ...
+
+    def rollout(self, state: bridge.BridgeState, move: bridge.BridgeMove, result_for: bridge.Player,
+                rollout_result: int) -> int: ...
+
+
+class ThreadedQueueInt:
+    def __init__(self, max_size: int): ...
+
+    def pop(self) -> int: ...
+
+    def empty(self) -> bool: ...
+
+    def size(self) -> int: ...
+
+
+class OpeningLeadEvaluationThreadLoop(rela.ThreadLoop):
+    def __init__(self,
+                 dds_evaluator: DDSEvaluator,
+                 bot: PlayBot,
+                 game: bridge.BridgeGame,
+                 trajectories: List[List[int]],
+                 queue: ThreadedQueueInt,
+                 thread_idx: int = 0,
+                 verbose: bool = False): ...
