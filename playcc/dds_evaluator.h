@@ -6,6 +6,7 @@
 #define DDS_EVALUATOR_H
 
 #include <mutex>
+#include <condition_variable>
 
 #include "bridge_lib/third_party/dds/include/dll.h"
 #include "bridge_lib/bridge_state.h"
