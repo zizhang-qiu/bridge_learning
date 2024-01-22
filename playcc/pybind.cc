@@ -14,6 +14,7 @@
 #include "torch_actor.h"
 #include "torch_actor_resampler.h"
 #include "torch_opening_lead_bot.h"
+#include "wbridge5_trajectory_bot.h"
 #include "playcc/alpha_mu_bot.h"
 
 namespace py = pybind11;
@@ -153,7 +154,8 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def("rollout", &DDSEvaluator::Rollout)
       .def("play_deal_to_dds_deal", &DDSEvaluator::PlayStateToDDSdeal)
       .def("auction_deal_to_dds_table_deal",
-           &DDSEvaluator::AuctionStateToDDSddTableDeal);
+           &DDSEvaluator::AuctionStateToDDSddTableDeal)
+      .def("dds_moves", &DDSEvaluator::DDSMoves);
 
   py::class_<TorchActor, std::shared_ptr<TorchActor>>(m, "TorchActor")
       .def(py::init<std::shared_ptr<rela::BatchRunner>>())
@@ -213,4 +215,10 @@ PYBIND11_MODULE(bridgeplay, m) {
            py::arg("trajectories"), py::arg("bot_evaluation"),
            py::arg("thread_idx") = 0,
            py::arg("verbose") = false);
+
+  py::class_<WBridge5TrajectoryBot, PlayBot, std::shared_ptr<
+               WBridge5TrajectoryBot>>(m, "WBridge5TrajectoryBot")
+      .def(py::init<const std::vector<std::vector<int>>&,
+                    const std::shared_ptr<ble::BridgeGame>&>())
+      .def("step", &WBridge5TrajectoryBot::Step);
 }

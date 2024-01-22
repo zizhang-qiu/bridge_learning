@@ -201,6 +201,7 @@ add_library(_bridgeplay OBJECT
         playcc/opening_lead_evaluation_thread_loop.h
         playcc/dds_evaluator.cc
         playcc/dds_evaluator.h
+        playcc/wbridge5_trajectory_bot.h
 )
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC rela_lib)

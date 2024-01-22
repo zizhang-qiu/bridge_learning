@@ -53,6 +53,8 @@ class BridgeState {
       return num_cards_played_ >= 1;
     }
 
+    bool IsInPhase(const Phase phase) const { return phase_ == phase; }
+
     Player GetDummy() const;
 
     void ApplyMove(const BridgeMove& move);

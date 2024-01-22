@@ -19,7 +19,7 @@ def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden
         output_size (int): Size of the output layer.
         num_hidden_layers (int): Number of hidden layers.
         hidden_size (int): Number of neurons in each hidden layer.
-        activation_function (nn.Module): Activation function instance.
+        activation_function (Union[nn.Module, str]): Activation function instance.
         activation_args (Optional[Dict]): Additional parameters for the activation function.
         use_dropout (bool): Whether to use Dropout.
         dropout_prob (float): Dropout probability.

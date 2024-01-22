@@ -16,6 +16,7 @@
 #include "playcc/pimc.h"
 #include "playcc/transposition_table.h"
 #include "playcc/deal_analyzer.h"
+#include "playcc/wbridge5_trajectory_bot.h"
 #include "rlcc/belief_data_gen.h"
 
 const ble::GameParameters params = {};
@@ -66,24 +67,31 @@ int main(int argc, char** argv) {
 
   std::cout << state2->ToString() << std::endl;
 
-
   // for (int i = 0; i < 4; ++i)
-    // ApplyRandomMove(state, rng);
+  // ApplyRandomMove(state, rng);
   // std::cout << state << std::endl;
   // const auto encoder = ble::CanonicalEncoder(game, ble::kNumTricks);
   // // const auto encoding = encoder.Encode({state});
   // // rela::utils::printVector(encoding);
   std::vector trajectory = {
-    41, 47, 7, 44, 50, 45, 5, 0, 48, 22, 32, 25, 11, 24, 10, 16, 3, 29, 12, 13, 30, 51, 31, 34, 15, 49, 23, 43, 42, 6,
-    26, 46, 40, 28, 36, 9, 39, 27, 21, 37, 19, 14, 1, 2, 4, 33, 17, 38, 35, 20, 8, 18, 58, 59, 52, 61, 63, 67, 68, 72,
-    52, 52, 52
+      27, 46, 36, 43, 18, 22, 0, 20, 24, 2, 40, 41, 28, 16, 21, 10, 42, 32, 48,
+      47, 13, 17, 3, 5, 12, 25, 34, 8, 29, 38,
+      23, 4, 30, 26, 35, 19, 9, 44, 7, 51, 14, 1, 45, 15, 49, 33, 11, 50, 39,
+      31, 6, 37, 52, 52, 58, 59,
+      52, 61, 52, 62, 52, 64, 52, 52, 52, 39, 31, 3, 47, 41, 13, 1, 45, 21, 5,
+      49, 17, 27, 16, 7, 51, 50,
+      18, 2, 6, 15, 12, 22, 23, 48, 4, 24, 32, 0, 20, 28, 44, 25, 34, 37, 9, 43,
+      14, 26, 11, 10, 30, 46,
+      36, 33, 40, 8, 29, 38, 35, 19, 42
   };
   std::vector<std::vector<int>> trajectories = {trajectory};
 
-  BeliefDataGen gen{trajectories, 1, game};
-  auto data = gen.AllData("cuda");
+  // BeliefDataGen gen{trajectories, 1, game};
+  // auto data = gen.AllData("cuda");
+  //
+  // rela::utils::printMap(data);
 
-  rela::utils::printMap(data);
+  WBridge5TrajectoryBot bot{trajectories, game};
 
   // auto non_zero_indices = FindNonZeroIndices(encoding);
   // rela::utils::printVector(non_zero_indices);

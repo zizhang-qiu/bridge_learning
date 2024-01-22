@@ -48,8 +48,8 @@ class AlphaMuBot final : public PlayBot {
 
     AlphaMuBot(const std::shared_ptr<Resampler>& resampler,
                const AlphaMuConfig cfg,
-               ble::Player player_id) : tt_(), resampler_(resampler),
-                                        cfg_(cfg), player_id_(player_id) {
+               const ble::Player player_id) : tt_(), resampler_(resampler),
+                                              cfg_(cfg), player_id_(player_id) {
     }
 
     ble::BridgeMove Step(const ble::BridgeState& state) override;

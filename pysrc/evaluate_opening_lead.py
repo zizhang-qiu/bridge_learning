@@ -5,36 +5,25 @@
 @file: evaluate_opening_lead.py
 @time: 2024/1/20 13:44
 """
-import contextlib
-import pickle
-import pprint
-import time
-from typing import Dict, Tuple, OrderedDict, List
+from typing import Dict, Tuple, OrderedDict
 
 import yaml
 
+import common_utils
 import set_path
 from agent import BridgeA2CModel
-import common_utils
 
 set_path.append_sys_path()
 import torch
 
 import argparse
-from dataclasses import dataclass
 import os
-import multiprocessing as mp
 import numpy as np
-import logging
-from loguru import logger
 from train_belief import extract_available_trajectories
-from net import MLP
 
 import rela
 import bridge
-import bridgelearn
 import bridgeplay
-from common_utils.value_stats import MultiStats
 
 GAME = bridge.default_game
 
@@ -82,29 +71,29 @@ if __name__ == '__main__':
     datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_threads)
 
     # Load networks
-    policy_conf, policy_state_dict = load_net_conf_and_state_dict(args.policy_model_dir, args.policy_model_name)
-    belief_conf, belief_state_dict = load_net_conf_and_state_dict(args.belief_model_dir, args.belief_model_name)
-
-    agent = BridgeA2CModel(
-        policy_conf=policy_conf,
-        value_conf=dict(
-            hidden_size=2048,
-            num_hidden_layers=6,
-            use_layer_norm=True,
-            activation_function="gelu",
-            output_size=1
-        ),
-        belief_conf=belief_conf
-    )
-    agent.policy_net.load_state_dict(policy_state_dict)
-    agent.belief_net.load_state_dict(belief_state_dict)
-    agent.to(args.device)
-    print("Network loaded.")
+    # policy_conf, policy_state_dict = load_net_conf_and_state_dict(args.policy_model_dir, args.policy_model_name)
+    # belief_conf, belief_state_dict = load_net_conf_and_state_dict(args.belief_model_dir, args.belief_model_name)
+    #
+    # agent = BridgeA2CModel(
+    #     policy_conf=policy_conf,
+    #     value_conf=dict(
+    #         hidden_size=2048,
+    #         num_hidden_layers=6,
+    #         use_layer_norm=True,
+    #         activation_function="gelu",
+    #         output_size=1
+    #     ),
+    #     belief_conf=belief_conf
+    # )
+    # agent.policy_net.load_state_dict(policy_state_dict)
+    # agent.belief_net.load_state_dict(belief_state_dict)
+    # agent.to(args.device)
+    # print("Network loaded.")
 
     dds_evaluator = bridgeplay.DDSEvaluator()
     # Create torch actor
-    batch_runner = rela.BatchRunner(agent, args.device, 100, ["get_policy", "get_belief"])
-    batch_runner.start()
+    # batch_runner = rela.BatchRunner(agent, args.device, 100, ["get_policy", "get_belief"])
+    # batch_runner.start()
 
     cfg = bridgeplay.TorchOpeningLeadBotConfig()
     cfg.num_worlds = args.num_worlds
@@ -114,8 +103,9 @@ if __name__ == '__main__':
     q = bridgeplay.ThreadedQueueInt(int(1.25 * len(test_dataset)))
     context = rela.Context()
     for i in range(args.num_threads):
-        torch_actor = bridgeplay.TorchActor(batch_runner)
-        bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
+        # torch_actor = bridgeplay.TorchActor(batch_runner)
+        # bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
+        bot = bridgeplay.WBridge5TrajectoryBot(datasets[i], bridge.default_game)
         t = bridgeplay.OpeningLeadEvaluationThreadLoop(dds_evaluator, bot, bridge.default_game,
                                                        datasets[i], q, i, verbose=True)
         context.push_thread_loop(t)
@@ -130,4 +120,4 @@ if __name__ == '__main__':
         res.append(num)
 
     print(res)
-    print(f"Num match: {np.sum(res) / len(res)}")
+    print(f"Num match: {np.sum(res)} / {len(res)}")
