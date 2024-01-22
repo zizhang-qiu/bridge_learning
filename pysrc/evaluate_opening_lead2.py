@@ -145,7 +145,7 @@ if __name__ == '__main__':
         line = lines[i].split(" ")
         test_dataset.append([int(x) for x in line])
 
-    test_dataset = extract_available_trajectories(test_dataset)[:20]
+    test_dataset = extract_available_trajectories(test_dataset)
     datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_threads)
 
     queue = mp.SimpleQueue()
