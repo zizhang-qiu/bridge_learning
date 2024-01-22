@@ -130,7 +130,7 @@ class Worker(mp.Process):
             else:
                 self.q.put(0)
 
-            print(f"Process {self.process_idx}, num match: {num_match}/{j + 1}, total: {len(trajectory)}")
+            print(f"Process {self.process_idx}, num match: {num_match}/{j + 1}, total: {len(self.trajectories)}")
 
 
 if __name__ == '__main__':
