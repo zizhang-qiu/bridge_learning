@@ -57,8 +57,8 @@ def parse_args():
     parser.add_argument("--belief_model_dir", type=str, default="belief_sl/exp3")
     parser.add_argument("--belief_model_name", type=str, default="model2.pthw")
 
-    parser.add_argument("--num_worlds", type=int, default=100)
-    parser.add_argument("--num_max_sample", type=int, default=20000)
+    parser.add_argument("--num_worlds", type=int, default=50)
+    parser.add_argument("--num_max_sample", type=int, default=1000)
     parser.add_argument("--fill_with_uniform_sample", type=int, default=1)
 
     parser.add_argument("--num_threads", type=int, default=8)
@@ -113,11 +113,18 @@ class Worker(mp.Process):
 
         torch_actor = bridgeplay.TorchActor(batch_runner)
         bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
+
+        pimc_cfg = bridgeplay.PIMCConfig()
+        pimc_cfg.num_worlds = self.args.num_worlds
+        pimc_cfg.search_with_one_legal_move = False
+        # resampler = bridgeplay.UniformResampler(1)
+        # bot = bridgeplay.PIMCBot(resampler, pimc_cfg)
         # bot = bridgeplay.WBridge5TrajectoryBot(self.trajectories, bridge.default_game)
         num_match = 0
 
         for j, trajectory in enumerate(self.trajectories):
             state = construct_deal_and_bidding_state(trajectory)
+            # print(state)
             assert not state.is_terminal()
             # Get dds moves.
             dds_moves = dds_evaluator.dds_moves(state)

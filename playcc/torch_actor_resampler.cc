@@ -39,6 +39,7 @@ ResampleResult TorchActorResampler::Resample(const ble::BridgeState& state) {
   }
   // std::cout <<"finish sample." << std::endl;
 
+
   const auto game = state.ParentGame();
   auto sample_state = ConstructStateFromDeal(deal, state.ParentGame());
 
@@ -64,6 +65,11 @@ ResampleResult TorchActorResampler::Resample(const ble::BridgeState& state) {
     }
     sample_state.ApplyMove(item.move);
   }
+  // std::cout << "Deal: \n";
+  // for(const int a:deal) {
+  //   std::cout << a << ", ";
+  // }
+  // std::cout << std::endl;
   return {true, deal};
 }
 
@@ -131,6 +137,8 @@ std::array<int, ble::kNumCards> TorchActorResampler::SampleFromBelief(
     const int end_index = sample_relative_player * ble::kNumCards;
     torch::Tensor relative_player_pred = belief_probs.slice(
         0, start_index, end_index).clone();
+  // std::cout << "relative player: " << sample_relative_player << ":\n" <<
+  //     relative_player_pred << std::endl;
     relative_player_pred *= 1 - selected_cards;
     if (torch::count_nonzero(relative_player_pred).item<int>() <
         ble::kNumCardsPerHand) {
@@ -140,6 +148,7 @@ std::array<int, ble::kNumCards> TorchActorResampler::SampleFromBelief(
     torch::Tensor sample_cards = torch::multinomial(
         relative_player_pred, ble::kNumCardsPerHand, false);
     selected_cards = selected_cards.scatter_(0, sample_cards, 1);
+    // std::cout << selected_cards << std::endl;
     deal_cards = deal_cards.scatter_(0,
                                      basic_indices + (
                                        state.CurrentPlayer() +
@@ -150,7 +159,7 @@ std::array<int, ble::kNumCards> TorchActorResampler::SampleFromBelief(
   }
   std::array<int, ble::kNumCards> ret{};
   std::copy_n(deal_cards.data_ptr<int>(),
-            ble::kNumCards, ret.begin());
+              ble::kNumCards, ret.begin());
   // for(int i=0; i< ble::kNumCards; ++i) {
   //   std::cout << ret[i] << std::endl;
   // }

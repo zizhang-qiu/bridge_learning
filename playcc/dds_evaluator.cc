@@ -83,16 +83,17 @@ int DDSEvaluator::Rollout(
     const ble::Player result_for,
     const RolloutResult rollout_result) {
   std::unique_lock<std::mutex> lock(m_);
-  cv_.wait(lock, [this]{return free_;});
+  cv_.wait(lock, [this] { return free_; });
   free_ = false;
   const bool is_result_player_declarer =
-      ble::Partnership(result_for) == ble::Partnership(result_for);
+      ble::Partnership(result_for) == ble::Partnership(
+          state.GetContract().declarer);
   const ble::Player declarer = state.GetContract().declarer;
   const auto child = state.Child(move);
   const ble::Player child_player = child.CurrentPlayer();
   const bool is_child_player_declarer =
       ble::Partnership(child_player) == ble::Partnership(declarer);
-  const auto dl = PlayStateToDDSdeal(state);
+  const auto dl = PlayStateToDDSdeal(child);
 
   SetMaxThreads(0);
 
@@ -156,7 +157,7 @@ int DDSEvaluator::Rollout(
 std::vector<ble::BridgeMove> DDSEvaluator::DDSMoves(
     const ble::BridgeState& state) {
   std::unique_lock<std::mutex> lock(m_);
-  cv_.wait(lock, [this]{return free_;});
+  cv_.wait(lock, [this] { return free_; });
   free_ = false;
   SPIEL_CHECK_FALSE(state.IsTerminal());
   SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()),

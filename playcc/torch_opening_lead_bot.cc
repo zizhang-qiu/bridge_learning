@@ -26,7 +26,7 @@ ble::BridgeMove TorchOpeningLeadBot::Step(const ble::BridgeState& state) {
     std::cout << "Start sample." << std::endl;
   }
   std::vector<ble::BridgeState> states;
-  states.reserve(cfg_.num_worlds);
+  // states.reserve(cfg_.num_worlds);
   // Sample from belief
   while (num_sample_times < cfg_.num_max_sample
          && num_sampled_worlds < cfg_.num_worlds) {
@@ -52,8 +52,11 @@ ble::BridgeMove TorchOpeningLeadBot::Step(const ble::BridgeState& state) {
       // std::cout << "result: " << resample_result.success << std::endl;
       ++num_sample_times;
       if (resample_result.success) {
+        // std::cout << "result: " << std::endl;
+        // PrintArray(resample_result.result);
         const auto sampled_state = ConstructStateFromDealAndOriginalState(
             resample_result.result, state.ParentGame(), state);
+        // std::cout << sampled_state << std::endl;
         states.push_back(sampled_state);
         ++num_sampled_worlds;
       }
@@ -75,7 +78,9 @@ ble::BridgeMove TorchOpeningLeadBot::Step(const ble::BridgeState& state) {
 
   // For each sampled worlds, use double dummy result as evaluation.
   for (const auto& sampled_state : states) {
+    if (cfg_.verbose) std::cout << sampled_state << std::endl;
     for (int i = 0; i < num_legal_moves; ++i) {
+
       const int score = evaluator_->Rollout(sampled_state, legal_moves[i],
                                             state.CurrentPlayer(),
                                             /*rollout_result=*/

@@ -188,11 +188,11 @@ print(env)
 f = env.feature()
 f["s"] = f["s"][:480]
 
-policy = torch_actor.get_policy(f)
-print(policy)
-
-belief = torch_actor.get_belief(f)
-print(belief)
+# policy = torch_actor.get_policy(f)
+# print(policy)
+#
+# belief = torch_actor.get_belief(f)
+# print(belief)
 
 # torch_sampler = bridgeplay.TorchActorResampler(torch_actor, bridge.default_game, 23)
 #
@@ -259,32 +259,31 @@ dds_evaluator = bridgeplay.DDSEvaluator()
 # print(state2)
 
 # Load dataset
-dataset_dir = r"D:\Projects\bridge_research\expert"
-with open(os.path.join(dataset_dir, "test.txt"), "r") as f:
-    lines = f.readlines()
-test_dataset = []
+# dataset_dir = r"D:\Projects\bridge_research\expert"
+# with open(os.path.join(dataset_dir, "test.txt"), "r") as f:
+#     lines = f.readlines()
+# test_dataset = []
+#
+# for i in range(len(lines)):
+#     line = lines[i].split(" ")
+#     test_dataset.append([int(x) for x in line])
+#
+# test_dataset = extract_available_trajectories(test_dataset)[:10]
+#
+# context = rela.Context()
+# q = bridgeplay.ThreadedQueueInt(10000)
 
-for i in range(len(lines)):
-    line = lines[i].split(" ")
-    test_dataset.append([int(x) for x in line])
-
-test_dataset = extract_available_trajectories(test_dataset)[:10]
-
-
-context = rela.Context()
-q = bridgeplay.ThreadedQueueInt(10000)
-
-num_threads = 3
-datasets = allocate_list_uniformly(test_dataset, num_threads)
-print(len(datasets))
-for d in datasets:
-    print(len(d))
-
-for i in range(num_threads):
-    torch_actor = bridgeplay.TorchActor(batch_runner)
-    bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
-    t = bridgeplay.OpeningLeadEvaluationThreadLoop(dds_evaluator, bot, bridge.default_game,
-                                                   test_dataset[i * 20:(i + 1) * 20], q, i, verbose=True)
+# num_threads = 3
+# datasets = allocate_list_uniformly(test_dataset, num_threads)
+# print(len(datasets))
+# for d in datasets:
+#     print(len(d))
+#
+# for i in range(num_threads):
+#     torch_actor = bridgeplay.TorchActor(batch_runner)
+#     bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
+#     t = bridgeplay.OpeningLeadEvaluationThreadLoop(dds_evaluator, bot, bridge.default_game,
+#                                                    test_dataset[i * 20:(i + 1) * 20], q, i, verbose=True)
 
 #     num_t = context.push_thread_loop(t)
 #     print(num_t)
@@ -298,3 +297,24 @@ for i in range(num_threads):
 #     res.append(num)
 #
 # print(res)
+
+deal1 = [27, 37, 2, 23, 18, 51, 33, 20, 24, 50, 3, 4, 28, 35, 6, 38, 42, 0, 31, 11, 13, 32, 26, 43, 12, 5, 15, 21, 29,
+         47, 25, 41, 30, 36, 17, 34, 9, 1, 46, 44, 14, 16, 22, 8, 49, 45, 40, 19, 39, 48, 10, 7]
+deal2 = [27, 11, 8, 21, 18, 15, 38, 37, 24, 46, 0, 44, 28, 47, 48, 10, 42, 7, 36, 5, 13, 1, 20, 17, 12, 16, 19, 4, 29,
+         34, 6, 3, 30, 45, 32, 26, 9, 31, 2, 43, 14, 23, 25, 33, 49, 35, 22, 40, 39, 50, 51, 41, ]
+
+
+def construct_state(deal: List[int]):
+    assert len(deal) == 52
+    state = bridge.BridgeState(bridge.default_game)
+    for uid in deal:
+        move = state.parent_game().get_chance_outcome(uid)
+        state.apply_move(move)
+    return state
+
+
+state1 = construct_state(deal1)
+state2 = construct_state(deal2)
+
+print(state1)
+print(state2)
