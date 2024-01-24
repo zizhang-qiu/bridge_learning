@@ -1,3 +1,4 @@
+from enum import IntEnum
 from typing import List, Dict, Optional
 import bridge
 import rela
@@ -173,6 +174,7 @@ class TorchOpeningLeadBotConfig:
     num_max_sample: int = 1000
     num_worlds: int = 20
     fill_with_uniform_sample: bool = True
+    rollout_result: RolloutResult = RolloutResult.WIN_LOSE
     verbose: bool
 
 
@@ -189,11 +191,17 @@ def load_bot(name: str, game: bridge.BridgeGame, player: bridge.Player) -> PlayB
 def dds_moves(state: bridge.BridgeState) -> List[bridge.BridgeMove]: ...
 
 
+class RolloutResult(IntEnum):
+    WIN_LOSE = 0
+    NUM_FUTURE_TRICKS = 1
+    NUM_TOTAL_TRICKS = 2
+
+
 class DDSEvaluator:
     def __init__(self): ...
 
     def rollout(self, state: bridge.BridgeState, move: bridge.BridgeMove, result_for: bridge.Player,
-                rollout_result: int) -> int: ...
+                rollout_result: RolloutResult) -> int: ...
 
     def dds_moves(self, state: bridge.BridgeState) -> List[bridge.BridgeMove]: ...
 

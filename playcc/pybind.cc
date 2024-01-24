@@ -149,6 +149,12 @@ PYBIND11_MODULE(bridgeplay, m) {
                           ble::Player,
                           const ble::GameParameters&>(&LoadBot));
 
+  py::enum_<RolloutResult>(m, "RolloutResult")
+      .value("WIN_LOSE", RolloutResult::kWinLose)
+      .value("NUM_FUTURE_TRICKS", RolloutResult::kNumFutureTricks)
+      .value("NUM_TOTAL_TRICKS", RolloutResult::kNumTotalTricks)
+      .export_values();
+
   py::class_<DDSEvaluator, std::shared_ptr<DDSEvaluator>>(m, "DDSEvaluator")
       .def(py::init<>())
       .def("rollout", &DDSEvaluator::Rollout)
@@ -176,6 +182,8 @@ PYBIND11_MODULE(bridgeplay, m) {
                      &TorchOpeningLeadBotConfig::num_max_sample)
       .def_readwrite("fill_with_uniform_sample",
                      &TorchOpeningLeadBotConfig::fill_with_uniform_sample)
+      .def_readwrite("rollout_result",
+                     &TorchOpeningLeadBotConfig::rollout_result)
       .def_readwrite("verbose", &TorchOpeningLeadBotConfig::verbose);
 
   py::class_<TorchOpeningLeadBot, PlayBot, std::shared_ptr<

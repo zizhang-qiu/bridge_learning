@@ -77,7 +77,9 @@ ble::BridgeMove TorchOpeningLeadBot::Step(const ble::BridgeState& state) {
   for (const auto& sampled_state : states) {
     for (int i = 0; i < num_legal_moves; ++i) {
       const int score = evaluator_->Rollout(sampled_state, legal_moves[i],
-                                            state.CurrentPlayer());
+                                            state.CurrentPlayer(),
+                                            /*rollout_result=*/
+                                            cfg_.rollout_result);
       res.scores[i] += score;
     }
   }

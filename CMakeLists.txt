@@ -134,11 +134,12 @@ add_library(_bridgelearn OBJECT
         rlcc/bridge_env.cc
         rlcc/bridge_dataset.h
         rlcc/bridge_dataset.cc
-        rlcc/bridge_agent.cc
-        rlcc/bridge_agent.h
         rlcc/supervise_data_generator.h
         rlcc/belief_data_gen.cc
         rlcc/belief_data_gen.h
+        rlcc/bridge_actor.h
+        rlcc/actor_based_belief_gen.cc
+        rlcc/actor_based_belief_gen.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

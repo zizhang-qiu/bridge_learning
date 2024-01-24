@@ -57,8 +57,8 @@ def parse_args():
     parser.add_argument("--belief_model_dir", type=str, default="belief_sl/exp3")
     parser.add_argument("--belief_model_name", type=str, default="model2.pthw")
 
-    parser.add_argument("--num_worlds", type=int, default=20)
-    parser.add_argument("--num_max_sample", type=int, default=1000)
+    parser.add_argument("--num_worlds", type=int, default=100)
+    parser.add_argument("--num_max_sample", type=int, default=20000)
     parser.add_argument("--fill_with_uniform_sample", type=int, default=1)
 
     parser.add_argument("--num_threads", type=int, default=8)
@@ -109,10 +109,11 @@ class Worker(mp.Process):
         cfg.num_max_sample = self.args.num_max_sample
         cfg.fill_with_uniform_sample = bool(self.args.fill_with_uniform_sample)
         cfg.verbose = False
+        cfg.rollout_result = bridgeplay.RolloutResult.NUM_FUTURE_TRICKS
 
         torch_actor = bridgeplay.TorchActor(batch_runner)
         bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
-
+        # bot = bridgeplay.WBridge5TrajectoryBot(self.trajectories, bridge.default_game)
         num_match = 0
 
         for j, trajectory in enumerate(self.trajectories):
@@ -145,7 +146,7 @@ if __name__ == '__main__':
         line = lines[i].split(" ")
         test_dataset.append([int(x) for x in line])
 
-    test_dataset = extract_available_trajectories(test_dataset)
+    test_dataset = extract_available_trajectories(test_dataset)[:1000]
     datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_threads)
 
     queue = mp.SimpleQueue()
@@ -167,3 +168,4 @@ if __name__ == '__main__':
         results.append(item)
 
     print(f"Final result: {sum(results)}/{len(results)}")
+    # 663 817

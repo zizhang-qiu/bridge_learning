@@ -14,6 +14,7 @@ struct TorchOpeningLeadBotConfig {
   // Set to true if we need to sample num_worlds worlds and after num_max_sample
   // times we still haven't got that.
   bool fill_with_uniform_sample = true;
+  RolloutResult rollout_result = kWinLose;
   bool verbose = false;
 };
 
