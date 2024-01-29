@@ -140,6 +140,7 @@ add_library(_bridgelearn OBJECT
         rlcc/bridge_actor.h
         rlcc/actor_based_belief_gen.cc
         rlcc/actor_based_belief_gen.h
+
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
@@ -203,6 +204,12 @@ add_library(_bridgeplay OBJECT
         playcc/dds_evaluator.cc
         playcc/dds_evaluator.h
         playcc/wbridge5_trajectory_bot.h
+        playcc/rule_based_defender.cc
+        playcc/rule_based_defender.h
+        playcc/sayc/range.h
+        playcc/sayc/hand_analyzer.h
+        playcc/sayc/hand_info.h
+        playcc/sayc/range.cc
 )
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC rela_lib)

@@ -53,6 +53,12 @@ class BridgeState {
       return num_cards_played_ >= 1;
     }
 
+    const BridgeHand& DummyHand() const {
+      REQUIRE(num_cards_played_>=1);
+      const auto dummy = GetDummy();
+      return hands_[dummy];
+    }
+
     bool IsInPhase(const Phase phase) const { return phase_ == phase; }
 
     Player GetDummy() const;

@@ -8,6 +8,8 @@
 #include "bridge_lib/bridge_utils.h"
 #include "bridge_lib/utils.h"
 
+#include "deck_sampler.h"
+
 std::vector<ble::BridgeHistoryItem> GetPlayHistory(
     const std::vector<ble::BridgeHistoryItem>& history) {
   std::vector<ble::BridgeHistoryItem> play_history;
@@ -79,7 +81,7 @@ deal StateToDDSDeal(const ble::BridgeState& state) {
   memset(dl.currentTrickSuit, 0, 3 * sizeof(dl.currentTrickSuit));
   memset(dl.currentTrickRank, 0, 3 * sizeof(dl.currentTrickSuit));
   for (int i = 0; i < num_card_played_current_trick; ++i) {
-    ble::BridgeHistoryItem item = play_history[
+    const ble::BridgeHistoryItem item = play_history[
       num_tricks_played * ble::kNumPlayers + i];
     dl.currentTrickSuit[i] = ble::SuitToDDSSuit(item.suit);
     dl.currentTrickRank[i] = ble::RankToDDSRank(item.rank);
@@ -166,8 +168,8 @@ std::vector<ble::BridgeCard> ExtractCardsBySuitsFromCardsVec(
     const std::set<ble::Suit>& suits) {
   std::vector<ble::BridgeCard> rv{};
   for (const auto& card : cards) {
-    ble::Suit card_suit = card.CardSuit();
-    if (suits.find(card_suit) != suits.end()) {
+    if (ble::Suit card_suit = card.CardSuit();
+      suits.find(card_suit) != suits.end()) {
       rv.push_back(card);
     }
   }
@@ -199,15 +201,15 @@ std::vector<ble::BridgeMove> GetLegalMovesWithoutEquivalentCards(
   const auto dummy_hand = state.Hands()[state.GetDummy()];
   const auto declarer_hand = state.Hands()[state.GetContract().declarer];
 
-  const bool is_dummy_acting = state.IsDummyActing();
+  // const bool is_dummy_acting = state.IsDummyActing();
 
   // Get all cards we need to analyze.
   std::vector<ble::BridgeCard> all_cards = GenerateAllCardsBySuits(suits);
   //  std::vector<int> all_cards_indices = ble::Arange(0, ble::kNumCards);
   // First, erase the played cards.
   for (const auto& card : played_cards) {
-    auto it = std::find(all_cards.begin(), all_cards.end(), card);
-    if (it != all_cards.end()) {
+    if (auto it = std::find(all_cards.begin(), all_cards.end(), card);
+      it != all_cards.end()) {
       all_cards.erase(it);
     }
   }
@@ -377,7 +379,7 @@ std::vector<ble::BridgeMove> GetMovesFromFutureTricks(const futureTricks& fut) {
       const std::vector<int> positions = FindSetBitPositions(fut.equals[i]);
       for (const int pos : positions) {
         moves.emplace_back(
-                          /*move_type=*/ble::BridgeMove::Type::kPlay,
+            /*move_type=*/ble::BridgeMove::Type::kPlay,
                           /*suit=*/ble::DDSSuitToSuit(fut.suit[i]),
                           /*rank=*/ble::DDSRankToRank(pos),
                           /*denomination=*/ble::kInvalidDenomination,
@@ -400,6 +402,72 @@ void ApplyRandomMove(ble::BridgeState& state, std::mt19937& rng) {
   const auto legal_moves = state.LegalMoves();
   const auto random_move = UniformSample(legal_moves, rng);
   state.ApplyMove(random_move);
+}
+
+ble::BridgeCard CardFromString(const std::string& card_string) {
+  SPIEL_CHECK_EQ(card_string.size(), 2);
+  const auto suit_it = std::find(std::begin(ble::kSuitChar),
+                                 std::end(ble::kSuitChar),
+                                 card_string[0]);
+  if (suit_it == std::end(ble::kSuitChar)) {
+    // Return a invalid card.
+    std::cerr << "Getting card from wrong card string " << card_string <<
+        std::endl;
+    return {};
+  }
+  const auto suit = static_cast<ble::Suit>(std::distance(
+      std::begin(ble::kSuitChar), suit_it));
+
+  const auto rank_it = std::find(std::begin(ble::kRankChar),
+                                 std::end(ble::kRankChar),
+                                 card_string[1]);
+  if (rank_it == std::end(ble::kRankChar)) {
+    // Return a invalid card.
+    std::cerr << "Getting card from wrong card string " << card_string <<
+        std::endl;
+    return {};
+  }
+
+  const auto rank = static_cast<int>(std::distance(
+      std::begin(ble::kRankChar), rank_it));
+
+  return {suit, rank};
+
+}
+
+ble::BridgeState ConstructStateFromCardStrings(
+    const std::array<std::vector<std::string>, ble::kNumPlayers>& cards,
+    const std::shared_ptr<ble::BridgeGame>& game,
+    std::mt19937& rng) {
+
+  // Get known cards.
+  std::vector<ble::BridgeHand> hands(ble::kNumPlayers);
+  for (const ble::Player player : ble::kAllSeats) {
+    for (const std::string& card_str : cards[player]) {
+      const auto card = CardFromString(card_str);
+      hands[player].AddCard(card);
+    }
+  }
+
+  DeckSampler deck_sampler{};
+
+  deck_sampler.DealKnownCards(hands);
+
+  // Fill hands uniformly.
+  for (const ble::Player player : ble::kAllSeats) {
+    const int num_cards_left = ble::kNumCardsPerHand - static_cast<int>(hands[
+                                 player].Cards().size());
+    for (int i = 0; i < num_cards_left; ++i) {
+      const auto card = deck_sampler.Sample(rng);
+      SPIEL_CHECK_TRUE(card.IsValid());
+      hands[player].AddCard(card);
+    }
+  }
+
+  const auto deal = HandsToCardIndices(hands);
+  const ble::BridgeState state = ConstructStateFromDeal(deal, game);
+  return state;
+
 }
 
 ble::BridgeState ConstructStateFromTrajectory(

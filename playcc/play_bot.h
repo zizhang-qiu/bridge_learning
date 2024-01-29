@@ -26,8 +26,7 @@ class PlayBot {
     }
 
     // Restarts the bot to its initial state, ready to start a new trajectory.
-    virtual void Restart() {
-    }
+    virtual void Restart() {}
 
     // Configure the bot to be on the given `state` which can be arbitrary.
     // Bot not supporting this feature can raise an error.
@@ -40,9 +39,10 @@ class BotFactory {
   public:
     virtual ~BotFactory() = default;
 
-    virtual std::unique_ptr<PlayBot> Create(std::shared_ptr<const ble::BridgeGame> game,
-                                            ble::Player player,
-                                            const ble::GameParameters& bot_params) = 0;
+    virtual std::unique_ptr<PlayBot> Create(
+        std::shared_ptr<const ble::BridgeGame> game,
+        ble::Player player,
+        const ble::GameParameters& bot_params) = 0;
 };
 
 #define CONCAT_(x, y) x##y
@@ -55,9 +55,11 @@ class BotRegisterer {
                   std::unique_ptr<BotFactory> factory);
 
     static std::unique_ptr<PlayBot> CreateByName(const std::string& bot_name,
-                                                 std::shared_ptr<const ble::BridgeGame> game,
+                                                 std::shared_ptr<const
+                                                   ble::BridgeGame> game,
                                                  ble::Player player_id,
-                                                 const ble::GameParameters& params);
+                                                 const ble::GameParameters&
+                                                 params);
 
     static std::vector<std::string> RegisteredBots();
 
@@ -87,12 +89,14 @@ std::vector<std::string> RegisteredBots();
 // name plus optional parameters, e.g.
 // "fixed_action_preference(action_list=0;1;2;3)"
 std::unique_ptr<PlayBot> LoadBot(const std::string& bot_name,
-                                 const std::shared_ptr<const ble::BridgeGame>& game,
+                                 const std::shared_ptr<const ble::BridgeGame>&
+                                 game,
                                  ble::Player player_id);
 
 // Returns a new bot with the specified parameters.
 std::unique_ptr<PlayBot> LoadBot(const std::string& bot_name,
-                                 const std::shared_ptr<const ble::BridgeGame>& game,
+                                 const std::shared_ptr<const ble::BridgeGame>&
+                                 game,
                                  ble::Player player_id,
                                  const ble::GameParameters& bot_params);
 

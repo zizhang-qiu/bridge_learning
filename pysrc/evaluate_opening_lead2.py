@@ -26,8 +26,8 @@ from train_belief import extract_available_trajectories
 
 def load_net_conf_and_state_dict(model_dir: str, model_name: str, net_conf_filename: str = "net.yaml") \
         -> Tuple[Dict, OrderedDict]:
-    with open(os.path.join(model_dir, net_conf_filename), "r") as f:
-        conf = yaml.full_load(f)
+    with open(os.path.join(model_dir, net_conf_filename), "r") as fp:
+        conf = yaml.full_load(fp)
     state_dict_path = os.path.join(model_dir, model_name)
     state_dict = torch.load(state_dict_path)
     return conf, state_dict
@@ -57,8 +57,8 @@ def parse_args():
     parser.add_argument("--belief_model_dir", type=str, default="belief_sl/exp3")
     parser.add_argument("--belief_model_name", type=str, default="model2.pthw")
 
-    parser.add_argument("--num_worlds", type=int, default=50)
-    parser.add_argument("--num_max_sample", type=int, default=1000)
+    parser.add_argument("--num_worlds", type=int, default=100)
+    parser.add_argument("--num_max_sample", type=int, default=10000)
     parser.add_argument("--fill_with_uniform_sample", type=int, default=1)
 
     parser.add_argument("--num_threads", type=int, default=8)
@@ -117,8 +117,8 @@ class Worker(mp.Process):
         pimc_cfg = bridgeplay.PIMCConfig()
         pimc_cfg.num_worlds = self.args.num_worlds
         pimc_cfg.search_with_one_legal_move = False
-        # resampler = bridgeplay.UniformResampler(1)
-        # bot = bridgeplay.PIMCBot(resampler, pimc_cfg)
+        resampler = bridgeplay.UniformResampler(1)
+        bot = bridgeplay.PIMCBot(resampler, pimc_cfg)
         # bot = bridgeplay.WBridge5TrajectoryBot(self.trajectories, bridge.default_game)
         num_match = 0
 

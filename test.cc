@@ -3,7 +3,7 @@
 //
 #include <iostream>
 
-#include "torch/torch.h"
+// #include "torch/torch.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
 // #include "rela/batcher.h"
@@ -16,8 +16,10 @@
 #include "playcc/pimc.h"
 #include "playcc/transposition_table.h"
 #include "playcc/deal_analyzer.h"
+#include "playcc/rule_based_defender.h"
 #include "playcc/wbridge5_trajectory_bot.h"
-#include "rlcc/belief_data_gen.h"
+#include "playcc\sayc\hand_analyzer.h"
+// #include "rlcc/belief_data_gen.h"
 
 const ble::GameParameters params = {};
 const auto game = std::make_shared<ble::BridgeGame>(params);
@@ -33,6 +35,10 @@ std::vector<size_t> FindNonZeroIndices(const std::vector<int>& vec) {
 
   return indices;
 }
+
+enum A { a };
+
+enum B { b };
 
 int main(int argc, char** argv) {
   // rela::FutureReply fut(0);
@@ -51,21 +57,21 @@ int main(int argc, char** argv) {
   // basic_indices.scatter_(0, torch::tensor({0, 1}), 3);
   // std::cout << basic_indices << std::endl;
   // std::cout << basic_indices << std::endl;
-  auto deal = ble::example_deals[0];
-  auto state = ConstructStateFromDeal(deal, game);
-  std::mt19937 rng(1);
-  while (state.CurrentPhase() == ble::Phase::kAuction) {
-    const auto legal_moves = state.LegalMoves();
-    const auto random_move = UniformSample(legal_moves, rng);
-    state.ApplyMove(random_move);
-  }
-
-  std::cout << torch::cuda::is_available() << std::endl;
-  torch::Device d{"cuda"};
-
-  auto state2 = std::make_unique<ble::BridgeState>(game);
-
-  std::cout << state2->ToString() << std::endl;
+  // auto deal = ble::example_deals[0];
+  // auto state = ConstructStateFromDeal(deal, game);
+  // std::mt19937 rng(1);
+  // while (state.CurrentPhase() == ble::Phase::kAuction) {
+  //   const auto legal_moves = state.LegalMoves();
+  //   const auto random_move = UniformSample(legal_moves, rng);
+  //   state.ApplyMove(random_move);
+  // }
+  //
+  // std::cout << torch::cuda::is_available() << std::endl;
+  // torch::Device d{"cuda"};
+  //
+  // auto state2 = std::make_unique<ble::BridgeState>(game);
+  //
+  // std::cout << state2->ToString() << std::endl;
 
   // for (int i = 0; i < 4; ++i)
   // ApplyRandomMove(state, rng);
@@ -91,7 +97,7 @@ int main(int argc, char** argv) {
   //
   // rela::utils::printMap(data);
 
-  WBridge5TrajectoryBot bot{trajectories, game};
+  // WBridge5TrajectoryBot bot{trajectories, game};
 
   // auto non_zero_indices = FindNonZeroIndices(encoding);
   // rela::utils::printVector(non_zero_indices);
@@ -104,4 +110,57 @@ int main(int argc, char** argv) {
   // rela::utils::printVector(encoding);
   // encoding = encoder.EncodeOtherHands({state});
   // rela::utils::printVector(encoding);
+  // for(const auto suit:ble::kSuitChar) {
+  //   for(const auto rank:ble::kRankChar) {
+  //     std::string card_string = {suit, rank};
+  //     std::cout << card_string << std::endl;
+  //     auto card = CardFromString(card_string);
+  //     std::cout << card << std::endl;
+  //   }
+  // }
+
+  // const std::array<std::vector<std::string>, ble::kNumPlayers> cards = {{
+  //         {"HA", "HQ", "H8", "H7", "H5"}, {"HT", "H9", "H6"},
+  //         {"HK", "HJ", "H2"}, {"H4", "H3"}}
+  // };
+  //
+  // std::mt19937 rng(1);
+  // auto state = ConstructStateFromCardStrings(cards,
+  //                                            ble::default_game, rng);
+  // std::cout << state << std::endl;
+  //
+  // std::vector<int> bids = {52, 52, 52,
+  //                          ble::BidIndex(1, ble::Denomination::kClubsTrump) +
+  //                          52,
+  //                          52, 52, 52};
+  // for (const int bid : bids) {
+  //   state.ApplyMove(state.ParentGame()->GetMove(bid));
+  // }
+  // std::cout << state << std::endl;
+  //
+  // // Opening lead.
+  // const ble::BridgeMove opening_lead{ble::BridgeMove::Type::kPlay,
+  //                                    ble::Suit::kHeartsSuit, 3,
+  //                                    ble::Denomination::kInvalidDenomination,
+  //                                    -1, ble::kNotOtherCall};
+  // state.ApplyMove(opening_lead);
+  // std::cout << state << std::endl;
+  //
+  // auto rule_result = RuleOf10And12(state);
+  // std::cout << rule_result.higher_cards_declarer_hold << std::endl;
+  std::vector<std::string> card_strings = {"S8", "S4", "HA", "HJ", "H9", "H8",
+                                           "H4", "CK", "C7", "C4", "DJ", "D9",
+                                           "D8"};
+  ble::BridgeHand hand{};
+  for(const auto& card_str:card_strings) {
+    auto card = CardFromString(card_str);
+    hand.AddCard(card);
+  }
+
+  std::cout << hand << std::endl;
+
+  sayc::HandAnalyzer hand_analyzer{hand};
+
+  bool is_balanced = hand_analyzer.IsBalanced();
+  std::cout << std::boolalpha << is_balanced << std::endl;
 }

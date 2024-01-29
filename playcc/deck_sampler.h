@@ -9,14 +9,16 @@ namespace ble = bridge_learning_env;
 
 class DeckSampler {
   public:
-    DeckSampler() : deck_() {
+    DeckSampler() {
+      Reset();
     }
 
     void Reset() { deck_ = ble::BridgeDeck(); }
 
     // Sample a card which is not a specified suit from deck.
     ble::BridgeCard SampleNotSuit(const ble::Suit suit, std::mt19937& rng) {
-      const std::array<std::vector<ble::BridgeCard>, ble::kNumSuits> cards_by_suits = deck_.CardsBySuits();
+      const std::array<std::vector<ble::BridgeCard>, ble::kNumSuits>
+          cards_by_suits = deck_.CardsBySuits();
       std::vector<ble::BridgeCard> legal_cards;
       for (const ble::Suit s : ble::kAllSuits) {
         if (s == suit) {
@@ -29,15 +31,18 @@ class DeckSampler {
       if (legal_cards.empty()) {
         return {};
       }
-      std::uniform_int_distribution<int> dis(0, static_cast<int>(legal_cards.size()) - 1);
+      std::uniform_int_distribution<int> dis(
+          0, static_cast<int>(legal_cards.size()) - 1);
       const auto random_index = dis(rng);
       const ble::BridgeCard sampled_card = legal_cards[random_index];
       deck_.DealCard(sampled_card.Index());
       return sampled_card;
     }
 
-    ble::BridgeCard SampleNotSuits(const std::vector<ble::Suit>& suits, std::mt19937& rng) {
-      const std::array<std::vector<ble::BridgeCard>, ble::kNumSuits> cards_by_suits = deck_.CardsBySuits();
+    ble::BridgeCard SampleNotSuits(const std::vector<ble::Suit>& suits,
+                                   std::mt19937& rng) {
+      const std::array<std::vector<ble::BridgeCard>, ble::kNumSuits>
+          cards_by_suits = deck_.CardsBySuits();
       std::vector<ble::BridgeCard> legal_cards;
       for (const ble::Suit s : ble::kAllSuits) {
         if (std::find(suits.begin(), suits.end(), s) != suits.end()) {
@@ -50,7 +55,8 @@ class DeckSampler {
       if (legal_cards.empty()) {
         return {};
       }
-      std::uniform_int_distribution<int> dis(0, static_cast<int>(legal_cards.size()) - 1);
+      std::uniform_int_distribution<int> dis(
+          0, static_cast<int>(legal_cards.size()) - 1);
       const auto random_index = dis(rng);
       const ble::BridgeCard sampled_card = legal_cards[random_index];
       deck_.DealCard(sampled_card.Index());
@@ -61,7 +67,8 @@ class DeckSampler {
     ble::BridgeCard Sample(std::mt19937& rng) {
       const std::vector<ble::BridgeCard> legal_cards = deck_.Cards();
 
-      std::uniform_int_distribution<int> dis(0, static_cast<int>(legal_cards.size()) - 1);
+      std::uniform_int_distribution<int> dis(
+          0, static_cast<int>(legal_cards.size()) - 1);
       const auto random_index = dis(rng);
       //  std::cout << "random index: " << random_index << std::endl;
       const ble::BridgeCard sampled_card = legal_cards[random_index];
@@ -77,6 +84,8 @@ class DeckSampler {
         }
       }
     }
+
+    const ble::BridgeDeck& Deck() const { return deck_; }
 
   private:
     ble::BridgeDeck deck_;
