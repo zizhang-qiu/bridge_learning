@@ -7,6 +7,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
 // #include "rela/batcher.h"
+#include <playcc/sayc/model.h>
+
 #include "playcc/alpha_mu_search.h"
 #include "playcc/bridge_state_without_hidden_info.h"
 #include "bridge_lib/bridge_state.h"
@@ -163,4 +165,11 @@ int main(int argc, char** argv) {
 
   bool is_balanced = hand_analyzer.IsBalanced();
   std::cout << std::boolalpha << is_balanced << std::endl;
+
+  auto exprs = sayc::HonorVariables(ble::kClubsSuit);
+
+  for(const auto expr:exprs) {
+    std::cout << expr << std::endl;
+  }
+
 }

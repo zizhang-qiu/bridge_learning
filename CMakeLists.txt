@@ -210,6 +210,9 @@ add_library(_bridgeplay OBJECT
         playcc/sayc/hand_analyzer.h
         playcc/sayc/hand_info.h
         playcc/sayc/range.cc
+        playcc/sayc/named_enum.cc
+        playcc/sayc/named_enum.h
+        playcc/sayc/hand_info.cc
 )
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC rela_lib)

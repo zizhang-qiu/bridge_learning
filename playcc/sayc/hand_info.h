@@ -4,8 +4,9 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_SAYC_HAND_INFO_H_
 #define BRIDGE_LEARNING_PLAYCC_SAYC_HAND_INFO_H_
-#include "range.h"
 #include "hand_analyzer.h"
+#include "range.h"
+
 
 namespace ble = bridge_learning_env;
 
