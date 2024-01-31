@@ -14,10 +14,7 @@ namespace sayc {
 // e.g. 1NT can cause hcp Range(15, 17).
 class Range {
   public:
-    Range(const int max, const int min)
-      : max_(max), min_(min) {
-      SPIEL_CHECK_GE(max_, min_);
-    }
+    Range(int min, int max);
 
     Range(const int value)
       : max_(value), min_(value) {}
@@ -34,7 +31,7 @@ class Range {
 
     void SetMin(const int min) { min_ = min; }
 
-    bool Contains(const int value) const;
+    bool Contains(int value) const;
 
   private:
     int max_;

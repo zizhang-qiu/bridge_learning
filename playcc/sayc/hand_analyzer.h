@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "bridge_lib/bridge_hand.h"
+#include "playcc/log_utils.h"
 namespace ble = bridge_learning_env;
 
 namespace sayc {
@@ -22,16 +23,24 @@ balanced_hand = {
 
 class HandAnalyzer {
   public:
-    explicit HandAnalyzer(const ble::BridgeHand& hand)
-      : hand_(hand) {
+    HandAnalyzer() = default;
+
+    explicit HandAnalyzer(const ble::BridgeHand& hand) {
+      SetHand(hand);
+    }
+
+    void SetHand(const ble::BridgeHand& hand) {
+      SPIEL_CHECK_TRUE(hand.IsFullHand());
+      hand_ = hand;
       cards_by_suit_ = hand_.CardsBySuits();
     }
 
     [[nodiscard]] bool IsBalanced() const {
       const auto suit_length = GetSortedSuitLength();
-      const auto it = std::find(balanced_hand.begin(), balanced_hand.end(),
-                                suit_length);
-      return it != balanced_hand.end();
+      const auto iterator = std::find(balanced_hand.begin(),
+                                      balanced_hand.end(),
+                                      suit_length);
+      return iterator != balanced_hand.end();
     }
 
     [[nodiscard]] std::array<int, ble::kNumSuits> GetSuitLength() const {
@@ -52,8 +61,6 @@ class HandAnalyzer {
     int HighCardPoints() const {
       return hand_.HighCardPoints();
     }
-
-
 
   private:
     ble::BridgeHand hand_;

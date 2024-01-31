@@ -7,7 +7,6 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
 // #include "rela/batcher.h"
-#include <playcc/sayc/model.h>
 
 #include "playcc/alpha_mu_search.h"
 #include "playcc/bridge_state_without_hidden_info.h"
@@ -20,6 +19,7 @@
 #include "playcc/deal_analyzer.h"
 #include "playcc/rule_based_defender.h"
 #include "playcc/wbridge5_trajectory_bot.h"
+#include "playcc/sayc/constraints.h"
 #include "playcc\sayc\hand_analyzer.h"
 // #include "rlcc/belief_data_gen.h"
 
@@ -150,9 +150,9 @@ int main(int argc, char** argv) {
   //
   // auto rule_result = RuleOf10And12(state);
   // std::cout << rule_result.higher_cards_declarer_hold << std::endl;
-  std::vector<std::string> card_strings = {"S8", "S4", "HA", "HJ", "H9", "H8",
-                                           "H4", "CK", "C7", "C4", "DJ", "D9",
-                                           "D8"};
+  std::vector<std::string> card_strings = {"SA", "S4", "HA", "HJ", "H9", "H8",
+                                           "H4", "CA", "CK", "C4", "DJ", "DA",
+                                           "DK"};
   ble::BridgeHand hand{};
   for(const auto& card_str:card_strings) {
     auto card = CardFromString(card_str);
@@ -161,15 +161,30 @@ int main(int argc, char** argv) {
 
   std::cout << hand << std::endl;
 
+  auto state = ble::BridgeState(game);
+
+  while (state.IsChanceNode()) {
+    state.ApplyRandomChance();
+  }
+
   sayc::HandAnalyzer hand_analyzer{hand};
 
   bool is_balanced = hand_analyzer.IsBalanced();
   std::cout << std::boolalpha << is_balanced << std::endl;
 
-  auto exprs = sayc::HonorVariables(ble::kClubsSuit);
+  std::cout << "hcp: " << hand_analyzer.HighCardPoints() << std::endl;
 
-  for(const auto expr:exprs) {
-    std::cout << expr << std::endl;
-  }
+  const auto fit = sayc::OneNoTrumpOpeningConstraint.Fits(hand_analyzer,
+    ble::BridgeObservation{state});
 
+  std::cout << fit << std::endl;
+
+  const auto fit2 = sayc::TwoNoTrumpOpeningConstraint.Fits(hand_analyzer,
+    ble::BridgeObservation{state});
+
+  std::cout << fit2 << std::endl;
+
+  auto c = sayc::LoadConstraint("balanced_hand");
+  const auto fit3 = c->Fits(hand_analyzer, ble::BridgeObservation{state});
+  std::cout << fit3 << std::endl;
 }

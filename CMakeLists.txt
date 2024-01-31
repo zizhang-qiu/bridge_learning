@@ -213,6 +213,12 @@ add_library(_bridgeplay OBJECT
         playcc/sayc/named_enum.cc
         playcc/sayc/named_enum.h
         playcc/sayc/hand_info.cc
+        playcc/sayc/constraints.cc
+        playcc/sayc/constraints.h
+        playcc/sayc/utils.cc
+        playcc/sayc/utils.h
+        playcc/sayc/sayc_bot.cc
+        playcc/sayc/sayc_bot.h
 )
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC rela_lib)
