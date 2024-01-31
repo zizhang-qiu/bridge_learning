@@ -13,7 +13,7 @@ namespace ble = bridge_learning_env;
 namespace sayc {
 // Information of a hand in other player's view.
 struct HandInfo {
-  Range HCP_range_{};
+  Range HCP_range_;
   bool is_balanced = false;
   std::array<Range, ble::kNumSuits> suit_length_range_{};
 

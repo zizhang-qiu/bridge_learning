@@ -3,6 +3,7 @@
 //
 
 #include "named_enum.h"
+
 namespace sayc {
 
 NamedEnum::NamedEnum(const std::initializer_list<std::string>& args) {
@@ -19,9 +20,8 @@ NamedEnumValue NamedEnum::Get(const std::string& key) const {
   const auto it = value_map_.find(key);
   if (it != value_map_.end()) {
     return values_[it->second];
-  } else {
-    SpielFatalError(absl::StrFormat("Key %s not in NamedEnum!", key));
   }
+  SpielFatalError(absl::StrFormat("Key %s not in NamedEnum!", key));
 
 }
 

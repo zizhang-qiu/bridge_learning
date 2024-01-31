@@ -4,7 +4,7 @@
 
 #include "worlds.h"
 
-#include "log_utils.h"
+#include "common_utils/log_utils.h"
 std::vector<bool> Worlds::MoveIsLegal(const ble::BridgeMove &move) const {
   std::vector<bool> results;
   results.reserve(states_.size());

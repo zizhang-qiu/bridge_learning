@@ -4,7 +4,7 @@
 
 #include "rule_based_defender.h"
 
-#include "log_utils.h"
+#include "common_utils/log_utils.h"
 #include "absl/strings/str_cat.h"
 
 std::string DefenderRuleToString(const DefenderRule defender_rule) {

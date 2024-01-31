@@ -6,7 +6,7 @@
 #define BRIDGE_LEARNING_PLAYCC_PLAY_BOT_H_
 #include <map>
 
-#include "log_utils.h"
+#include "common_utils/log_utils.h"
 #include "bridge_lib/bridge_state.h"
 
 namespace ble = bridge_learning_env;
@@ -21,7 +21,7 @@ class PlayBot {
 
     virtual bool IsClonable() const { return false; }
 
-    virtual std::unique_ptr<PlayBot> Clone() {
+    virtual std::shared_ptr<PlayBot> Clone() {
       SpielFatalError("Clone method not implemented.");
     }
 

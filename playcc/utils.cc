@@ -435,6 +435,17 @@ ble::BridgeCard CardFromString(const std::string& card_string) {
 
 }
 
+ble::BridgeHand ConstructHandFromCardStrings(
+    const std::vector<std::string>& card_strings) {
+  SPIEL_CHECK_LE(card_strings.size(), ble::kNumCardsPerHand);
+  ble::BridgeHand hand{};
+  for (const auto& card_string : card_strings) {
+    const auto card = CardFromString(card_string);
+    hand.AddCard(card);
+  }
+  return hand;
+}
+
 ble::BridgeState ConstructStateFromCardStrings(
     const std::array<std::vector<std::string>, ble::kNumPlayers>& cards,
     const std::shared_ptr<ble::BridgeGame>& game,

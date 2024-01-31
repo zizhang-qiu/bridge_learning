@@ -15,9 +15,16 @@
 namespace ble = bridge_learning_env;
 namespace rlcc {
 
+struct BridgeEnvOptions {
+  bool bidding_phase = true;
+  bool playing_phase = false;
+
+  bool verbose = false;
+};
+
 class BridgeEnv {
  public:
-  BridgeEnv(const ble::GameParameters& params, bool verbose);
+  BridgeEnv(const ble::GameParameters &params, const BridgeEnvOptions& options);
 
   void SetBridgeDataset(std::shared_ptr<BridgeDataset> bridge_dataset) {
     bridge_dataset_ = std::move(bridge_dataset);
@@ -31,9 +38,9 @@ class BridgeEnv {
 
   void Reset();
 
-  void ResetWithBridgeData();
+  void ResetWithDataSet();
 
-  void Step(const ble::BridgeMove& move);
+  void Step(const ble::BridgeMove &move);
 
   void Step(int uid);
 
@@ -76,8 +83,8 @@ class BridgeEnv {
   rela::TensorDict TerminalFeature() const;
   const ble::GameParameters params_;
   const ble::BridgeGame game_;
+  const BridgeEnvOptions options_;
   std::unique_ptr<ble::BridgeState> state_;
-  const bool verbose_;
   const ble::CanonicalEncoder encoder_;
 
   ble::Player last_active_player_;

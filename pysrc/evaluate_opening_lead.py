@@ -19,7 +19,7 @@ import torch
 import argparse
 import os
 import numpy as np
-from train_belief import extract_available_trajectories
+from train_belief import extract_not_passed_out_trajectories
 
 import rela
 import bridge
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         line = lines[i].split(" ")
         test_dataset.append([int(x) for x in line])
 
-    test_dataset = extract_available_trajectories(test_dataset)
+    test_dataset = extract_not_passed_out_trajectories(test_dataset)
     datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_threads)
 
     # Load networks
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     # batch_runner = rela.BatchRunner(agent, args.device, 100, ["get_policy", "get_belief"])
     # batch_runner.start()
 
-    cfg = bridgeplay.TorchOpeningLeadBotConfig()
+    cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
     cfg.num_worlds = args.num_worlds
     cfg.num_max_sample = args.num_max_sample
     cfg.fill_with_uniform_sample = bool(args.fill_with_uniform_sample)

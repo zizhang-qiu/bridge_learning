@@ -6,65 +6,91 @@
 #define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_MOVE_H_
 #include "bridge_card.h"
 #include "bridge_utils.h"
+
 namespace bridge_learning_env {
 
 class BridgeMove {
   public:
-  enum Type { kInvalid = -1, kAuction, kPlay, kDeal };
+    enum Type { kInvalid = -1, kAuction, kPlay, kDeal };
 
-  BridgeMove() :
-      suit_(kInvalidSuit),
-      rank_(-1),
-      denomination_(kInvalidDenomination),
-      level_(-1),
-      other_call_(kNotOtherCall),
-      move_type_(kInvalid) {}
+    BridgeMove() : suit_(kInvalidSuit),
+                   rank_(-1),
+                   denomination_(kInvalidDenomination),
+                   level_(-1),
+                   other_call_(kNotOtherCall),
+                   move_type_(kInvalid) {}
 
-  BridgeMove(const Type move_type,
-             const Suit suit,
-             const int rank,
-             const Denomination denomination,
-             const int level,
-             const OtherCalls other_call) :
-      suit_(suit),
-      rank_(rank),
-      denomination_(denomination),
-      level_(level),
-      other_call_(other_call),
-      move_type_(move_type) {}
+    BridgeMove(const Type move_type,
+               const Suit suit,
+               const int rank,
+               const Denomination denomination,
+               const int level,
+               const OtherCalls other_call) : suit_(suit),
+                                              rank_(rank),
+                                              denomination_(denomination),
+                                              level_(level),
+                                              other_call_(other_call),
+                                              move_type_(move_type) {}
 
-  BridgeMove(const BridgeMove &) = default;
+    BridgeMove(const int level,
+               const Denomination denomination): suit_(kInvalidSuit),
+                                                 rank_(-1),
+                                                 denomination_(denomination),
+                                                 level_(level),
+                                                 other_call_(kNotOtherCall),
+                                                 move_type_(kAuction) {}
 
-  bool operator==(const BridgeMove &other_move) const;
+    BridgeMove(const Type move_type,
+               const Suit suit,
+               const int rank): suit_(suit),
+                                rank_(rank),
+                                denomination_(kInvalidDenomination),
+                                level_(-1),
+                                other_call_(kNotOtherCall),
+                                move_type_(move_type) {}
 
-  [[nodiscard]] Type MoveType() const { return move_type_; }
+    BridgeMove(const OtherCalls other_call): suit_(kInvalidSuit),
+                                             rank_(-1),
+                                             denomination_(
+                                                 kInvalidDenomination),
+                                             level_(-1),
+                                             other_call_(other_call),
+                                             move_type_(kAuction) {}
 
-  [[nodiscard]] std::string ToString() const;
+    BridgeMove(const BridgeMove&) = default;
 
-  [[nodiscard]] bool IsBid() const;
+    bool operator==(const BridgeMove& other_move) const;
 
-  [[nodiscard]] int BidLevel() const;
+    [[nodiscard]] bool IsValid() const { return move_type_ != Type::kInvalid; }
 
-  [[nodiscard]] Denomination BidDenomination() const;
+    [[nodiscard]] Type MoveType() const { return move_type_; }
 
-  [[nodiscard]] Suit CardSuit() const { return suit_; }
+    [[nodiscard]] std::string ToString() const;
 
-  [[nodiscard]] int CardRank() const { return rank_; }
+    [[nodiscard]] bool IsBid() const;
 
-  [[nodiscard]] OtherCalls OtherCall() const { return other_call_; }
+    [[nodiscard]] int BidLevel() const;
 
-  [[nodiscard]] std::string AuctionToString() const;
+    [[nodiscard]] Denomination BidDenomination() const;
+
+    [[nodiscard]] Suit CardSuit() const { return suit_; }
+
+    [[nodiscard]] int CardRank() const { return rank_; }
+
+    [[nodiscard]] OtherCalls OtherCall() const { return other_call_; }
+
+    [[nodiscard]] std::string AuctionToString() const;
 
   private:
-  Suit suit_;
-  int rank_;
-  Denomination denomination_;
-  int level_;
-  OtherCalls other_call_;
-  Type move_type_;
+    Suit suit_;
+    int rank_;
+    Denomination denomination_;
+    int level_;
+    OtherCalls other_call_;
+    Type move_type_;
 };
 
-std::ostream &operator<<(std::ostream &stream, const BridgeMove &move);
+std::ostream& operator<<(std::ostream& stream, const BridgeMove& move);
 
 } // namespace bridge_learning_env
 

@@ -9,11 +9,17 @@
 #include "bridge_move.h"
 
 namespace bridge_learning_env {
-
 struct BridgeHistoryItem {
-  explicit BridgeHistoryItem(BridgeMove move_made) : move(move_made) {}
-  BridgeHistoryItem(const BridgeHistoryItem &past_move) = default;
+  explicit BridgeHistoryItem(const BridgeMove& move_made) : move(move_made) {
+  }
+
+  BridgeHistoryItem(const BridgeHistoryItem& past_move) = default;
+
   std::string ToString() const;
+
+  bool operator==(const BridgeHistoryItem& rhs) const {
+    return ToString() == rhs.ToString();
+  }
 
   BridgeMove move;
   Player player = -1;
@@ -26,8 +32,7 @@ struct BridgeHistoryItem {
   OtherCalls other_call = kNotOtherCall;
 };
 
-std::ostream &operator<<(std::ostream &stream, const BridgeHistoryItem &item);
-
+std::ostream& operator<<(std::ostream& stream, const BridgeHistoryItem& item);
 } // namespace bridge
 
 #endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_HISTORY_ITEM_H_

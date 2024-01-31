@@ -4,14 +4,14 @@
 #include "bridge_dataset.h"
 
 #include "rela/logging.h"
-BridgeDataset::BridgeDataset(const std::vector<std::array<int, ble::kNumCards>> &deals) {
+BridgeDataset::BridgeDataset(const std::vector<std::vector<int>> &deals) {
   size_t num_deals = deals.size();
   for (size_t i = 0; i < num_deals; ++i) {
     const BridgeData deal{deals[i]};
     dataset_.push_back(deal);
   }
 }
-BridgeDataset::BridgeDataset(const std::vector<std::array<int, ble::kNumCards>> &deals,
+BridgeDataset::BridgeDataset(const std::vector<std::vector<int>> &deals,
                              const std::vector<std::array<int, kDoubleDummyResultSize>> &ddts) {
   RELA_CHECK_EQ(deals.size(), ddts.size());
   size_t num_deals = deals.size();

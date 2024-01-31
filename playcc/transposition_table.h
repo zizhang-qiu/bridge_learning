@@ -9,7 +9,7 @@
 
 #include "bridge_state_without_hidden_info.h"
 #include "pareto_front.h"
-#include "file.h"
+#include "common_utils/file.h"
 
 namespace ble = bridge_learning_env;
 class TranspositionTable {

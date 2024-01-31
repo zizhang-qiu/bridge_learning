@@ -8,6 +8,69 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <vector>
+#include "absl/types/optional.h"
+#include "absl/types/span.h"
+
+
+
+// Make sure that arbitrary structures can be printed out.
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, const std::unique_ptr<T>& v);
+template <typename T, typename U>
+std::ostream& operator<<(std::ostream& stream, const std::pair<T, U>& v);
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v);
+template <typename T, std::size_t N>
+std::ostream& operator<<(std::ostream& stream, const std::array<T, N>& v);
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, const absl::optional<T>& v);
+std::ostream& operator<<(std::ostream& stream, const absl::nullopt_t& v);
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, absl::Span<T> v);
+
+// Actual template implementations.
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, absl::Span<T> v) {
+  stream << "[";
+  for (const auto& element : v) {
+    stream << element << " ";
+  }
+  stream << "]";
+  return stream;
+}
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v) {
+  stream << "[";
+  for (const auto& element : v) {
+    stream << element << " ";
+  }
+  stream << "]";
+  return stream;
+}
+template <typename T, std::size_t N>
+std::ostream& operator<<(std::ostream& stream, const std::array<T, N>& v) {
+  stream << "[";
+  for (const auto& element : v) {
+    stream << element << " ";
+  }
+  stream << "]";
+  return stream;
+}
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, const std::unique_ptr<T>& v) {
+  return stream << *v;
+}
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, const absl::optional<T>& v) {
+  return stream << *v;
+}
+template <typename T, typename U>
+std::ostream& operator<<(std::ostream& stream, const std::pair<T, U>& v) {
+  stream << "(" << v.first << "," << v.second << ")";
+  return stream;
+}
+
 namespace internal {
 // SpielStrOut(out, a, b, c) is equivalent to:
 //    out << a << b << c;

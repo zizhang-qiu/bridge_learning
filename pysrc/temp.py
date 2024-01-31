@@ -29,7 +29,7 @@ import bridgelearn
 import bridgeplay
 from agent import BridgeAgent, BridgeA2CModel
 from net import MLP
-from train_belief import extract_available_trajectories
+from train_belief import extract_not_passed_out_trajectories
 
 # print(dir(bridgelearn))
 params = create_params()
@@ -202,7 +202,7 @@ f["s"] = f["s"][:480]
 #     if res.success:
 #         success_cnt += 1
 # print(success_cnt)
-cfg = bridgeplay.TorchOpeningLeadBotConfig()
+cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
 cfg.num_worlds = 20
 cfg.num_max_sample = 1000
 cfg.fill_with_uniform_sample = True

@@ -2,7 +2,7 @@
 // Created by qzz on 2024/1/16.
 //
 
-#include "torch_actor_resampler.h"
+#include "nn_belief_resampler.h"
 
 template <typename Container>
 bool CheckDealLegality(const Container& cards) {
@@ -16,7 +16,7 @@ bool CheckDealLegality(const Container& cards) {
   return true;
 }
 
-ResampleResult TorchActorResampler::Resample(const ble::BridgeState& state) {
+ResampleResult NNBeliefResampler::Resample(const ble::BridgeState& state) {
   rela::TensorDict belief;
   // std::cout <<"Enter resample" << std::endl;
   if (state == state_) {
@@ -73,13 +73,13 @@ ResampleResult TorchActorResampler::Resample(const ble::BridgeState& state) {
   return {true, deal};
 }
 
-void TorchActorResampler::ResetWithParams(
+void NNBeliefResampler::ResetWithParams(
     const std::unordered_map<std::string, std::string>& params) {
   const auto seed = ble::ParameterValue<int>(params, "seed", 42);
   rng_.seed(seed);
 }
 
-rela::TensorDict TorchActorResampler::MakeTensorDictObs(
+rela::TensorDict NNBeliefResampler::MakeTensorDictObs(
     const ble::BridgeState& state) const {
   const auto observation = ble::BridgeObservation(state, state.CurrentPlayer());
   auto encoding = encoder_.Encode(observation);
@@ -107,7 +107,7 @@ rela::TensorDict TorchActorResampler::MakeTensorDictObs(
   return obs;
 }
 
-std::array<int, ble::kNumCards> TorchActorResampler::SampleFromBelief(
+std::array<int, ble::kNumCards> NNBeliefResampler::SampleFromBelief(
     const rela::TensorDict& belief,
     const ble::BridgeState& state) const {
   const auto belief_probs = belief.at("belief");

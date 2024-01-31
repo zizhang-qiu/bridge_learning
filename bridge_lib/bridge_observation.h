@@ -11,6 +11,12 @@
 namespace bridge_learning_env {
 int PlayerToOffset(Player pid, Player observer_pid);
 
+// In bridge, a player can observe
+// (1) His hand.
+// (2) Auction history
+// (3) Contract
+// (4) Play history
+// (5) Vulnerability
 class BridgeObservation {
   public:
     BridgeObservation(const BridgeState& state, Player observing_player);

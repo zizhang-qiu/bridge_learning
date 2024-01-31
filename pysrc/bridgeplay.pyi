@@ -1,3 +1,4 @@
+import abc
 from enum import IntEnum
 from typing import List, Dict, Optional
 import bridge
@@ -5,7 +6,12 @@ import rela
 
 
 class Resampler:
-    pass
+    def __init__(self):
+        ...
+
+    def resample(self, state: bridge.BridgeState) -> ResampleResult: ...
+
+    def reset_with_params(self, params: Dict[str, str]): ...
 
 
 class ResampleResult:
@@ -17,7 +23,7 @@ class UniformResampler(Resampler):
     def __init__(self, seed: int):
         ...
 
-    def resample(self) -> ResampleResult:
+    def resample(self, state: bridge.BridgeState) -> ResampleResult:
         ...
 
     def reset_with_params(self, params: Dict[str, str]): ...
@@ -29,7 +35,20 @@ class SearchResult:
 
 
 class PlayBot:
+    def __init__(self): ...
+
+    @abc.abstractmethod
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
+
+    def restart(self): ...
+
+    def restart_at(self, state: bridge.BridgeState): ...
+
+    def is_clonable(self) -> bool: ...
+
+    def clone(self) -> PlayBot: ...
+
+    def name(self) -> str: ...
 
 
 class DDSBot(PlayBot):
@@ -150,6 +169,10 @@ class AlphaMuBot(PlayBot):
 def construct_state_from_deal(deal: List[int], game: bridge.BridgeGame) -> bridge.BridgeState: ...
 
 
+def construct_state_from_deal_and_original_state(deal: List[int], game: bridge.BridgeGame,
+                                                 original_state: bridge.BridgeState) -> bridge.BridgeState: ...
+
+
 def construct_state_from_trajectory(trajectory: List[int], game: bridge.BridgeGame) -> bridge.BridgeState: ...
 
 
@@ -164,13 +187,13 @@ class TorchActor:
     def get_belief(self, obs: rela.TensorDict) -> rela.TensorDict: ...
 
 
-class TorchActorResampler:
+class NNBeliefResampler:
     def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int): ...
 
     def resample(self, state: bridge.BridgeState) -> ResampleResult: ...
 
 
-class TorchOpeningLeadBotConfig:
+class BeliefBasedOpeningLeadBotConfig:
     num_max_sample: int = 1000
     num_worlds: int = 20
     fill_with_uniform_sample: bool = True
@@ -178,9 +201,9 @@ class TorchOpeningLeadBotConfig:
     verbose: bool
 
 
-class TorchOpeningLeadBot(PlayBot):
+class NNBeliefOpeningLeadBot(PlayBot):
     def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int, evaluator: DDSEvaluator,
-                 cfg: TorchOpeningLeadBotConfig): ...
+                 cfg: BeliefBasedOpeningLeadBotConfig): ...
 
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
 

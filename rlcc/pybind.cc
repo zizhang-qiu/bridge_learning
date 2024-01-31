@@ -20,20 +20,26 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def_readwrite("ddt", &BridgeData::ddt);
 
   py::class_<BridgeDataset, std::shared_ptr<BridgeDataset>>(m, "BridgeDataset")
-      .def(py::init<std::vector<std::array<int, ble::kNumCards>>>())
-      .def(py::init<std::vector<std::array<int, ble::kNumCards>>,
+      .def(py::init<std::vector<std::vector<int>>>())
+      .def(py::init<std::vector<std::vector<int>>,
                     std::vector<std::array<int, kDoubleDummyResultSize>>>())
       .def("size", &BridgeDataset::Size)
       .def("next", &BridgeDataset::Next);
 
+  py::class_<BridgeEnvOptions>(m, "BridgeEnvOptions")
+      .def(py::init<>())
+      .def_readwrite("bidding_phase", &BridgeEnvOptions::bidding_phase)
+      .def_readwrite("playing_phase", &BridgeEnvOptions::playing_phase)
+      .def_readwrite("verbose", &BridgeEnvOptions::verbose);
+
   py::class_<BridgeEnv, std::shared_ptr<BridgeEnv>>(m, "BridgeEnv")
-      .def(py::init<ble::GameParameters, bool>())
+      .def(py::init<ble::GameParameters, BridgeEnvOptions>())
       .def("feature_size", &BridgeEnv::FeatureSize)
       .def("reset_with_deck", &BridgeEnv::ResetWithDeck)
       .def("reset_with_deck_and_double_dummy_results", &BridgeEnv::ResetWithDeckAndDoubleDummyResults)
       .def("reset", &BridgeEnv::Reset)
       .def("set_bridge_dataset", &BridgeEnv::SetBridgeDataset)
-      .def("reset_with_bridge_data", &BridgeEnv::ResetWithBridgeData)
+      .def("reset_with_bridge_data", &BridgeEnv::ResetWithDataSet)
       .def("step",
            py::overload_cast<const ble::BridgeMove &>(&BridgeEnv::Step)
       )

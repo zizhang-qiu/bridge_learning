@@ -6,11 +6,11 @@
 
 #include <absl/strings/str_format.h>
 
-#include "log_utils.h"
+#include "common_utils/log_utils.h"
 #include "utils.h"
 #include "absl/strings/str_cat.h"
 
-deal DDSEvaluator::PlayStateToDDSdeal(const ble::BridgeState& state) const {
+deal DDSEvaluator::PlayStateToDDSdeal(const ble::BridgeState &state) const {
   SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()),
                  static_cast<int>(ble::Phase::kPlay));
   deal dl{};
@@ -21,7 +21,7 @@ deal DDSEvaluator::PlayStateToDDSdeal(const ble::BridgeState& state) const {
   // Leader of current trick.
   const ble::Trick current_trick = state.CurrentTrick();
   if (const ble::Player leader = current_trick.Leader();
-    leader != ble::kInvalidPlayer) {
+      leader != ble::kInvalidPlayer) {
     // Current trick has started for several cards.
     dl.first = leader;
   } else {
@@ -44,13 +44,13 @@ deal DDSEvaluator::PlayStateToDDSdeal(const ble::BridgeState& state) const {
   memset(dl.currentTrickRank, 0, 3 * sizeof(dl.currentTrickSuit));
   for (int i = 0; i < num_card_played_current_trick; ++i) {
     const ble::BridgeHistoryItem item = play_history[
-      num_tricks_played * ble::kNumPlayers + i];
+        num_tricks_played * ble::kNumPlayers + i];
     dl.currentTrickSuit[i] = ble::SuitToDDSSuit(item.suit);
     dl.currentTrickRank[i] = ble::RankToDDSRank(item.rank);
   }
 
   // Hands of players
-  const auto& hands = state.Hands();
+  const auto &hands = state.Hands();
   for (const ble::Player pl : ble::kAllSeats) {
     for (const auto card : hands[pl].Cards()) {
       dl.remainCards[pl][SuitToDDSSuit(card.CardSuit())]
@@ -63,28 +63,30 @@ deal DDSEvaluator::PlayStateToDDSdeal(const ble::BridgeState& state) const {
 }
 
 ddTableDeal DDSEvaluator::AuctionStateToDDSddTableDeal(
-    const ble::BridgeState& state) const {
+    const ble::BridgeState &state) const {
   SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()),
                  static_cast<int>(ble::Phase::kAuction));
   ddTableDeal dd_table_deal{};
-  const auto& hands = state.Hands();
+  const auto &hands = state.Hands();
   for (const ble::Player pl : ble::kAllSeats) {
     for (const auto card : hands[pl].Cards()) {
       dd_table_deal.cards[pl][ble::SuitToDDSSuit(card.CardSuit())] += 1 <<
-          ble::RankToDDSRank(card.Rank());
+                                                                        ble::RankToDDSRank(card.Rank());
     }
   }
   return dd_table_deal;
 }
 
 int DDSEvaluator::Rollout(
-    const ble::BridgeState& state,
-    const ble::BridgeMove& move,
+    const ble::BridgeState &state,
+    const ble::BridgeMove &move,
     const ble::Player result_for,
     const RolloutResult rollout_result) {
+//  std::cout << "Enter rollout" << std::endl;
   std::unique_lock<std::mutex> lock(m_);
   cv_.wait(lock, [this] { return free_; });
   free_ = false;
+//  std::cout << "Reach here." << std::endl;
   const bool is_result_player_declarer =
       ble::Partnership(result_for) == ble::Partnership(
           state.GetContract().declarer);
@@ -94,16 +96,17 @@ int DDSEvaluator::Rollout(
   const bool is_child_player_declarer =
       ble::Partnership(child_player) == ble::Partnership(declarer);
   const auto dl = PlayStateToDDSdeal(child);
+//  std::cout << "Get dds deal" << std::endl;
 
   SetMaxThreads(0);
 
   futureTricks fut{};
   const int res = SolveBoard(dl,
-                             /*target=*/-1,   // Maximum number of tricks
-                             /*solutions=*/1, // One card
-                             /*mode=*/2,      // Reuse tt
+      /*target=*/-1,   // Maximum number of tricks
+      /*solutions=*/1, // One card
+      /*mode=*/2,      // Reuse tt
                              &fut,
-                             /*threadIndex=*/0);
+      /*threadIndex=*/0);
 
   if (res != RETURN_NO_FAULT) {
     char error_message[80];
@@ -121,9 +124,9 @@ int DDSEvaluator::Rollout(
   const int target = state.GetContract().level + 6;
 
   const int num_declarer_future_tricks = is_child_player_declarer
-                                           ? num_future_tricks_win_by_child_player
-                                           : num_tricks_left -
-                                             num_future_tricks_win_by_child_player;
+                                         ? num_future_tricks_win_by_child_player
+                                         : num_tricks_left -
+                                           num_future_tricks_win_by_child_player;
 
   if (rollout_result == RolloutResult::kNumFutureTricks) {
     if (is_result_player_declarer) {
@@ -137,16 +140,16 @@ int DDSEvaluator::Rollout(
       return num_declarer_future_tricks + child.NumDeclarerTricks();
     }
     return num_tricks_left - num_declarer_future_tricks + (
-             child.NumTricksPlayed() - child.NumDeclarerTricks());
+        child.NumTricksPlayed() - child.NumDeclarerTricks());
   }
 
   if (rollout_result == RolloutResult::kWinLose) {
     if (is_result_player_declarer) {
       // Declarer wins if reach target.
-      return child.NumDeclarerTricks() + num_declarer_future_tricks >= target;
+      return static_cast<int>(child.NumDeclarerTricks() + num_declarer_future_tricks >= target);
     }
     // Defenders win if target is not reached.
-    return child.NumDeclarerTricks() + num_declarer_future_tricks < target;
+    return static_cast<int>(child.NumDeclarerTricks() + num_declarer_future_tricks < target);
   }
 
   SpielFatalError(absl::StrFormat(
@@ -155,7 +158,7 @@ int DDSEvaluator::Rollout(
 }
 
 std::vector<ble::BridgeMove> DDSEvaluator::DDSMoves(
-    const ble::BridgeState& state) {
+    const ble::BridgeState &state) {
   std::unique_lock<std::mutex> lock(m_);
   cv_.wait(lock, [this] { return free_; });
   free_ = false;

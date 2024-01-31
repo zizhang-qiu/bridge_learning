@@ -7,19 +7,37 @@ using Phase = ble::Phase;
 
 namespace rlcc {
 
-BridgeEnv::BridgeEnv(const ble::GameParameters& params, const bool verbose)
-  : params_(params), game_(params_), state_(nullptr), verbose_(verbose),
-    encoder_(std::make_shared<ble::BridgeGame>(game_)),
-    last_active_player_(ble::kChancePlayerId),
-    last_move_(ble::BridgeMove::kInvalid,
-               /*suit=*/ble::kInvalidSuit,
-               /*rank=*/-1,
-               /*denomination=*/ble::kInvalidDenomination,
-               /*level=*/-1,
-               /*other_call=*/ble::kNotOtherCall) {
-  if (verbose_) {
+template<typename Container>
+ble::BridgeState StateFromTrajectory(const Container &trajectory,
+                                     const std::shared_ptr<ble::BridgeGame> &game) {
+  RELA_CHECK_GE(trajectory.size(), ble::kNumCards);
+  ble::BridgeState state{game};
+  // Deal.
+  for (int i = 0; i < ble::kNumCards; ++i) {
+    const auto move = game->GetChanceOutcome(trajectory[i]);
+    state.ApplyMove(move);
+  }
+
+  // Remained moves.
+  for (int i = ble::kNumCards; i < trajectory.size(); ++i) {
+    const auto move = game->GetMove(trajectory[i]);
+    state.ApplyMove(move);
+  }
+
+  return state;
+}
+
+BridgeEnv::BridgeEnv(const ble::GameParameters &params, const BridgeEnvOptions &options)
+    : params_(params),
+      game_(params_),
+      state_(nullptr),
+      encoder_(std::make_shared<ble::BridgeGame>(game_)),
+      last_active_player_(ble::kChancePlayerId),
+      last_move_(),
+      options_(options) {
+  if (options_.verbose) {
     std::cout << "Bridge game created, with parameters:\n";
-    for (const auto& item : params) {
+    for (const auto &item : params) {
       std::cout << "  " << item.first << "=" << item.second << "\n";
     }
   }
@@ -41,7 +59,7 @@ void BridgeEnv::Reset() {
       state_->ApplyRandomChance();
     }
   } else {
-    ResetWithBridgeData();
+    ResetWithDataSet();
   }
 }
 
@@ -61,7 +79,7 @@ std::vector<int> BridgeEnv::Returns() const {
   return {north_score, -north_score, north_score, -north_score};
 }
 
-void BridgeEnv::ResetWithDeck(const std::vector<int>& cards) {
+void BridgeEnv::ResetWithDeck(const std::vector<int> &cards) {
   RELA_CHECK_EQ(cards.size(), ble::kNumCards);
   state_ = std::make_unique<ble::BridgeState>(
       std::make_shared<bridge_learning_env::BridgeGame>(game_));
@@ -71,7 +89,7 @@ void BridgeEnv::ResetWithDeck(const std::vector<int>& cards) {
   }
 }
 
-void BridgeEnv::Step(const ble::BridgeMove& move) {
+void BridgeEnv::Step(const ble::BridgeMove &move) {
   RELA_CHECK(!Terminated())
   last_active_player_ = state_->CurrentPlayer();
   last_move_ = move;
@@ -96,9 +114,9 @@ rela::TensorDict BridgeEnv::Feature() const {
   const auto observation = ble::BridgeObservation(
       *state_, state_->CurrentPlayer());
   const auto encoding = encoder_.Encode(observation);
-  const auto& legal_moves = observation.LegalMoves();
+  const auto &legal_moves = observation.LegalMoves();
   std::vector<float> legal_move_mask(ble::kNumCalls, 0);
-  for (const auto& move : legal_moves) {
+  for (const auto &move : legal_moves) {
     const int uid = game_.GetMoveUid(move);
     legal_move_mask[uid - ble::kBiddingActionBase] = 1;
   }
@@ -110,7 +128,7 @@ rela::TensorDict BridgeEnv::Feature() const {
 }
 
 void BridgeEnv::ResetWithDeckAndDoubleDummyResults(
-    const vector<int>& cards, const vector<int>& double_dummy_results) {
+    const std::vector<int> &cards, const std::vector<int> &double_dummy_results) {
   RELA_CHECK_EQ(cards.size(), ble::kNumCards);
   state_ = std::make_unique<ble::BridgeState>(
       std::make_shared<bridge_learning_env::BridgeGame>(game_));
@@ -121,7 +139,7 @@ void BridgeEnv::ResetWithDeckAndDoubleDummyResults(
   state_->SetDoubleDummyResults(double_dummy_results);
 }
 
-void BridgeEnv::ResetWithBridgeData() {
+void BridgeEnv::ResetWithDataSet() {
   RELA_CHECK_NOTNULL(bridge_dataset_);
   const BridgeData bridge_data = bridge_dataset_->Next();
   state_ = std::make_unique<ble::BridgeState>(
@@ -135,7 +153,7 @@ void BridgeEnv::ResetWithBridgeData() {
   }
 }
 
-const ble::GameParameters& BridgeEnv::Parameters() const {
+const ble::GameParameters &BridgeEnv::Parameters() const {
   return params_;
 }
 
@@ -154,15 +172,15 @@ rela::TensorDict BridgeEnv::TerminalFeature() const {
 }
 
 void BridgeVecEnv::Reset() {
-  for (auto& env : envs_) {
+  for (auto &env : envs_) {
     if (env->Terminated()) {
-      env->ResetWithBridgeData();
+      env->ResetWithDataSet();
     }
   }
 }
 
 bool BridgeVecEnv::AnyTerminated() const {
-  for (const auto& env : envs_) {
+  for (const auto &env : envs_) {
     if (env->Terminated()) {
       return true;
     }
@@ -171,7 +189,7 @@ bool BridgeVecEnv::AnyTerminated() const {
 }
 
 bool BridgeVecEnv::AllTerminated() const {
-  for (const auto& env : envs_) {
+  for (const auto &env : envs_) {
     if (!env->Terminated()) {
       return false;
     }
@@ -203,7 +221,7 @@ void BridgeVecEnv::DisPlay(int num_envs) const {
 rela::TensorDict BridgeVecEnv::Feature() const {
   std::vector<rela::TensorDict> obs_vec;
   obs_vec.reserve(Size());
-  for (const auto& env : envs_) {
+  for (const auto &env : envs_) {
     obs_vec.push_back(env->Feature());
   }
   auto feature = rela::tensor_dict::stack(obs_vec, 0);

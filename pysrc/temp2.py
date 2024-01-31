@@ -8,19 +8,27 @@
 import os
 import pickle
 import random
+import time
 
 import torch
 import torch.nn.functional as F
 import yaml
+from omegaconf import OmegaConf
 
 from net import MLP
-from train_belief import extract_available_trajectories
+from utils import load_dataset
+from train_belief import extract_not_passed_out_trajectories
 
 from set_path import append_sys_path
 
 append_sys_path()
-import bridgelearn
+
 import bridge
+import rela
+import bridgelearn
+import bridgeplay
+
+import create_bridge
 
 # conf = yaml.full_load(open("belief_sl/exp2/net.yaml"))
 #
@@ -73,35 +81,19 @@ import bridge
 # print(hand)
 
 game = bridge.BridgeGame({})
-print(game.parameters())
 
-with open("game", "wb") as fp:
-    pickle.dump(game, fp)
+dataset_dir = r"D:\Projects\bridge_research\expert"
+# test_dataset = load_dataset(os.path.join(dataset_dir, "test.txt"))
+import hydra
 
-with open("game", "rb") as fp:
-    game = pickle.load(fp)
+if __name__ == '__main__':
+    # conf = OmegaConf.load("conf/net2.yaml")
+    # print(conf)
+    #
+    # net = hydra.utils.instantiate(conf)
+    #
+    # print(net)
+    conf = OmegaConf.load("conf/game.yaml")
 
-print(game.parameters())
-print(game)
-
-state = bridge.BridgeState(game)
-while state.is_chance_node():
-    state.apply_random_chance()
-
-print(state)
-while not state.is_terminal():
-    legal_moves = state.legal_moves()
-    state.apply_move(random.choice(legal_moves))
-
-print(state)
-
-with open("state", "wb") as fp:
-    pickle.dump(state, fp)
-
-with open("state", "rb") as fp:
-    state2 = pickle.load(fp)
-
-print(state2)
-
-print(state == state2)
-
+    game = create_bridge.create_bridge_game(dict(conf))
+    print(game)

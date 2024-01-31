@@ -13,7 +13,7 @@
 
 #include "bridge_lib/bridge_state.h"
 
-#include "log_utils.h"
+#include "common_utils/log_utils.h"
 
 namespace ble = bridge_learning_env;
 
@@ -119,6 +119,10 @@ T UniformSample(const std::vector<T>& vec, std::mt19937& rng) {
     throw std::out_of_range("Vector is empty");
   }
 
+  if (vec.size() == 1) {
+    return vec[0];
+  }
+
   // Use the provided RNG to generate an index uniformly
   std::uniform_int_distribution<std::size_t> dist(0, vec.size() - 1);
 
@@ -137,6 +141,9 @@ void MoveItemToFirst(std::vector<T>& vec, bool (*constraint_function)(T)) {
 }
 
 ble::BridgeCard CardFromString(const std::string& card_string);
+
+ble::BridgeHand ConstructHandFromCardStrings(
+    const std::vector<std::string>& card_strings);
 
 // Construct a Brdige state from strings of cards in four players' hand
 // e.g. {{"H5"},{"H10","H9","H6"},{"HK","HJ","H2"},{}}

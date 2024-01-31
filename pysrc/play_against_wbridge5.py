@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 import numpy as np
 import torch
 
-from play_bot import BlueChipBridgeBot
+from bluechip_bot import BlueChipBridgeBot
 from common_utils import assert_eq
 from common_utils import tensor_dict_to_device
 from wbridge5_client import WBridge5Client, Controller

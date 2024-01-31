@@ -5,7 +5,7 @@
 
 #include "absl/strings/str_join.h"
 
-#include "log_utils.h"
+#include "common_utils/log_utils.h"
 
 BotRegisterer::BotRegisterer(const std::string& bot_name, std::unique_ptr<BotFactory> factory) {
   RegisterBot(bot_name, std::move(factory));

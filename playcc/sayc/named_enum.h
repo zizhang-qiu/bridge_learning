@@ -5,7 +5,7 @@
 #ifndef NAMED_ENUM_H
 #define NAMED_ENUM_H
 #include <absl/strings/str_format.h>
-#include <playcc/log_utils.h>
+#include "../common_utils/log_utils.h"
 
 #include <string>
 #include <vector>
@@ -35,7 +35,7 @@ class NamedEnum {
       return values_.size();
     }
 
-    const NamedEnumValue& operator[](const size_t index) const;
+    const NamedEnumValue& operator[](size_t index) const;
 
     const std::vector<NamedEnumValue>& GetValues() const {
       return values_;
