@@ -19,8 +19,10 @@ from train_belief import extract_available_trajectories
 from set_path import append_sys_path
 
 append_sys_path()
-import bridgelearn
+
 import bridge
+import bridgelearn
+import bridgeplay
 
 # conf = yaml.full_load(open("belief_sl/exp2/net.yaml"))
 #
@@ -73,35 +75,15 @@ import bridge
 # print(hand)
 
 game = bridge.BridgeGame({})
-print(game.parameters())
 
-with open("game", "wb") as fp:
-    pickle.dump(game, fp)
 
-with open("game", "rb") as fp:
-    game = pickle.load(fp)
+class TestBot(bridgeplay.PlayBot):
+    def __init__(self):
+        super().__init__()
 
-print(game.parameters())
-print(game)
+    def step(self, state: bridge.BridgeState):
+        return state.legal_moves()[0]
 
-state = bridge.BridgeState(game)
-while state.is_chance_node():
-    state.apply_random_chance()
 
-print(state)
-while not state.is_terminal():
-    legal_moves = state.legal_moves()
-    state.apply_move(random.choice(legal_moves))
-
-print(state)
-
-with open("state", "wb") as fp:
-    pickle.dump(state, fp)
-
-with open("state", "rb") as fp:
-    state2 = pickle.load(fp)
-
-print(state2)
-
-print(state == state2)
+print(issubclass(TestBot, bridgeplay.PlayBot))
 

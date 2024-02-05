@@ -178,20 +178,20 @@ add_library(_bridgeplay OBJECT
         playcc/worlds.h
         playcc/bridge_state_without_hidden_info.cc
         playcc/bridge_state_without_hidden_info.h
-        playcc/log_utils.cc
-        playcc/log_utils.h
+        playcc/common_utils/log_utils.cc
+        playcc/common_utils/log_utils.h
         playcc/alpha_mu_bot.cc
         playcc/alpha_mu_bot.h
         playcc/transposition_table.cc
         playcc/transposition_table.h
         playcc/game_tree.h
-        playcc/logger.h
-        playcc/file.cc
-        playcc/file.h
+        playcc/common_utils/logger.h
+        playcc/common_utils/file.cc
+        playcc/common_utils/file.h
         playcc/deal_analyzer.cc
         playcc/deal_analyzer.h
-        playcc/stat_manager.h
-        playcc/threaded_queue.h
+        playcc/common_utils/stat_manager.h
+        playcc/common_utils/threaded_queue.h
         playcc/dds_bot.cc
         playcc/torch_actor.cc
         playcc/torch_actor.h
@@ -251,6 +251,8 @@ target_include_directories(_bridgeplay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 #target_link_libraries(bridge_match PRIVATE _bridgeplay)
 
 
+
+
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     pybind11_add_module(bridgelearn SHARED rlcc/pybind.cc)
     target_link_libraries(bridgelearn PUBLIC _bridgelearn)
@@ -271,6 +273,18 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_libraries(temp PUBLIC _bridgelearn)
     target_link_libraries(temp PUBLIC ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES} ${Python3_LIBRARIES})
     target_include_directories(temp PUBLIC ${Python3_INCLUDE_DIRS})
+
+    add_executable(sayc_utils_test playcc/unit_tests/sayc_utils_test.cc)
+    target_link_libraries(sayc_utils_test PRIVATE _bridgeplay)
+    add_test(sayc_utils_test sayc_utils_test)
+
+    add_executable(constraint_test playcc/unit_tests/constraint_test.cc)
+    target_link_libraries(constraint_test PRIVATE _bridgeplay)
+    add_test(constraint_test constraint_test)
+
+    add_executable(sayc_bot_test playcc/unit_tests/sayc_bot_test.cc)
+    target_link_libraries(sayc_bot_test PRIVATE _bridgeplay)
+    add_test(sayc_bot_test sayc_bot_test)
 endif ()
 
 #add_executable(main main.cc)
@@ -291,3 +305,5 @@ endif ()
 #target_link_libraries(analyze_from_traj_and_tt PUBLIC bridge_lib)
 #target_link_libraries(analyze_from_traj_and_tt PUBLIC rela_lib)
 #target_link_libraries(analyze_from_traj_and_tt PUBLIC _bridgeplay)
+
+

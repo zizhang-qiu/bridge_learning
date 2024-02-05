@@ -2,7 +2,7 @@
 A stub file for bridge library.
 """
 from enum import IntEnum
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, overload
 
 Player = int
 Action = int
@@ -154,6 +154,18 @@ class MoveType(IntEnum):
 
 
 class BridgeMove:
+    @overload
+    def __init__(self): ...
+
+    @overload
+    def __init__(self, level: int, denomination: Denomination): ...
+
+    @overload
+    def __init__(self, move_type: MoveType, suit: Suit, rank: int): ...
+
+    @overload
+    def __init__(self, other_call: OtherCalls): ...
+
     def move_type(self) -> MoveType: ...
 
     def is_bid(self) -> bool: ...
@@ -266,7 +278,11 @@ class BridgeState:
 
     def current_phase(self) -> Phase: ...
 
-    def legal_moves(self, player: Optional[Player]): ...
+    @overload
+    def legal_moves(self, player: Player) -> List[BridgeMove]: ...
+
+    @overload
+    def legal_moves(self) -> List[BridgeMove]:
 
     def score_for_contracts(self, player: Player, contracts: List[int]) -> List[int]: ...
 

@@ -5,7 +5,7 @@
 
 #include "pareto_front.h"
 #include "absl/strings/str_split.h"
-#include "log_utils.h"
+#include "common_utils/log_utils.h"
 
 ParetoFront::ParetoFront(const std::vector<OutcomeVector> &outcome_vectors) {
   if (outcome_vectors.empty()) {

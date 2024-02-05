@@ -80,14 +80,16 @@ int Score(const Contract contract, const int declarer_tricks, const bool is_vuln
   } else {
     const int contract_score = ScoreContract(contract, contract.double_status);
     const int bonuses = ScoreBonuses(contract.level, contract_score, is_vulnerable) +
-        ScoreDoubledBonus(contract.double_status) +
-        ScoreOvertricks(contract.denomination, contract_result, is_vulnerable, contract.double_status);
+                        ScoreDoubledBonus(contract.double_status) +
+                        ScoreOvertricks(contract.denomination, contract_result, is_vulnerable, contract.double_status);
     return contract_score + bonuses;
   }
 }
+
 constexpr int kScoreTable[] = {15, 45, 85, 125, 165, 215, 265, 315, 365, 425, 495, 595,
                                745, 895, 1095, 1295, 1495, 1745, 1995, 2245, 2495, 2995, 3495, 3995};
 constexpr int kScoreTableSize = sizeof(kScoreTable) / sizeof(int);
+
 int GetImp(const int score1, const int score2) {
   const int score = score1 - score2;
   const int sign = score == 0 ? 0 : (score > 0 ? 1 : -1);
@@ -116,5 +118,9 @@ int Contract::Index() const {
   if (double_status == kRedoubled) index += 2;
   if (double_status == kDoubled) index += 1;
   return index + 1;
+}
+
+bool Contract::operator==(const Contract &rhs) const {
+  return Index() == rhs.Index();
 }
 } // namespace bridge_learning_env

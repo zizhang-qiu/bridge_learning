@@ -66,7 +66,7 @@ class ThreadedQueue {
 
   int Size() {
     absl::MutexLock lock(&m_);
-    return q_.size();
+    return static_cast<int>(q_.size());
   }
 
   // Causes pushing new values to fail. Useful for shutting down the queue.

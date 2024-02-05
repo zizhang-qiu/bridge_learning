@@ -6,7 +6,7 @@
 
 #include <absl/strings/str_format.h>
 
-#include "log_utils.h"
+#include "common_utils/log_utils.h"
 #include "utils.h"
 #include "absl/strings/str_cat.h"
 

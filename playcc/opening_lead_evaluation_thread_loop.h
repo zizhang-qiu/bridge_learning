@@ -7,7 +7,7 @@
 #include "dds_evaluator.h"
 #include "play_bot.h"
 #include "rela/thread_loop.h"
-#include "threaded_queue.h"
+#include "common_utils/threaded_queue.h"
 
 namespace ble = bridge_learning_env;
 

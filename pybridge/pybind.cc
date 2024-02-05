@@ -11,10 +11,10 @@
 
 namespace py = pybind11;
 
-void CheckPyTupleSize(const py::tuple& t, const size_t size) {
+void CheckPyTupleSize(const py::tuple &t, const size_t size) {
   if (t.size() != size) {
     std::cerr << "The tuple needs " << size << " items, but got " << t.size() <<
-        " items!" << std::endl;
+              " items!" << std::endl;
     std::abort();
   }
 }
@@ -31,6 +31,7 @@ PYBIND11_MODULE(bridge, m) {
       .def(py::init<>())
       .def("index", &Contract::Index)
       .def("__repr__", &Contract::ToString)
+      .def("__eq__", &Contract::operator==)
       .def_readwrite("level", &Contract::level)
       .def_readwrite("denomination", &Contract::denomination)
       .def_readwrite("double_status", &Contract::double_status)
@@ -96,7 +97,7 @@ PYBIND11_MODULE(bridge, m) {
   py::enum_<OtherCalls>(m, "OtherCalls")
       .value("NOT_OTHER_CALL", OtherCalls::kNotOtherCall)
       .value("PASS", OtherCalls::kPass)
-      .value("DOUBLE", OtherCalls::kRedouble)
+      .value("DOUBLE", OtherCalls::kDouble)
       .value("REDOUBLE", OtherCalls::kRedouble)
       .export_values();
 
@@ -110,17 +111,17 @@ PYBIND11_MODULE(bridge, m) {
       .def("index", &BridgeCard::Index)
       .def("__repr__", &BridgeCard::ToString)
       .def(py::pickle(
-          [](const BridgeCard& card) {
+          [](const BridgeCard &card) {
             //__getstate__
             return py::make_tuple(card.CardSuit(), card.Rank());
           },
-          [](const py::tuple& t) {
+          [](const py::tuple &t) {
             //__setstate__
             CheckPyTupleSize(t, 2);
             const BridgeCard card{t[0].cast<Suit>(), t[1].cast<int>()};
             return card;
           }
-          ));
+      ));
 
   py::class_<BridgeHand>(m, "BridgeHand")
       .def(py::init<>())
@@ -135,11 +136,11 @@ PYBIND11_MODULE(bridge, m) {
       .def("is_card_in_hand", &BridgeHand::IsCardInHand)
       .def("__repr__", &BridgeHand::ToString)
       .def(py::pickle(
-          [](const BridgeHand& hand) {
+          [](const BridgeHand &hand) {
             //__getstate__
             return py::make_tuple(hand.Cards());
           },
-          [](const py::tuple& t) {
+          [](const py::tuple &t) {
             //__setstate__
             CheckPyTupleSize(t, 1);
             BridgeHand hand{};
@@ -160,12 +161,15 @@ PYBIND11_MODULE(bridge, m) {
   py::class_<BridgeMove>(m, "BridgeMove")
       .def(py::init<>())
       .def(py::init<
-        const BridgeMove::Type, // move type
-        const Suit,             // suit
-        const int,              // rank
-        const Denomination,     //denomination
-        const int,              // bid level
-        const OtherCalls>())
+          const BridgeMove::Type, // move type
+          const Suit, // suit
+          const int, // rank
+          const Denomination, //denomination
+          const int, // bid level
+          const OtherCalls>())
+      .def(py::init<const BridgeMove::Type, const Suit, const int>())
+      .def(py::init<const OtherCalls>())
+      .def(py::init<int, Denomination>())
       .def("__eq__", &BridgeMove::operator==)
       .def("move_type", &BridgeMove::MoveType)
       .def("is_bid", &BridgeMove::IsBid)
@@ -176,14 +180,14 @@ PYBIND11_MODULE(bridge, m) {
       .def("other_call", &BridgeMove::OtherCall)
       .def("__repr__", &BridgeMove::ToString)
       .def(py::pickle(
-          [](const BridgeMove& move) {
+          [](const BridgeMove &move) {
             //__getstate__
             // Use same order as constructor.
             return py::make_tuple(move.MoveType(), move.CardSuit(),
                                   move.CardRank(), move.BidDenomination(),
                                   move.BidLevel(), move.OtherCall());
           },
-          [](const py::tuple& t) {
+          [](const py::tuple &t) {
             //__setstate__
             CheckPyTupleSize(t, 6);
             const auto move_type = t[0].cast<BridgeMove::Type>();
@@ -194,11 +198,11 @@ PYBIND11_MODULE(bridge, m) {
             const auto other_call = t[5].cast<OtherCalls>();
             const BridgeMove move{
                 /*move_type=*/move_type,
-                              /*suit=*/suit,
-                              /*rank=*/rank,
-                              /*denomination=*/denomination,
-                              /*level=*/level,
-                              /*other_call=*/other_call};
+                /*suit=*/suit,
+                /*rank=*/rank,
+                /*denomination=*/denomination,
+                /*level=*/level,
+                /*other_call=*/other_call};
             return move;
           }));
 
@@ -212,7 +216,8 @@ PYBIND11_MODULE(bridge, m) {
       .def_readonly("denomination", &BridgeHistoryItem::denomination)
       .def_readonly("other_call", &BridgeHistoryItem::other_call)
       .def("__repr__", &BridgeHistoryItem::ToString)
-      .def(py::pickle([](const BridgeHistoryItem& item) {
+      .def("__eq__", &BridgeHistoryItem::operator==)
+      .def(py::pickle([](const BridgeHistoryItem &item) {
                         //__getstate__
                         return py::make_tuple(item.move,
                                               item.player,
@@ -223,7 +228,7 @@ PYBIND11_MODULE(bridge, m) {
                                               item.level,
                                               item.other_call);
                       },
-                      [](const py::tuple& t) {
+                      [](const py::tuple &t) {
                         //__setstate__
                         CheckPyTupleSize(t, 8);
                         const auto move = t[0].cast<BridgeMove>();
@@ -266,14 +271,14 @@ PYBIND11_MODULE(bridge, m) {
       .def("get_chance_outcome", &BridgeGame::GetChanceOutcome)
       .def("pick_random_chance", &BridgeGame::PickRandomChance)
       .def("__repr__", &BridgeGame::ToString)
-      .def(py::pickle([](const BridgeGame& game) {
+      .def(py::pickle([](const BridgeGame &game) {
                         //__getstate__
                         return py::make_tuple(game.IsDealerVulnerable(),
                                               game.IsNonDealerVulnerable(),
                                               game.Dealer(),
                                               game.Seed());
                       },
-                      [](const py::tuple& t) {
+                      [](const py::tuple &t) {
                         //__setstate__
                         CheckPyTupleSize(t, 4);
                         const bool is_dealer_vulnerable = t[0].cast<bool>();
@@ -291,7 +296,7 @@ PYBIND11_MODULE(bridge, m) {
                         const BridgeGame game{parameters};
                         return game;
                       }
-          ));
+      ));
 
   m.attr("default_game") = default_game;
 
@@ -332,28 +337,28 @@ PYBIND11_MODULE(bridge, m) {
       .def("auction_history", &BridgeState::AuctionHistory)
       .def("play_history", &BridgeState::PlayHistory)
       .def("__repr__", &BridgeState::ToString)
-      .def(py::pickle([](const BridgeState& state) {
-                        //__setstate__
-                        //For a BridgeState, we need track parent game and action history.
-                        return py::make_tuple(state.ParentGame().get(),
-                                              state.History());
-                      }, [](const py::tuple& t) {
-                        //__getstate__
-                        CheckPyTupleSize(t, 2);
-                        const auto game = std::make_shared<BridgeGame>(
-                            t[0].cast<BridgeGame>());
-                        const auto move_history = t[1].cast<std::vector<
-                          BridgeHistoryItem>>();
-                        BridgeState state{game};
-                        for (const auto& item : move_history) {
-                          state.ApplyMove(item.move);
-                        }
-                        return state;
-                      }));
+      .def(py::pickle([](const BridgeState &state) {
+        //__setstate__
+        //For a BridgeState, we need track parent game and action history.
+        return py::make_tuple(state.ParentGame().get(),
+                              state.History());
+      }, [](const py::tuple &t) {
+        //__getstate__
+        CheckPyTupleSize(t, 2);
+        const auto game = std::make_shared<BridgeGame>(
+            t[0].cast<BridgeGame>());
+        const auto move_history = t[1].cast<std::vector<
+            BridgeHistoryItem>>();
+        BridgeState state{game};
+        for (const auto &item : move_history) {
+          state.ApplyMove(item.move);
+        }
+        return state;
+      }));
 
   py::class_<BridgeObservation>(m, "BridgeObservation")
-      .def(py::init<const BridgeState&, Player>())
-      .def(py::init<const BridgeState&>())
+      .def(py::init<const BridgeState &, Player>())
+      .def(py::init<const BridgeState &>())
       .def("cur_player_offset", &BridgeObservation::CurPlayerOffset)
       .def("auction_history", &BridgeObservation::AuctionHistory)
       .def("hands", &BridgeObservation::Hands)

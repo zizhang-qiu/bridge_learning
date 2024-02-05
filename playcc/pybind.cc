@@ -3,6 +3,10 @@
 //
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+#include "pybind11/cast.h"
+#include "pybind11/detail/common.h"
+#include "pybind11/detail/descr.h"
+#include "pybind11/operators.h"
 
 #include "playcc/play_bot.h"
 #include "playcc/pimc.h"
@@ -18,6 +22,66 @@
 #include "playcc/alpha_mu_bot.h"
 
 namespace py = pybind11;
+
+
+template <class BotBase=PlayBot>
+class PyBot : public BotBase {
+  public:
+    using BotBase::BotBase;
+
+    ~PyBot() override = default;
+
+    ble::BridgeMove Step(const ble::BridgeState& state) override {
+      PYBIND11_OVERLOAD_PURE_NAME(
+          ble::BridgeMove,
+          BotBase,
+          "step",
+          Step,
+          state);
+    }
+
+    void Restart() override {
+      PYBIND11_OVERLOAD_NAME(
+          void,
+          BotBase,
+          "restart",
+          Restart);
+    }
+
+    void RestartAt(const ble::BridgeState& state) override {
+      PYBIND11_OVERLOAD_NAME(
+          void,
+          BotBase,
+          "restart_at",
+          RestartAt,
+          state);
+    }
+
+    bool IsClonable() const override {
+      PYBIND11_OVERLOAD_NAME(
+          bool,
+          BotBase,
+          "is_clonable",
+          IsClonable);
+    }
+
+    std::shared_ptr<PlayBot> Clone() override {
+
+      PYBIND11_OVERLOAD_NAME(
+          std::shared_ptr<PlayBot>,
+          BotBase,
+          "clone",
+          Clone);
+    }
+
+    std::string Name() const override {
+      PYBIND11_OVERLOAD_NAME(
+          std::string,
+          BotBase,
+          "name",
+          Name);
+    }
+};
 
 PYBIND11_MODULE(bridgeplay, m) {
   py::class_<ResampleResult>(m, "ResampleResult")
@@ -36,8 +100,14 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def_readonly("moves", &SearchResult::moves)
       .def_readonly("scores", &SearchResult::scores);
 
-  py::class_<PlayBot, std::shared_ptr<PlayBot>>(m, "PlayBot")
-      .def("step", &PlayBot::Step);
+  py::class_<PlayBot, PyBot<PlayBot>, std::shared_ptr<PlayBot>>(m, "PlayBot")
+      .def(py::init<>())
+      .def("step", &PlayBot::Step)
+      .def("name", &PlayBot::Name)
+      .def("is_clonable", &PlayBot::IsClonable)
+      .def("clone", &PlayBot::Clone)
+      .def("restart", &PlayBot::Restart)
+      .def("restart_at", &PlayBot::RestartAt);
 
   py::class_<DDSBot, PlayBot, std::shared_ptr<DDSBot>>(m, "DDSBot")
       .def(py::init<>())
@@ -170,9 +240,9 @@ PYBIND11_MODULE(bridgeplay, m) {
   //
   py::class_<TorchActorResampler, Resampler, std::shared_ptr<
                TorchActorResampler>>(m, "TorchActorResampler")
-      .def(py::init<const std::shared_ptr<TorchActor>&,      // torch actor
+      .def(py::init<const std::shared_ptr<TorchActor>&, // torch actor
                     const std::shared_ptr<ble::BridgeGame>&, // game
-                    const int>())                            // seed
+                    const int>()) // seed
       .def("resample", &TorchActorResampler::Resample);
 
   py::class_<TorchOpeningLeadBotConfig>(m, "TorchOpeningLeadBotConfig")
@@ -213,12 +283,12 @@ PYBIND11_MODULE(bridgeplay, m) {
                OpeningLeadEvaluationThreadLoop>>(
           m, "OpeningLeadEvaluationThreadLoop")
       .def(py::init<const std::shared_ptr<DDSEvaluator>&,
-                    const std::shared_ptr<PlayBot>&,         //bot
+                    const std::shared_ptr<PlayBot>&, //bot
                     const std::shared_ptr<ble::BridgeGame>&, //game
-                    const std::vector<std::vector<int>>&,    //trajectories
-                    ThreadedQueue<int>*,                     //queue
-                    const int,                               //thread_idx
-                    const bool>(),                           //verbose
+                    const std::vector<std::vector<int>>&, //trajectories
+                    ThreadedQueue<int>*, //queue
+                    const int, //thread_idx
+                    const bool>(), //verbose
            py::arg("dds_evaluator"), py::arg("bot"), py::arg("game"),
            py::arg("trajectories"), py::arg("bot_evaluation"),
            py::arg("thread_idx") = 0,

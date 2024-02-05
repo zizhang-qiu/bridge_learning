@@ -20,7 +20,6 @@ enum StatusType {
 };
 
 class FitStatus {
-
   public:
     FitStatus()
       : FitStatus(kUnknown) {}
@@ -64,6 +63,18 @@ class FitStatus {
       return status_type_;
     }
 
+    bool IsCertain() const {
+      return GetStatusType() == kCertain;
+    }
+
+    bool IsPossible() const {
+      return GetStatusType() == kPossible;
+    }
+
+    bool IsImpossible() const {
+      return GetStatusType() == kImpossible;
+    }
+
     friend std::ostream& operator<<(std::ostream& stream,
                                     const FitStatus& status) {
       switch (status.GetStatusType()) {
@@ -87,7 +98,6 @@ class FitStatus {
 
   private:
     StatusType status_type_;
-
 };
 
 class Constraint {
@@ -97,30 +107,37 @@ class Constraint {
     virtual ~Constraint() = default;
 
     [[nodiscard]] virtual FitStatus Fits(const HandAnalyzer& hand_analyzer,
-                                         const ble::BridgeObservation& obs)
+                                         const ble::BridgeObservation& obs,
+                                         const std::array<
+                                           HandInfo, ble::kNumPlayers - 1>&
+                                             hand_infos = {})
     const {
       SpielFatalError("Fits function not implemented!");
     }
 };
 
+using ConstraintFactory = std::function<std::shared_ptr<Constraint>(
+    const ble::GameParameters&)>;
+
 class ConstraintRegisterer {
   public:
     ConstraintRegisterer(const std::string& constraint_name,
-                         std::shared_ptr<Constraint> constraint);
+                         ConstraintFactory factory);
 
-    static std::shared_ptr<Constraint> GetByName(
-        const std::string& constraint_name);
+    static std::shared_ptr<Constraint> CreateByName(
+        const std::string& constraint_name,
+        const ble::GameParameters& params);
 
     static bool IsConstraintRegistered(const std::string& constraint_name);
 
     static std::vector<std::string> RegisteredConstraints();
 
     static void RegisterConstraint(const std::string& constraint_name,
-                                   std::shared_ptr<Constraint> constraint);
+                                   ConstraintFactory factory);
 
   private:
-    static std::map<std::string, std::shared_ptr<Constraint>>& factories() {
-      static std::map<std::string, std::shared_ptr<Constraint>> impl;
+    static std::map<std::string, ConstraintFactory>& factories() {
+      static std::map<std::string, ConstraintFactory> impl;
       return impl;
     }
 };
@@ -134,30 +151,30 @@ std::vector<std::string> RegisteredConstraints();
 #define REGISTER_CONSTRAINT(info, factory)  \
   ConstraintRegisterer CONCAT(constraint, __COUNTER__)(info, factory);
 
-std::shared_ptr<Constraint> LoadConstraint(const std::string& constraint_name);
+std::shared_ptr<Constraint> LoadConstraint(const std::string& constraint_name,
+                                           const ble::GameParameters& params);
 
 class BalancedHandConstraint : public Constraint {
   public:
     BalancedHandConstraint() = default;
 
     [[nodiscard]] FitStatus Fits(const HandAnalyzer& hand_analyzer,
-                                 const ble::BridgeObservation& obs)
+                                 const ble::BridgeObservation& obs,
+                                 const std::array<
+                                   HandInfo, ble::kNumPlayers - 1>& hand_infos)
     const override;
 };
-
-const auto kBalancedHandConstraint = std::make_shared<BalancedHandConstraint>();
 
 class OpeningBidNotMadeConstraint : public Constraint {
   public:
     OpeningBidNotMadeConstraint() = default;
 
     [[nodiscard]] FitStatus Fits(const HandAnalyzer& hand_analyzer,
-                                 const ble::BridgeObservation& obs)
+                                 const ble::BridgeObservation& obs,
+                                 const std::array<
+                                   HandInfo, ble::kNumPlayers - 1>& hand_infos)
     const override;
 };
-
-const auto kOpeningBidNotMadeConstraint = std::make_shared<
-  OpeningBidNotMadeConstraint>();
 
 class HCPInRangeConstraint : public Constraint {
   public:
@@ -165,7 +182,9 @@ class HCPInRangeConstraint : public Constraint {
       : range_(range) {}
 
     [[nodiscard]] FitStatus Fits(const HandAnalyzer& hand_analyzer,
-                                 const ble::BridgeObservation& obs)
+                                 const ble::BridgeObservation& obs,
+                                 const std::array<
+                                   HandInfo, ble::kNumPlayers - 1>& hand_infos)
     const override;
 
   private:
@@ -179,7 +198,9 @@ class AndConstraints : public Constraint {
       : constraints_(constraints) { SPIEL_CHECK_FALSE(constraints_.empty()); }
 
     [[nodiscard]] FitStatus Fits(const HandAnalyzer& hand_analyzer,
-                                 const ble::BridgeObservation& obs)
+                                 const ble::BridgeObservation& obs,
+                                 const std::array<
+                                   HandInfo, ble::kNumPlayers - 1>& hand_infos)
     const override;
 
   private:
@@ -193,60 +214,76 @@ class OrConstraints : public Constraint {
       : constraints_(constraints) { SPIEL_CHECK_FALSE(constraints_.empty()); }
 
     [[nodiscard]] FitStatus Fits(const HandAnalyzer& hand_analyzer,
-                                 const ble::BridgeObservation& obs)
+                                 const ble::BridgeObservation& obs,
+                                 const std::array<
+                                   HandInfo, ble::kNumPlayers - 1>& hand_infos)
     const override;
 
   private:
     const std::vector<std::shared_ptr<Constraint>> constraints_;
 };
 
-const Range kOneNoTrumpOpeningHCPRange{15, 17};
-const Range kTwoNoTrumpOpeningHCPRange{20, 21};
-const Range kThreeNoTrumpOpeningHCPRange{25, 27};
-
-const auto kOneNoTrumpOpeningHCPConstraint = std::make_shared<
-  HCPInRangeConstraint>(kOneNoTrumpOpeningHCPConstraint);
-const auto kTwoNoTrumpOpeningHCPConstraint = std::make_shared<
-  HCPInRangeConstraint>(kTwoNoTrumpOpeningHCPConstraint);
-const auto kThreeNoTrumpOpeningHCPConstraint = std::make_shared<
-  HCPInRangeConstraint>(kThreeNoTrumpOpeningHCPConstraint);
-
 // Notrump opening bids are made with balanced hands and may include
 // a five-card suit, major or minor.
 // 1NT = 15-17 HCP.
-const auto OneNoTrumpOpeningConstraint = std::make_shared<AndConstraints>(
-{kOpeningBidNotMadeConstraint,
- kOneNoTrumpOpeningHCPConstraint,
- kBalancedHandConstraint});
-
-REGISTER_CONSTRAINT("1NT", OneNoTrumpOpeningConstraint);
-
-const auto TwoNoTrumpOpeningConstraint = std::make_shared<AndConstraints>(
-{kOpeningBidNotMadeConstraint,
- kTwoNoTrumpOpeningHCPConstraint,
- kBalancedHandConstraint});
-
-REGISTER_CONSTRAINT("2NT", TwoNoTrumpOpeningConstraint);
-
-const auto ThreeNoTrumpOpeningConstraint = std::make_shared<AndConstraints>(
-{kOpeningBidNotMadeConstraint,
- kThreeNoTrumpOpeningHCPConstraint,
- kBalancedHandConstraint});
-
-REGISTER_CONSTRAINT("3NT", ThreeNoTrumpOpeningConstraint);
+// const auto OneNoTrumpOpeningConstraint = std::make_shared<AndConstraints>(
+// {kOpeningBidNotMadeConstraint});
+// {kOneNoTrumpOpeningHCPConstraint})
+// kBalancedHandConstraint});
 
 //
-class RuleOf20Constraint : public Constraint {
-  RuleOf20Constraint() = default;
+// const auto TwoNoTrumpOpeningConstraint = std::make_shared<AndConstraints>(
+// {kOpeningBidNotMadeConstraint,
+//  kTwoNoTrumpOpeningHCPConstraint,
+//  kBalancedHandConstraint});
+//
+// REGISTER_CONSTRAINT("2NT", TwoNoTrumpOpeningConstraint);
+//
+// const auto ThreeNoTrumpOpeningConstraint = std::make_shared<AndConstraints>(
+// {kOpeningBidNotMadeConstraint,
+//  kThreeNoTrumpOpeningHCPConstraint,
+//  kBalancedHandConstraint});
+//
+// REGISTER_CONSTRAINT("3NT", ThreeNoTrumpOpeningConstraint);
 
+// Rule of 20 for first/seconf seat opening.
+class RuleOf20Constraint : public Constraint {
   public:
+    RuleOf20Constraint() = default;
+
     [[nodiscard]] FitStatus Fits(const HandAnalyzer& hand_analyzer,
-                                 const ble::BridgeObservation& obs)
+                                 const ble::BridgeObservation& obs,
+                                 const std::array<
+                                   HandInfo, ble::kNumPlayers - 1>& hand_infos)
     const override;
 
   private:
     const int rule_points_ = 20;
+};
 
+class RuleOf15Constraint : public Constraint {
+  public:
+    RuleOf15Constraint() = default;
+
+    [[nodiscard]] FitStatus Fits(const HandAnalyzer& hand_analyzer,
+                                 const ble::BridgeObservation& obs,
+                                 const std::array<
+                                   HandInfo, ble::kNumPlayers - 1>& hand_infos)
+    const override;
+
+  private:
+    const int rule_points_ = 15;
+};
+
+class WeakTwoConstraints : public Constraint {
+  public:
+    WeakTwoConstraints() = default;
+
+    [[nodiscard]] FitStatus Fits(const HandAnalyzer& hand_analyzer,
+                                 const ble::BridgeObservation& obs,
+                                 const std::array<
+                                   HandInfo, ble::kNumPlayers - 1>& hand_infos)
+    const override;
 };
 }
 #endif //CONSTRAINTS_H

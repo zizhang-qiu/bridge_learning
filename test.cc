@@ -13,7 +13,7 @@
 #include "bridge_lib/bridge_state.h"
 #include "bridge_lib/example_cards_ddts.h"
 #include "bridge_lib/canonical_encoder.h"
-#include "playcc/file.h"
+#include "playcc/common_utils/file.h"
 #include "playcc/pimc.h"
 #include "playcc/transposition_table.h"
 #include "playcc/deal_analyzer.h"
@@ -150,11 +150,11 @@ int main(int argc, char** argv) {
   //
   // auto rule_result = RuleOf10And12(state);
   // std::cout << rule_result.higher_cards_declarer_hold << std::endl;
-  std::vector<std::string> card_strings = {"SA", "S4", "HA", "HJ", "H9", "H8",
-                                           "H4", "CA", "CK", "C4", "DJ", "DA",
-                                           "DK"};
+  std::vector<std::string> card_strings = {"SK", "SQ", "S5", "S4", "HA", "H8",
+                                           "H7", "H3", "D6", "CK", "CT", "C6",
+                                           "C4"};
   ble::BridgeHand hand{};
-  for(const auto& card_str:card_strings) {
+  for (const auto& card_str : card_strings) {
     auto card = CardFromString(card_str);
     hand.AddCard(card);
   }
@@ -174,17 +174,26 @@ int main(int argc, char** argv) {
 
   std::cout << "hcp: " << hand_analyzer.HighCardPoints() << std::endl;
 
-  const auto fit = sayc::OneNoTrumpOpeningConstraint.Fits(hand_analyzer,
-    ble::BridgeObservation{state});
+  // const auto fit = sayc::OneNoTrumpOpeningConstraint.Fits(hand_analyzer,
+  //   ble::BridgeObservation{state});
 
-  std::cout << fit << std::endl;
+  // std::cout << fit << std::endl;
 
-  const auto fit2 = sayc::TwoNoTrumpOpeningConstraint.Fits(hand_analyzer,
-    ble::BridgeObservation{state});
-
-  std::cout << fit2 << std::endl;
-
-  auto c = sayc::LoadConstraint("balanced_hand");
-  const auto fit3 = c->Fits(hand_analyzer, ble::BridgeObservation{state});
+  auto c = sayc::LoadConstraint("balanced_hand", {});
+  const auto fit3 = c->Fits(hand_analyzer, ble::BridgeObservation{state}, {});
   std::cout << fit3 << std::endl;
+
+  auto c_20 = sayc::LoadConstraint("rule_of_20", {});
+  const auto fit4 = c_20->
+      Fits(hand_analyzer, ble::BridgeObservation{state}, {});
+  std::cout << fit4 << std::endl;
+
+  auto sorted_length_with_suits = hand_analyzer.GetSortedSuitLengthWithSuits();
+  for (const auto& pair : sorted_length_with_suits) {
+    std::cout << pair.first << ": ";
+    for (const auto suit : pair.second) {
+      std::cout << suit << ", ";
+    }
+    std::cout << std::endl;
+  }
 }

@@ -13,8 +13,8 @@ int BridgeHand::HighCardPoints() const {
   REQUIRE(IsFullHand());
   int point = 0;
   for (const BridgeCard& card : cards_) {
-    if (card.Rank() >= 9) {
-      point += card.Rank() - 9;
+    if (card.Rank() > 8) {
+      point += card.Rank() - 8;
     }
   }
   return point;
@@ -24,8 +24,8 @@ int BridgeHand::ControlValue() const {
   REQUIRE(IsFullHand());
   int point = 0;
   for (const BridgeCard& card : cards_) {
-    if (card.Rank() >= 11) {
-      point += card.Rank() - 11;
+    if (card.Rank() >= 10) {
+      point += card.Rank() - 10;
     }
   }
   return point;

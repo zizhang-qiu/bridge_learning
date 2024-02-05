@@ -5,9 +5,9 @@
 #ifndef BRIDGE_LEARNING_PLAYCC_SAYC_HAND_ANALYZER_H_
 #define BRIDGE_LEARNING_PLAYCC_SAYC_HAND_ANALYZER_H_
 #include <algorithm>
-
+#include <map>
 #include "bridge_lib/bridge_hand.h"
-#include "playcc/log_utils.h"
+#include "../common_utils/log_utils.h"
 namespace ble = bridge_learning_env;
 
 namespace sayc {
@@ -28,6 +28,8 @@ class HandAnalyzer {
     explicit HandAnalyzer(const ble::BridgeHand& hand) {
       SetHand(hand);
     }
+
+    const ble::BridgeHand Hand() const { return hand_; }
 
     void SetHand(const ble::BridgeHand& hand) {
       SPIEL_CHECK_TRUE(hand.IsFullHand());
@@ -56,6 +58,35 @@ class HandAnalyzer {
       auto suit_length = GetSuitLength();
       std::sort(suit_length.begin(), suit_length.end(), std::greater<>());
       return suit_length;
+    }
+
+    // Get sorted suit length, descending order.
+    [[nodiscard]] std::vector<std::pair<int, std::vector<ble::Suit>>>
+    GetSortedSuitLengthWithSuits() const {
+      auto suit_length = GetSuitLength();
+      std::array<std::pair<ble::Suit, int>, ble::kNumSuits>
+          suit_length_with_suit{};
+      for (const ble::Suit suit : ble::kAllSuits) {
+        suit_length_with_suit[suit] = {suit, suit_length[suit]};
+      }
+      std::sort(suit_length_with_suit.begin(), suit_length_with_suit.end(), [](
+                const std::pair<ble::Suit, int>& lhs,
+                const std::pair<ble::Suit, int>& rhs) {
+                  return lhs.second > rhs.second;
+                });
+      std::map<int, std::vector<ble::Suit>, std::greater<int>> result_map;
+      for (const auto& pair : suit_length_with_suit) {
+        result_map[pair.second].push_back(pair.first);
+      }
+
+      std::vector<std::pair<int, std::vector<ble::Suit>>> result;
+      result.reserve(result_map.size());
+      for (const auto& entry : result_map) {
+        auto suits = entry.second;
+        std::sort(suits.begin(), suits.end(), std::greater<>());
+        result.emplace_back(std::make_pair(entry.first, suits));
+      }
+      return result;
     }
 
     int HighCardPoints() const {
