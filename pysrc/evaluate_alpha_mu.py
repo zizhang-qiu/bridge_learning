@@ -128,7 +128,7 @@ class Worker(mp.Process):
 
             state2 = state1.clone()
             random_num = np.random.randint(0, 10000)
-            resampler.reset_with_params({"seed": str(random_num)})
+            resampler.reset_with_params({})
             while not state1.is_terminal():
                 if self.check_terminated():
                     break
@@ -149,7 +149,7 @@ class Worker(mp.Process):
             # self.stats.save_all(self.ev_cfg.save_dir)
             if self.check_terminated():
                 break
-            resampler.reset_with_params({"seed": str(random_num)})
+            resampler.reset_with_params({})
             while not state2.is_terminal():
                 if self.check_terminated():
                     break

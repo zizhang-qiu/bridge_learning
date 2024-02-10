@@ -15,6 +15,18 @@ C_NS = 0
 C_WE = 1
 C_INTERPRETED = 13
 
+F_MIN_HCP = 102  # the minimum amount of HCP of the indicated player;
+
+F_MAX_HCP = 103  # maximum amount of HCP of the indicated player;
+
+F_MIN_PKT = 104  # the minimum number of balance points of the indicated player;
+
+F_ZGLOSZONE_ASY = 106  # number of reported aces;
+
+F_ZGLOSZONE_KROLE = 107  # number of reported kings;
+
+F_ZGLOSZONA_KROTKOSC = 108  # reported suit of shortness;
+
 
 class SystemType(IntEnum):
     T_21GF = 0

@@ -45,30 +45,7 @@ class PIMCBot final : public PlayBot {
 
     ble::BridgeMove Step(const ble::BridgeState& state) override;
 
-    ble::BridgeMove ActWithWorlds(const ble::BridgeState& state, const std::vector<ble::BridgeState>& worlds) const {
-      const auto& legal_moves = state.LegalMoves();
-      const int num_legal_moves = static_cast<int>(legal_moves.size());
-      // Only one legal move, return it.
-      if (num_legal_moves == 1) {
-        return legal_moves[0];
-      }
-      SearchResult res{};
-      res.moves = legal_moves;
-      res.scores = std::vector<int>(num_legal_moves, 0);
-      for (int i = 0; i < cfg_.num_worlds; ++i) {
-        //      std::cout << sampled_state->ToString() << std::endl;
-        for (int j = 0; j < num_legal_moves; ++j) {
-          const int score = Rollout(worlds[i], legal_moves[j]);
-          //        std::cout << score << std::endl;
-          res.scores[j] += score;
-        }
-        //      std::cout << "accumulate scores" << std::endl;
-      }
-      auto [move, score] = GetBestAction(res);
-      return move;
-    }
-
-    [[nodiscard]] SearchResult Search(const ble::BridgeState& state) const;
+  [[nodiscard]] SearchResult Search(const ble::BridgeState& state) const;
 
     std::string Name() const override { return absl::StrFormat("PIMC, %d worlds", cfg_.num_worlds); }
 

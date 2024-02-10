@@ -184,7 +184,6 @@ add_library(_bridgeplay OBJECT
         playcc/alpha_mu_bot.h
         playcc/transposition_table.cc
         playcc/transposition_table.h
-        playcc/game_tree.h
         playcc/common_utils/logger.h
         playcc/common_utils/file.cc
         playcc/common_utils/file.h
@@ -195,10 +194,10 @@ add_library(_bridgeplay OBJECT
         playcc/dds_bot.cc
         playcc/torch_actor.cc
         playcc/torch_actor.h
-        playcc/torch_actor_resampler.cc
-        playcc/torch_actor_resampler.h
-        playcc/torch_opening_lead_bot.cc
-        playcc/torch_opening_lead_bot.h
+        playcc/nn_belief_resampler.cc
+        playcc/nn_belief_resampler.h
+        playcc/belief_based_opening_lead_bot.cc
+        playcc/belief_based_opening_lead_bot.h
         playcc/opening_lead_evaluation_thread_loop.cc
         playcc/opening_lead_evaluation_thread_loop.h
         playcc/dds_evaluator.cc

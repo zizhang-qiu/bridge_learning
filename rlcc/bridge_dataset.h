@@ -13,16 +13,16 @@
 namespace ble = bridge_learning_env;
 inline constexpr int kDoubleDummyResultSize = ble::kNumPlayers * ble::kNumDenominations;
 struct BridgeData {
-  std::array<int, ble::kNumCards> deal{};
+  std::vector<int> deal{};
   std::optional<std::array<int, kDoubleDummyResultSize>> ddt;
 };
 
 class BridgeDataset {
  public:
 
-  explicit BridgeDataset(const std::vector<std::array<int, ble::kNumCards>> &deals);
+  explicit BridgeDataset(const std::vector<std::vector<int>> &deals);
 
-  BridgeDataset(const std::vector<std::array<int, ble::kNumCards>> &deals,
+  BridgeDataset(const std::vector<std::vector<int>> &deals,
                 const std::vector<std::array<int, kDoubleDummyResultSize>> &ddts);
 
   int Size() const { return static_cast<int>(dataset_.size()); }

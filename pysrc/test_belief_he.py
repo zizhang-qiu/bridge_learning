@@ -22,7 +22,7 @@ from compute_sl_metric import get_metrics
 from create_bridge import create_params
 from net import MLP
 from set_path import append_sys_path
-from train_belief import extract_available_trajectories, compute_hand_acc
+from train_belief import extract_not_passed_out_trajectories, compute_hand_acc
 from supervised_learn2 import BiddingDataset, cross_entropy, compute_accuracy
 
 append_sys_path()
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     belief_net.eval()
 
     test_dataset = pickle.load(open(os.path.join(dataset_dir, "test.pkl"), "rb"))
-    test_dataset = extract_available_trajectories(test_dataset)
+    test_dataset = extract_not_passed_out_trajectories(test_dataset)
     test_gen = bridgelearn.BeliefDataGen(test_dataset, args.batch_size, bridge.default_game)
     test_batch = test_gen.all_data(args.device)
 

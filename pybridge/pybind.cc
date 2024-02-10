@@ -101,9 +101,13 @@ PYBIND11_MODULE(bridge, m) {
       .value("REDOUBLE", OtherCalls::kRedouble)
       .export_values();
 
+  m.attr("ALL_SUITS") = kAllSuits;
+  m.attr("ALL_DENOMINATIONS") = kAllDenominations;
+  m.attr("ALL_SEATS") = kAllSeats;
+
   py::class_<BridgeCard>(m, "BridgeCard")
       .def(py::init<>())
-      .def(py::init<Suit, int>())
+      .def(py::init<Suit, int>(), py::arg("suit"), py::arg("rank"))
       .def("__eq__", &BridgeCard::operator==)
       .def("is_valid", &BridgeCard::IsValid)
       .def("suit", &BridgeCard::CardSuit)
@@ -134,6 +138,7 @@ PYBIND11_MODULE(bridge, m) {
       .def("control_value", &BridgeHand::ControlValue)
       .def("zar_high_card_points", &BridgeHand::ZarHighCardPoints)
       .def("is_card_in_hand", &BridgeHand::IsCardInHand)
+      .def("cards_by_suits", &BridgeHand::CardsBySuits)
       .def("__repr__", &BridgeHand::ToString)
       .def(py::pickle(
           [](const BridgeHand &hand) {
@@ -161,15 +166,25 @@ PYBIND11_MODULE(bridge, m) {
   py::class_<BridgeMove>(m, "BridgeMove")
       .def(py::init<>())
       .def(py::init<
-          const BridgeMove::Type, // move type
-          const Suit, // suit
-          const int, // rank
-          const Denomination, //denomination
-          const int, // bid level
-          const OtherCalls>())
-      .def(py::init<const BridgeMove::Type, const Suit, const int>())
-      .def(py::init<const OtherCalls>())
-      .def(py::init<int, Denomination>())
+               const BridgeMove::Type, // move type
+               const Suit, // suit
+               const int, // rank
+               const Denomination, //denomination
+               const int, // bid level
+               const OtherCalls>(),
+           py::arg("move_type"),
+           py::arg("suit"),
+           py::arg("rank"),
+           py::arg("denomination"),
+           py::arg("level"),
+           py::arg("other_call"))
+          // Constructor for a move of a card (deal or play).
+      .def(py::init<const BridgeMove::Type, const Suit, const int>(),
+           py::arg("move_type"), py::arg("suit"), py::arg("rank"))
+          // Constructor for a move of other call, i.e. pass, double or redouble.
+      .def(py::init<const OtherCalls>(), py::arg("other_call"))
+          // Constructor for a bid.
+      .def(py::init<int, Denomination>(), py::arg("level"), py::arg("denomination"))
       .def("__eq__", &BridgeMove::operator==)
       .def("move_type", &BridgeMove::MoveType)
       .def("is_bid", &BridgeMove::IsBid)
@@ -251,7 +266,7 @@ PYBIND11_MODULE(bridge, m) {
                       }));
 
   py::class_<BridgeGame, std::shared_ptr<BridgeGame>>(m, "BridgeGame")
-      .def(py::init<const GameParameters>())
+      .def(py::init<const GameParameters>(), py::arg("params"))
       .def("num_distinct_actions", &BridgeGame::NumDistinctActions)
       .def("max_chance_outcomes", &BridgeGame::MaxChanceOutcomes)
       .def("max_moves", &BridgeGame::MaxMoves)
@@ -308,7 +323,7 @@ PYBIND11_MODULE(bridge, m) {
       .export_values();
 
   py::class_<BridgeState>(m, "BridgeState")
-      .def(py::init<std::shared_ptr<BridgeGame>>())
+      .def(py::init<std::shared_ptr<BridgeGame>>(), py::arg("parent_game"))
       .def("__eq__", &BridgeState::operator==)
       .def("hands", &BridgeState::Hands)
       .def("history", &BridgeState::History)
@@ -357,8 +372,8 @@ PYBIND11_MODULE(bridge, m) {
       }));
 
   py::class_<BridgeObservation>(m, "BridgeObservation")
-      .def(py::init<const BridgeState &, Player>())
-      .def(py::init<const BridgeState &>())
+      .def(py::init<const BridgeState &, Player>(), py::arg("state"), py::arg("observing_player"))
+      .def(py::init<const BridgeState &>(), py::arg("state"))
       .def("cur_player_offset", &BridgeObservation::CurPlayerOffset)
       .def("auction_history", &BridgeObservation::AuctionHistory)
       .def("hands", &BridgeObservation::Hands)
@@ -374,7 +389,8 @@ PYBIND11_MODULE(bridge, m) {
 
   m.attr("AUCTION_TENSOR_SIZE") = kAuctionTensorSize;
   py::class_<CanonicalEncoder, ObservationEncoder>(m, "CanonicalEncoder")
-      .def(py::init<std::shared_ptr<BridgeGame>, int>())
+      .def(py::init<std::shared_ptr<BridgeGame>, int>(),
+           py::arg("game"), py::arg("num_tricks_in_observation") = kNumTricks)
       .def("shape", &CanonicalEncoder::Shape)
       .def("encode", &CanonicalEncoder::Encode)
       .def("get_play_tensor_size", &CanonicalEncoder::GetPlayTensorSize)

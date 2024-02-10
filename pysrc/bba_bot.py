@@ -13,10 +13,11 @@ import set_path
 set_path.append_sys_path()
 
 import bridge
-
+import torch
+import rela
 import bridgeplay
 
-from bba import EPBot, OtherCall, C_NS, C_WE, load_conventions
+from bba import EPBot, OtherCall, C_NS, C_WE, C_INTERPRETED, load_conventions
 
 
 def hand_to_epbot_hand(hand: bridge.BridgeHand) -> List[str]:
@@ -96,6 +97,10 @@ class BBABot(bridgeplay.PlayBot):
         # print(list(self.ep_bot.get_hand(0)))
         return epbot_bid_to_bridge_move(new_bid)
 
+    def set_bid(self, state: bridge.BridgeState, bid: int):
+        self.inform_state(state)
+        self.ep_bot.set_bid(self.player_id, bid, True)
+
     def inform_state(self, state: bridge.BridgeState):
         full_history = state.uid_history()
         known_history = self._state.uid_history()
@@ -105,6 +110,7 @@ class BBABot(bridgeplay.PlayBot):
                 f"Supplied state:\n{state}\n"
                 f"Internal state:\n{self._state}\n")
 
+        print("start updating actions.")
         for uid in full_history[len(known_history):]:
             if self._state.current_phase() == bridge.Phase.DEAL:
                 move = self._game.get_chance_outcome(uid)
@@ -119,18 +125,49 @@ class BBABot(bridgeplay.PlayBot):
         # If this is the first time we've seen the deal, send our hand.
         if len(uid_history) == 52:
             self._board += 1
-            hand = state.hands()[self.player_id]
+            hand = self._state.hands()[self.player_id]
             epbot_hand = hand_to_epbot_hand(hand)
-            dealer = state.parent_game().dealer()
-            self.ep_bot.new_hand(self.player_id, epbot_hand, dealer, 0)
+            dealer = self._state.parent_game().dealer()
+            self.ep_bot.new_hand(self.player_id, epbot_hand, dealer, 0, True)
 
         # Send actions since last `step` call.
         history = self._state.history()
+
+        hand = self.ep_bot.get_hand(self.player_id)
+        print(list(hand))
         for other_player_action in history[self._num_actions:]:
-            self.ep_bot.set_bid(other_player_action.player,
-                                bridge_move_to_epbot_bid(other_player_action.move),
-                                True)
+            player = other_player_action.player
+            bid = bridge_move_to_epbot_bid(other_player_action.move)
+            print(player, bid)
+            self.ep_bot.set_bid(player, bid)
         self._num_actions = len(history)
+
+    def get_info(self):
+        self.ep_bot.interpret_bid(C_INTERPRETED)
+        for pos in range(bridge.NUM_PLAYERS):
+            print("pos: ", pos)
+            feature = list(self.ep_bot.get_info_feature(pos))
+
+            print("feature:\n", feature)
+
+            min_hcp = feature[102]
+            max_hcp = feature[103]
+            print(f"min hcp={min_hcp}, max_hcp={max_hcp}")
+
+            honors = list(self.ep_bot.get_info_honors(pos))
+            print("honors: ", honors)
+
+            min_length = list(self.ep_bot.get_info_min_length(pos))
+            print("min_length:", min_length, sep="\n")
+
+            max_length = list(self.ep_bot.get_info_max_length(pos))
+            print("max_length:", max_length, sep="\n")
+
+            probable_length = list(self.ep_bot.get_info_probable_length(pos))
+            print("probable_length:", probable_length, sep="\n")
+
+            suit_power = list(self.ep_bot.get_info_suit_power(pos))
+            print("suit_power:", suit_power, sep="\n")
 
 
 if __name__ == '__main__':
@@ -143,7 +180,7 @@ if __name__ == '__main__':
         line = lines[i].split(" ")
         test_dataset.append([int(x) for x in line])
 
-    conventions_list = load_conventions(r"D:\BiddingAnalyser\WBridge5-Sayc.bbsa")  # 1225 8209 3303
+    conventions_list = load_conventions("conf/bidding_system/WBridge5-SAYC.bbsa")  # 1225 8209 3303
     # conventions_list = load_conventions(r"D:\BiddingAnalyser\Sayc.bbsa") # 1187 8209 3284
     bots = [BBABot(i, bridge.default_game, [1, 1], conventions_list) for i in range(bridge.NUM_PLAYERS)]
     num_match = 0
@@ -160,6 +197,9 @@ if __name__ == '__main__':
             move = bots[state.current_player()].step(state)
             # print(move)
             state.apply_move(move)
+        current_player = state.current_player()
+        # print("opening lead player: ", current_player)
+        # bots[current_player].get_info()
 
         opening_bid = get_opening_bid(state)
         contract = state.get_contract()

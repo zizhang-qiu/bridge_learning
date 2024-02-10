@@ -38,14 +38,14 @@ def parse_args():
     return parser.parse_args()
 
 
-def is_trajectory_available(trajectory: List[int]):
+def is_trajectory_not_passed_out(trajectory: List[int]):
     return trajectory[-4:] != [bridge.OtherCalls.PASS.value + 52 for _ in range(bridge.NUM_PLAYERS)]
 
 
-def extract_available_trajectories(trajectories: List[List[int]]) -> List[List[int]]:
+def extract_not_passed_out_trajectories(trajectories: List[List[int]]) -> List[List[int]]:
     res = []
     for trajectory in trajectories:
-        if is_trajectory_available(trajectory):
+        if is_trajectory_not_passed_out(trajectory):
             res.append(trajectory)
     return res
 
@@ -103,8 +103,8 @@ if __name__ == '__main__':
     valid_dataset = pickle.load(open(os.path.join(dataset_dir, "valid.pkl"), "rb"))
 
     # print(valid_dataset[0])
-    train_dataset = extract_available_trajectories(train_dataset)
-    valid_dataset = extract_available_trajectories(valid_dataset)
+    train_dataset = extract_not_passed_out_trajectories(train_dataset)
+    valid_dataset = extract_not_passed_out_trajectories(valid_dataset)
 
     print(
         f"Load dataset successfully, train set has {len(train_dataset)} samples, "

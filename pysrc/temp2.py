@@ -8,21 +8,27 @@
 import os
 import pickle
 import random
+import time
 
 import torch
 import torch.nn.functional as F
 import yaml
+from omegaconf import OmegaConf
 
 from net import MLP
-from train_belief import extract_available_trajectories
+from utils import load_dataset
+from train_belief import extract_not_passed_out_trajectories
 
 from set_path import append_sys_path
 
 append_sys_path()
 
 import bridge
+import rela
 import bridgelearn
 import bridgeplay
+
+import create_bridge
 
 # conf = yaml.full_load(open("belief_sl/exp2/net.yaml"))
 #
@@ -76,14 +82,18 @@ import bridgeplay
 
 game = bridge.BridgeGame({})
 
+dataset_dir = r"D:\Projects\bridge_research\expert"
+# test_dataset = load_dataset(os.path.join(dataset_dir, "test.txt"))
+import hydra
 
-class TestBot(bridgeplay.PlayBot):
-    def __init__(self):
-        super().__init__()
+if __name__ == '__main__':
+    # conf = OmegaConf.load("conf/net2.yaml")
+    # print(conf)
+    #
+    # net = hydra.utils.instantiate(conf)
+    #
+    # print(net)
+    conf = OmegaConf.load("conf/game.yaml")
 
-    def step(self, state: bridge.BridgeState):
-        return state.legal_moves()[0]
-
-
-print(issubclass(TestBot, bridgeplay.PlayBot))
-
+    game = create_bridge.create_bridge_game(dict(conf))
+    print(game)

@@ -7,30 +7,19 @@
 """
 import argparse
 import os
-from typing import Tuple, Dict, OrderedDict, List
+from typing import List
 
-import torch
-import yaml
 import multiprocessing as mp
 
 import common_utils
 import set_path
-from agent import BridgeA2CModel
 
 set_path.append_sys_path()
-import rela
 import bridge
 import bridgeplay
-from train_belief import extract_available_trajectories
-
-
-def load_net_conf_and_state_dict(model_dir: str, model_name: str, net_conf_filename: str = "net.yaml") \
-        -> Tuple[Dict, OrderedDict]:
-    with open(os.path.join(model_dir, net_conf_filename), "r") as fp:
-        conf = yaml.full_load(fp)
-    state_dict_path = os.path.join(model_dir, model_name)
-    state_dict = torch.load(state_dict_path)
-    return conf, state_dict
+import bba_bot
+from train_belief import extract_not_passed_out_trajectories
+from rule_based_bot import RuleBasedBot
 
 
 def construct_deal_and_bidding_state(trajectory: List[int],
@@ -57,8 +46,8 @@ def parse_args():
     parser.add_argument("--belief_model_dir", type=str, default="belief_sl/exp3")
     parser.add_argument("--belief_model_name", type=str, default="model2.pthw")
 
-    parser.add_argument("--num_worlds", type=int, default=100)
-    parser.add_argument("--num_max_sample", type=int, default=10000)
+    parser.add_argument("--num_worlds", type=int, default=160)
+    parser.add_argument("--num_max_sample", type=int, default=1600)
     parser.add_argument("--fill_with_uniform_sample", type=int, default=1)
 
     parser.add_argument("--num_threads", type=int, default=8)
@@ -80,49 +69,55 @@ class Worker(mp.Process):
         dds_evaluator = bridgeplay.DDSEvaluator()
 
         # Create agent
-        policy_conf, policy_state_dict = load_net_conf_and_state_dict(self.args.policy_model_dir,
-                                                                      self.args.policy_model_name)
-        belief_conf, belief_state_dict = load_net_conf_and_state_dict(self.args.belief_model_dir,
-                                                                      self.args.belief_model_name)
+        # policy_conf, policy_state_dict = load_net_conf_and_state_dict(self.args.policy_model_dir,
+        #                                                               self.args.policy_model_name)
+        # belief_conf, belief_state_dict = load_net_conf_and_state_dict(self.args.belief_model_dir,
+        #                                                               self.args.belief_model_name)
+        #
+        # agent = BridgeA2CModel(
+        #     policy_conf=policy_conf,
+        #     value_conf=dict(
+        #         hidden_size=2048,
+        #         num_hidden_layers=6,
+        #         use_layer_norm=True,
+        #         activation_function="gelu",
+        #         output_size=1
+        #     ),
+        #     belief_conf=belief_conf
+        # )
+        # agent.policy_net.load_state_dict(policy_state_dict)
+        # agent.belief_net.load_state_dict(belief_state_dict)
+        # agent.to(self.args.device)
+        # print("Network loaded.")
+        #
+        # batch_runner = rela.BatchRunner(agent, self.args.device, 100, ["get_policy", "get_belief"])
+        # batch_runner.start()
 
-        agent = BridgeA2CModel(
-            policy_conf=policy_conf,
-            value_conf=dict(
-                hidden_size=2048,
-                num_hidden_layers=6,
-                use_layer_norm=True,
-                activation_function="gelu",
-                output_size=1
-            ),
-            belief_conf=belief_conf
-        )
-        agent.policy_net.load_state_dict(policy_state_dict)
-        agent.belief_net.load_state_dict(belief_state_dict)
-        agent.to(self.args.device)
-        print("Network loaded.")
-
-        batch_runner = rela.BatchRunner(agent, self.args.device, 100, ["get_policy", "get_belief"])
-        batch_runner.start()
-
-        cfg = bridgeplay.TorchOpeningLeadBotConfig()
+        cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
         cfg.num_worlds = self.args.num_worlds
         cfg.num_max_sample = self.args.num_max_sample
         cfg.fill_with_uniform_sample = bool(self.args.fill_with_uniform_sample)
         cfg.verbose = False
         cfg.rollout_result = bridgeplay.RolloutResult.NUM_FUTURE_TRICKS
 
-        torch_actor = bridgeplay.TorchActor(batch_runner)
-        bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
+        # torch_actor = bridgeplay.TorchActor(batch_runner)
+        # bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
 
         pimc_cfg = bridgeplay.PIMCConfig()
         pimc_cfg.num_worlds = self.args.num_worlds
         pimc_cfg.search_with_one_legal_move = False
         resampler = bridgeplay.UniformResampler(1)
-        bot = bridgeplay.PIMCBot(resampler, pimc_cfg)
+        # bot = bridgeplay.PIMCBot(resampler, pimc_cfg)
         # bot = bridgeplay.WBridge5TrajectoryBot(self.trajectories, bridge.default_game)
+        conventions_list = bba_bot.load_conventions("conf/bidding_system/WBridge5-SAYC.bbsa")
+
+        bot = RuleBasedBot(bridge.default_game,
+                           [1, 1], conventions_list,
+                           dds_evaluator, cfg)  # 779 798 798 804
         num_match = 0
 
         for j, trajectory in enumerate(self.trajectories):
+            bot.restart()
             state = construct_deal_and_bidding_state(trajectory)
             # print(state)
             assert not state.is_terminal()
@@ -153,7 +148,7 @@ if __name__ == '__main__':
         line = lines[i].split(" ")
         test_dataset.append([int(x) for x in line])
 
-    test_dataset = extract_available_trajectories(test_dataset)[:1000]
+    test_dataset = extract_not_passed_out_trajectories(test_dataset)[:1000]
     datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_threads)
 
     queue = mp.SimpleQueue()
@@ -175,4 +170,3 @@ if __name__ == '__main__':
         results.append(item)
 
     print(f"Final result: {sum(results)}/{len(results)}")
-    # 663 817

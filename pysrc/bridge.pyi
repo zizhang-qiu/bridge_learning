@@ -145,6 +145,8 @@ class BridgeHand:
 
     def is_card_in_hand(self, card: BridgeCard) -> bool: ...
 
+    def cards_by_suits(self) -> List[List[BridgeCard]]: ...
+
 
 class MoveType(IntEnum):
     INVALID = ...
@@ -282,7 +284,7 @@ class BridgeState:
     def legal_moves(self, player: Player) -> List[BridgeMove]: ...
 
     @overload
-    def legal_moves(self) -> List[BridgeMove]:
+    def legal_moves(self) -> List[BridgeMove]: ...
 
     def score_for_contracts(self, player: Player, contracts: List[int]) -> List[int]: ...
 
@@ -344,3 +346,8 @@ class CanonicalEncoder(ObservationEncoder):
 
 
 def get_imp(score1: int, score2: int) -> int: ...
+
+
+ALL_SUITS: List[Suit]
+ALL_DENOMINATIONS: List[Denomination]
+ALL_SEATS: List[Seat]

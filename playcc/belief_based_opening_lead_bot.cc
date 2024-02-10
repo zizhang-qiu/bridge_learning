@@ -2,12 +2,12 @@
 // Created by qzz on 2024/1/20.
 //
 
-#include "torch_opening_lead_bot.h"
+#include "belief_based_opening_lead_bot.h"
 
 #include "pimc.h"
 #include "absl/strings/str_cat.h"
 
-ble::BridgeMove TorchOpeningLeadBot::Step(const ble::BridgeState& state) {
+ble::BridgeMove NNBeliefOpeningLeadBot::Step(const ble::BridgeState& state) {
   // Check if the state needs a opening lead.
   if (state.CurrentPhase() != ble::Phase::kPlay
       || state.NumCardsPlayed() != 0) {

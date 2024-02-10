@@ -9,11 +9,13 @@ import set_path
 set_path.append_sys_path()
 
 import bridge
+import bridgeplay
 
 
-class BlueChipBridgeBot:
+class BlueChipBridgeBot(bridgeplay.PlayBot):
 
     def __init__(self, game: bridge.BridgeGame, player_id: int, controller_factory: Callable[[], Controller]):
+        super().__init__()
         self._game = game
         self._player_id = player_id
         self._controller_factory = controller_factory
