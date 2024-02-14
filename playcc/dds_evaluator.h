@@ -35,6 +35,10 @@ class DDSEvaluator {
                 ble::Player result_for,
                 RolloutResult rollout_result = kWinLose);
 
+    // Evaluate a state for a player
+    int Evaluate(const ble::BridgeState& state, ble::Player result_for,
+                 RolloutResult rollout_result);
+
     // Get all optimal moves by dds.
     std::vector<ble::BridgeMove> DDSMoves(const ble::BridgeState& state);
 

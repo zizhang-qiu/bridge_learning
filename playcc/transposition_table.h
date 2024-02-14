@@ -5,7 +5,6 @@
 #ifndef BRIDGE_LEARNING_PLAYCC_TRANSPOSITION_TABLE_H_
 #define BRIDGE_LEARNING_PLAYCC_TRANSPOSITION_TABLE_H_
 #include <unordered_map>
-#include <map>
 
 #include "bridge_state_without_hidden_info.h"
 #include "pareto_front.h"
