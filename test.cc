@@ -7,13 +7,14 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
 // #include "rela/batcher.h"
+#include <playcc/sayc/model.h>
 
 #include "playcc/alpha_mu_search.h"
 #include "playcc/bridge_state_without_hidden_info.h"
 #include "bridge_lib/bridge_state.h"
 #include "bridge_lib/example_cards_ddts.h"
 #include "bridge_lib/canonical_encoder.h"
-#include "playcc/common_utils/file.h"
+#include "playcc/file.h"
 #include "playcc/pimc.h"
 #include "playcc/transposition_table.h"
 #include "playcc/deal_analyzer.h"
@@ -160,6 +161,10 @@ int main(int argc, char** argv) {
   std::cout << hand << std::endl;
 
   auto state = ble::BridgeState(game);
+
+  while (state.IsChanceNode()) {
+    state.ApplyRandomChance();
+  }
 
   while (state.IsChanceNode()) {
     state.ApplyRandomChance();
