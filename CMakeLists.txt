@@ -205,19 +205,6 @@ add_library(_bridgeplay OBJECT
         playcc/wbridge5_trajectory_bot.h
         playcc/rule_based_defender.cc
         playcc/rule_based_defender.h
-        playcc/sayc/range.h
-        playcc/sayc/hand_analyzer.h
-        playcc/sayc/hand_info.h
-        playcc/sayc/range.cc
-        playcc/sayc/named_enum.cc
-        playcc/sayc/named_enum.h
-        playcc/sayc/hand_info.cc
-        playcc/sayc/constraints.cc
-        playcc/sayc/constraints.h
-        playcc/sayc/utils.cc
-        playcc/sayc/utils.h
-        playcc/sayc/sayc_bot.cc
-        playcc/sayc/sayc_bot.h
 )
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC rela_lib)
@@ -272,18 +259,6 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_libraries(temp PUBLIC _bridgelearn)
     target_link_libraries(temp PUBLIC ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES} ${Python3_LIBRARIES})
     target_include_directories(temp PUBLIC ${Python3_INCLUDE_DIRS})
-
-    add_executable(sayc_utils_test playcc/unit_tests/sayc_utils_test.cc)
-    target_link_libraries(sayc_utils_test PRIVATE _bridgeplay)
-    add_test(sayc_utils_test sayc_utils_test)
-
-    add_executable(constraint_test playcc/unit_tests/constraint_test.cc)
-    target_link_libraries(constraint_test PRIVATE _bridgeplay)
-    add_test(constraint_test constraint_test)
-
-    add_executable(sayc_bot_test playcc/unit_tests/sayc_bot_test.cc)
-    target_link_libraries(sayc_bot_test PRIVATE _bridgeplay)
-    add_test(sayc_bot_test sayc_bot_test)
 endif ()
 
 #add_executable(main main.cc)

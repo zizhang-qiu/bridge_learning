@@ -19,8 +19,6 @@
 #include "playcc/deal_analyzer.h"
 #include "playcc/rule_based_defender.h"
 #include "playcc/wbridge5_trajectory_bot.h"
-#include "playcc/sayc/constraints.h"
-#include "playcc\sayc\hand_analyzer.h"
 // #include "rlcc/belief_data_gen.h"
 
 const ble::GameParameters params = {};
@@ -165,35 +163,5 @@ int main(int argc, char** argv) {
 
   while (state.IsChanceNode()) {
     state.ApplyRandomChance();
-  }
-
-  sayc::HandAnalyzer hand_analyzer{hand};
-
-  bool is_balanced = hand_analyzer.IsBalanced();
-  std::cout << std::boolalpha << is_balanced << std::endl;
-
-  std::cout << "hcp: " << hand_analyzer.HighCardPoints() << std::endl;
-
-  // const auto fit = sayc::OneNoTrumpOpeningConstraint.Fits(hand_analyzer,
-  //   ble::BridgeObservation{state});
-
-  // std::cout << fit << std::endl;
-
-  auto c = sayc::LoadConstraint("balanced_hand", {});
-  const auto fit3 = c->Fits(hand_analyzer, ble::BridgeObservation{state}, {});
-  std::cout << fit3 << std::endl;
-
-  auto c_20 = sayc::LoadConstraint("rule_of_20", {});
-  const auto fit4 = c_20->
-      Fits(hand_analyzer, ble::BridgeObservation{state}, {});
-  std::cout << fit4 << std::endl;
-
-  auto sorted_length_with_suits = hand_analyzer.GetSortedSuitLengthWithSuits();
-  for (const auto& pair : sorted_length_with_suits) {
-    std::cout << pair.first << ": ";
-    for (const auto suit : pair.second) {
-      std::cout << suit << ", ";
-    }
-    std::cout << std::endl;
   }
 }

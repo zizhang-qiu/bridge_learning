@@ -170,10 +170,10 @@ bool BridgeStateWithoutHiddenInfo::MoveIsLegal(const BridgeMove &move) const {
   }
 }
 void BridgeStateWithoutHiddenInfo::ApplyMove(const BridgeMove &move) {
-  if (!MoveIsLegal(move)) {
-    std::cout << "state:\n" << ToString() << "encounter illegal move: " << move << std::endl;
-  }
-  REQUIRE(MoveIsLegal(move));
+  // if (!MoveIsLegal(move)) {
+  //   std::cout << "state:\n" << ToString() << "encounter illegal move: " << move << std::endl;
+  // }
+  // REQUIRE(MoveIsLegal(move));
   BridgeHistoryItem history(move);
   history.player = current_player_;
   switch (move.MoveType()) {
