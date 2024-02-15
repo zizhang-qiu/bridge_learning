@@ -29,7 +29,7 @@ import bridgelearn
 import bridgeplay
 from agent import BridgeAgent, BridgeA2CModel
 from net import MLP
-from train_belief import extract_not_passed_out_trajectories
+from pysrc.utils import extract_not_passed_out_trajectories
 
 # print(dir(bridgelearn))
 params = create_params()

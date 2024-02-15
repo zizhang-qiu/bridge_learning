@@ -9,12 +9,13 @@ import argparse
 import os
 import pickle
 from pprint import pformat
-from typing import Optional, List
+from typing import Optional
 
 import numpy as np
 import torch
 import yaml
 from tqdm import trange
+from utils import extract_not_passed_out_trajectories
 
 import set_path
 from net import MLP
@@ -36,18 +37,6 @@ def parse_args():
     parser.add_argument("--save_dir", type=str, default="belief_sl/exp3")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
     return parser.parse_args()
-
-
-def is_trajectory_not_passed_out(trajectory: List[int]):
-    return trajectory[-4:] != [bridge.OtherCalls.PASS.value + 52 for _ in range(bridge.NUM_PLAYERS)]
-
-
-def extract_not_passed_out_trajectories(trajectories: List[List[int]]) -> List[List[int]]:
-    res = []
-    for trajectory in trajectories:
-        if is_trajectory_not_passed_out(trajectory):
-            res.append(trajectory)
-    return res
 
 
 def compute_hand_acc(pred: torch.Tensor, hand_label: torch.Tensor):

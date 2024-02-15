@@ -1,6 +1,6 @@
 import abc
 from enum import IntEnum
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, overload
 import bridge
 import rela
 
@@ -120,6 +120,7 @@ class AlphaMuConfig:
     search_with_one_legal_move: bool
     root_cut: bool
     early_cut: bool
+    rollout_result : RolloutResult
 
 
 class BridgeStateWithoutHiddenInfo:
@@ -155,7 +156,11 @@ class TranspositionTable:
 
 
 class AlphaMuBot(PlayBot):
+    @overload
     def __init__(self, resampler: Resampler, cfg: AlphaMuConfig): ...
+
+    @overload
+    def __init__(self, resampler: Resampler, cfg:AlphaMuConfig, player_id:int): ...
 
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
 

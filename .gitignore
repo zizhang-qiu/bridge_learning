@@ -1,5 +1,8 @@
 /build/
 /sl/
 /pysrc/conf
+/pysrc/__pycache__
+/pysrc/outputs
 /.cache
 /.idea
+/workspace.code-workspace

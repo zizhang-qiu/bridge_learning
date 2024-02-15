@@ -19,7 +19,7 @@ import torch
 import argparse
 import os
 import numpy as np
-from train_belief import extract_not_passed_out_trajectories
+from pysrc.utils import extract_not_passed_out_trajectories
 
 import rela
 import bridge

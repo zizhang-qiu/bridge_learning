@@ -18,7 +18,7 @@ set_path.append_sys_path()
 import bridge
 import bridgeplay
 import bba_bot
-from train_belief import extract_not_passed_out_trajectories
+from pysrc.utils import extract_not_passed_out_trajectories
 from rule_based_bot import RuleBasedBot
 
 

@@ -17,7 +17,7 @@ from omegaconf import OmegaConf
 
 from net import MLP
 from utils import load_dataset
-from train_belief import extract_not_passed_out_trajectories
+from pysrc.utils import extract_not_passed_out_trajectories
 
 from set_path import append_sys_path
 

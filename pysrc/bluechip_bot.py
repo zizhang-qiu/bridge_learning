@@ -9,6 +9,7 @@ import set_path
 set_path.append_sys_path()
 
 import bridge
+import rela
 import bridgeplay
 
 
@@ -112,7 +113,7 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
             self.is_play_phase = False
             self.cards_played = 0
 
-    def step(self, state):
+    def _step(self, state):
         """Returns an action for the given state."""
         # Bring the external bot up-to-date.
         self.inform_state(state)
@@ -134,6 +135,11 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
             return _bid_to_action(our_action["bid"])
         elif our_action["play"]:
             return _play_to_action(our_action["play"])
+        
+    def step(self, state):
+        uid = self._step(state)
+        move = self._game.get_move(uid)
+        return move
 
     def terminate(self):
         self._controller.terminate()

@@ -21,8 +21,9 @@ from common_utils.torch_utils import activation_function_from_str
 from compute_sl_metric import get_metrics
 from create_bridge import create_params
 from net import MLP
+from pysrc.utils import extract_not_passed_out_trajectories
 from set_path import append_sys_path
-from train_belief import extract_not_passed_out_trajectories, compute_hand_acc
+from train_belief import compute_hand_acc
 from supervised_learn2 import BiddingDataset, cross_entropy, compute_accuracy
 
 append_sys_path()

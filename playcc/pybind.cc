@@ -1,6 +1,7 @@
 //
 // Created by qzz on 2024/1/6.
 //
+#include "bridge_lib/bridge_utils.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/cast.h"
@@ -206,7 +207,8 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def_readwrite("search_with_one_legal_move",
                      &AlphaMuConfig::search_with_one_legal_move)
       .def_readwrite("root_cut", &AlphaMuConfig::root_cut)
-      .def_readwrite("early_cut", &AlphaMuConfig::early_cut);
+      .def_readwrite("early_cut", &AlphaMuConfig::early_cut)
+      .def_readwrite("rollout_result", &AlphaMuConfig::rollout_result);
 
   py::class_<TranspositionTable>(m, "TranspositionTable")
       .def(py::init<>())
@@ -218,6 +220,7 @@ PYBIND11_MODULE(bridgeplay, m) {
 
   py::class_<AlphaMuBot, PlayBot, std::shared_ptr<AlphaMuBot>>(m, "AlphaMuBot")
       .def(py::init<std::shared_ptr<Resampler>, AlphaMuConfig>())
+      .def(py::init<std::shared_ptr<Resampler>, AlphaMuConfig, ble::Player>())
       .def("step", &AlphaMuBot::Step)
       .def("search", &AlphaMuBot::Search)
       .def("get_tt", &AlphaMuBot::GetTT)

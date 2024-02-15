@@ -3,7 +3,12 @@
 //
 
 #include "alpha_mu_bot.h"
+
+#include <algorithm>
 #include <vector>
+
+#include "absl/strings/str_cat.h"
+
 #include "bridge_lib/bridge_scoring.h"
 #include "bridge_lib/bridge_utils.h"
 #include "playcc/dds_evaluator.h"
@@ -51,6 +56,34 @@ std::pair<bool, ParetoFront> AlphaMuBot::Stop(
     const ble::BridgeStateWithoutHiddenInfo& state, int num_max_moves,
     const Worlds& worlds) {
 
+  // Stop when the game is terminated.
+  if (state.IsTerminal()) {
+    const int num_declarer_tricks = state.NumDeclarerTricks();
+    const int target_tricks = state.GetContract().level + 6;
+    ParetoFront result{};
+    std::vector<int> game_outcomes(worlds.Size(), 0);
+    auto possible = worlds.Possible();
+    switch (cfg_.rollout_result) {
+
+      case kWinLose:
+        {
+          const int win = num_declarer_tricks >= target_tricks;
+          std::fill(game_outcomes.begin(), game_outcomes.end(), win);
+          result.Insert({game_outcomes, possible});
+          return {true, result};
+        }
+      case kNumFutureTricks:
+        result.Insert({ game_outcomes, possible});
+        return {true, result};
+      case kNumTotalTricks:
+        std::fill(game_outcomes.begin(), game_outcomes.end(), num_declarer_tricks);
+        result.Insert({game_outcomes,possible});
+        return {true, result};
+      default:
+        SpielFatalError(absl::StrCat("Wrong rollout result: ", cfg_.rollout_result));
+    }
+  }
+
   if (cfg_.rollout_result == kWinLose) {
     const ble::Contract contract = state.GetContract();
     const int target = contract.level + 6;
@@ -76,10 +109,11 @@ std::pair<bool, ParetoFront> AlphaMuBot::Stop(
     const auto& states = worlds.States();
     const auto possible = worlds.Possible();
     const ble::Player declarer = state.GetContract().declarer;
-    for(size_t i=0; i<states.size(); ++i){
+    for (size_t i = 0; i < states.size(); ++i) {
       if (possible[i]) {
-        evaluation[i] = dds_evaluator_.Evaluate(states[i], declarer, cfg_.rollout_result);
-      }else{
+        evaluation[i] =
+            dds_evaluator_.Evaluate(states[i], declarer, cfg_.rollout_result);
+      } else {
         evaluation[i] = -1;
       }
     }
@@ -106,20 +140,18 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo& state,
     // Min node.
     ParetoFront mini{};
     // Early cut.
-    
+
     if (cfg_.early_cut) {
       if (is_state_in_tt && ParetoFrontDominate(alpha, tt_[state])) {
         //        std::cout << "Perform early cut." << std::endl;
         return mini;
       }
     }
-    bool tt_move_first = false;
     std::vector<ble::BridgeMove> all_moves = worlds.GetAllPossibleMoves();
     if (is_state_in_tt) {
       auto it = std::find(all_moves.begin(), all_moves.end(),
                           tt_[state].BestOutcome().move);
       if (it != all_moves.end()) {
-        tt_move_first = true;
         std::rotate(all_moves.begin(), it, it + 1);
       }
     }
@@ -161,13 +193,13 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo& state,
       if (cfg_.root_cut) {
         if (num_max_moves == cfg_.num_max_moves) {
           // Root node.
-          if (tt_move_first&& last_iteration_front_.has_value() &&
+          if (tt_move_first && last_iteration_front_.has_value() &&
               last_iteration_front_->BestOutcome().Score() ==
                   front.BestOutcome().Score()) {
-                       std::cout << "Perform root cut." << std::endl;
-                       std::cout << "Current state:\n" << state << std::endl;
-                       std::cout << "Last iteration front :\n" << last_iteration_front_.value() << std::endl;
-                       std::cout << "front: \n" << front << std::endl;
+            //  std::cout << "Perform root cut." << std::endl;
+            //  std::cout << "Current state:\n" << state << std::endl;
+            //  std::cout << "Last iteration front :\n" << last_iteration_front_.value() << std::endl;
+            //  std::cout << "front: \n" << front << std::endl;
             break;
           }
         }

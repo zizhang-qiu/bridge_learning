@@ -13,6 +13,7 @@ import torch
 import yaml
 
 
+
 def load_dataset(file_path: str) -> List[List[int]]:
     """
     Load a dataset from a text file, e.g.
@@ -44,3 +45,15 @@ def load_net_conf_and_state_dict(model_dir: str, model_name: str, net_conf_filen
     state_dict_path = os.path.join(model_dir, model_name)
     state_dict = torch.load(state_dict_path)
     return conf, state_dict
+
+
+def is_trajectory_not_passed_out(trajectory: List[int]):
+    return trajectory[-4:] != [52 for _ in range(4)]
+
+
+def extract_not_passed_out_trajectories(trajectories: List[List[int]]) -> List[List[int]]:
+    res = []
+    for trajectory in trajectories:
+        if is_trajectory_not_passed_out(trajectory):
+            res.append(trajectory)
+    return res

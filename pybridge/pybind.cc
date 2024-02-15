@@ -351,6 +351,7 @@ PYBIND11_MODULE(bridge, m) {
       .def("deal_history", &BridgeState::DealHistory)
       .def("auction_history", &BridgeState::AuctionHistory)
       .def("play_history", &BridgeState::PlayHistory)
+      .def("num_declarer_tricks", &BridgeState::NumDeclarerTricks)
       .def("__repr__", &BridgeState::ToString)
       .def(py::pickle([](const BridgeState &state) {
         //__setstate__

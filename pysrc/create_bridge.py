@@ -49,6 +49,7 @@ class BotFactory:
     num_max_moves: int
     early_cut: bool
     root_cut: bool
+    rollout_result : int
 
     # For BBA
     convention_file: str
@@ -57,7 +58,6 @@ class BotFactory:
     # Others
     fill_with_uniform_sample: bool
     num_max_sample: int
-    rollout_result: int
     verbose: bool
 
     def __init__(self, **kwargs):
@@ -67,6 +67,8 @@ class BotFactory:
     def create_bot(self, bot_type: str, **kwargs) -> bridgeplay.PlayBot:
         if bot_type == "dds":
             return bridgeplay.DDSBot()
+        
+        
 
         if bot_type == "pimc":
             resampler = bridgeplay.UniformResampler(self.seed)
@@ -75,7 +77,8 @@ class BotFactory:
             pimc_config.search_with_one_legal_move = False
             return bridgeplay.PIMCBot(resampler, pimc_config)
 
-        if bot_type == "alphamu":
+        if bot_type == "alpha_mu":
+            assert "player_id" in kwargs.keys()
             resampler = bridgeplay.UniformResampler(self.seed)
             alpha_mu_config = bridgeplay.AlphaMuConfig()
             alpha_mu_config.num_worlds = self.num_worlds
@@ -83,7 +86,8 @@ class BotFactory:
             alpha_mu_config.root_cut = self.root_cut
             alpha_mu_config.early_cut = self.early_cut
             alpha_mu_config.search_with_one_legal_move = False
-            return bridgeplay.AlphaMuBot(resampler, alpha_mu_config)
+            alpha_mu_config.rollout_result = bridgeplay.RolloutResult(self.rollout_result)
+            return bridgeplay.AlphaMuBot(resampler, alpha_mu_config, kwargs["player_id"])
 
         if "game" in kwargs.keys():
             game = kwargs['game']
@@ -163,3 +167,6 @@ class BotFactory:
                 return client
 
             return BlueChipBridgeBot(game, player_id, controller_factory)
+        
+        raise ValueError(f"bot_type {bot_type} is not supported.")
+
