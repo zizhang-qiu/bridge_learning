@@ -208,12 +208,6 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def_readwrite("root_cut", &AlphaMuConfig::root_cut)
       .def_readwrite("early_cut", &AlphaMuConfig::early_cut);
 
-  py::class_<VanillaAlphaMuBot, PlayBot, std::shared_ptr<VanillaAlphaMuBot>>(
-      m, "VanillaAlphaMuBot")
-      .def(py::init<std::shared_ptr<Resampler>, AlphaMuConfig>())
-      .def("step", &VanillaAlphaMuBot::Step)
-      .def("search", &VanillaAlphaMuBot::Search);
-
   py::class_<TranspositionTable>(m, "TranspositionTable")
       .def(py::init<>())
       .def("table", &TranspositionTable::Table)

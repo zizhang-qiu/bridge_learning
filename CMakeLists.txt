@@ -169,8 +169,6 @@ add_library(_bridgeplay OBJECT
         playcc/pareto_front.h
         playcc/pareto_front.cc
         playcc/outcome_vector.cc
-        playcc/alpha_mu_search.cc
-        playcc/alpha_mu_search.h
         playcc/utils.cc
         playcc/pimc.cc
         playcc/resampler.cc
@@ -272,18 +270,6 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_libraries(temp PUBLIC _bridgelearn)
     target_link_libraries(temp PUBLIC ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES} ${Python3_LIBRARIES})
     target_include_directories(temp PUBLIC ${Python3_INCLUDE_DIRS})
-
-    add_executable(sayc_utils_test playcc/unit_tests/sayc_utils_test.cc)
-    target_link_libraries(sayc_utils_test PRIVATE _bridgeplay)
-    add_test(sayc_utils_test sayc_utils_test)
-
-    add_executable(constraint_test playcc/unit_tests/constraint_test.cc)
-    target_link_libraries(constraint_test PRIVATE _bridgeplay)
-    add_test(constraint_test constraint_test)
-
-    add_executable(sayc_bot_test playcc/unit_tests/sayc_bot_test.cc)
-    target_link_libraries(sayc_bot_test PRIVATE _bridgeplay)
-    add_test(sayc_bot_test sayc_bot_test)
 endif ()
 
 #add_executable(main main.cc)

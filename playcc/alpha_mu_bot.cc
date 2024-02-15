@@ -3,69 +3,24 @@
 //
 
 #include "alpha_mu_bot.h"
+#include <vector>
+#include "bridge_lib/bridge_scoring.h"
+#include "bridge_lib/bridge_utils.h"
+#include "playcc/dds_evaluator.h"
+#include "playcc/pareto_front.h"
 
 bool IsFirstMaxNode(const ble::BridgeStateWithoutHiddenInfo& state) {
-  return state.PlayHistory().size() == 1;
+  return state.NumCardsPlayed() == 1;
 }
 
 bool IsFirstMaxNode(const ble::BridgeState& state) {
-  return state.PlayHistory().size() == 1;
-}
-
-ble::BridgeMove VanillaAlphaMuBot::Step(const ble::BridgeState& state) {
-  SPIEL_CHECK_FALSE(state.IsTerminal());
-  //  const auto &legal_moves = state.LegalMoves();
-  const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
-  //  for (const auto move : legal_moves) {
-  //    std::cout << move << std::endl;
-  //  }
-  const int num_legal_moves = static_cast<int>(legal_moves.size());
-  // Only one legal move, return it.
-  if (num_legal_moves == 1 && !cfg_.search_with_one_legal_move) {
-    return legal_moves[0];
-  }
-
-  const ParetoFront front = Search(state);
-  auto best = front.BestOutcome();
-  if (best.move.MoveType() == bridge_learning_env::BridgeMove::kInvalid) {
-    best.move = state.LegalMoves()[0];
-  }
-  return best.move;
-}
-
-ParetoFront VanillaAlphaMuBot::Search(const ble::BridgeState& state) const {
-  const auto deals = ResampleMultipleDeals(resampler_, state, cfg_.num_worlds);
-  //  std::cout << "Deals sampled in alpha mu:\n" << std::endl;
-  //  for (const auto d : deals) {
-  //    PrintArray(d);
-  //  }
-  ParetoFront front =
-      VanillaAlphaMu(ble::BridgeStateWithoutHiddenInfo(state), cfg_.num_max_moves, Worlds(deals, state));
-  std::cout << front << std::endl;
-  return front;
-}
-
-ble::BridgeMove VanillaAlphaMuBot::ActWithWorlds(const ble::BridgeState& state,
-                                                 const vector<ble::BridgeState>& worlds) const {
-  const auto& legal_moves = state.LegalMoves();
-  const int num_legal_moves = static_cast<int>(legal_moves.size());
-  // Only one legal move, return it.
-  if (num_legal_moves == 1) {
-    return legal_moves[0];
-  }
-
-  const std::vector<bool> possible_worlds(cfg_.num_worlds, true);
-  ParetoFront front = VanillaAlphaMu(ble::BridgeStateWithoutHiddenInfo(state), cfg_.num_max_moves, Worlds(worlds));
-  auto best = front.BestOutcome();
-  if (best.move.MoveType() == bridge_learning_env::BridgeMove::kInvalid) {
-    best.move = state.LegalMoves()[0];
-  }
-  return best.move;
+  return state.NumCardsPlayed() == 1;
 }
 
 ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
   SPIEL_CHECK_FALSE(state.IsTerminal());
-  SPIEL_CHECK_EQ(ble::Partnership(state.GetContract().declarer), ble::Partnership(player_id_));
+  SPIEL_CHECK_EQ(ble::Partnership(state.GetContract().declarer),
+                 ble::Partnership(player_id_));
   //  std::cout << "tt size: " << tt_.Table().size() << std::endl;
   if (IsFirstMaxNode(state)) {
     tt_.Clear();
@@ -80,8 +35,9 @@ ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
   }
 
   const auto deals = ResampleMultipleDeals(resampler_, state, cfg_.num_worlds);
-  const ParetoFront
-      front = Search(ble::BridgeStateWithoutHiddenInfo(state), cfg_.num_max_moves, Worlds(deals, state), {});
+  const ParetoFront front =
+      Search(ble::BridgeStateWithoutHiddenInfo(state), cfg_.num_max_moves,
+             Worlds(deals, state), {});
   last_iteration_front_ = front;
   auto best = front.BestOutcome();
   if (best.move.MoveType() == bridge_learning_env::BridgeMove::kInvalid) {
@@ -91,11 +47,53 @@ ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
   return best.move;
 }
 
+std::pair<bool, ParetoFront> AlphaMuBot::Stop(
+    const ble::BridgeStateWithoutHiddenInfo& state, int num_max_moves,
+    const Worlds& worlds) {
+
+  if (cfg_.rollout_result == kWinLose) {
+    const ble::Contract contract = state.GetContract();
+    const int target = contract.level + 6;
+    if (state.NumDeclarerTricks() >= target) {
+      ParetoFront result{};
+      std::vector<int> outcomes(worlds.Size(), 1);
+      result.Insert({outcomes, worlds.Possible()});
+      return {true, result};
+    }
+
+    const int num_defender_tricks =
+        state.NumTricksPlayed() - state.NumDeclarerTricks();
+    if (num_defender_tricks > (ble::kNumTricks - target)) {
+      ParetoFront result{};
+      std::vector<int> outcomes(worlds.Size(), 0);
+      result.Insert({outcomes, worlds.Possible()});
+      return {true, result};
+    }
+  }
+
+  if (num_max_moves == 0) {
+    std::vector<int> evaluation(worlds.Size(), 0);
+    const auto& states = worlds.States();
+    const auto possible = worlds.Possible();
+    const ble::Player declarer = state.GetContract().declarer;
+    for(size_t i=0; i<states.size(); ++i){
+      if (possible[i]) {
+        evaluation[i] = dds_evaluator_.Evaluate(states[i], declarer, cfg_.rollout_result);
+      }else{
+        evaluation[i] = -1;
+      }
+    }
+    ParetoFront result{};
+    result.Insert({evaluation, possible});
+    return {true, result};
+  }
+  return {false, {}};
+}
+
 ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo& state,
-                               int num_max_moves,
-                               const Worlds& worlds,
+                               int num_max_moves, const Worlds& worlds,
                                const ParetoFront& alpha) {
-  auto [stop, result] = StopSearch(state, num_max_moves, worlds);
+  auto [stop, result] = Stop(state, num_max_moves, worlds);
   if (stop) {
     tt_[state] = result;
     return result;
@@ -103,21 +101,25 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo& state,
 
   bool is_state_in_tt = tt_.HasKey(state);
 
-  if (ble::Partnership(state.CurrentPlayer()) != ble::Partnership(state.GetContract().declarer)) {
+  if (ble::Partnership(state.CurrentPlayer()) !=
+      ble::Partnership(state.GetContract().declarer)) {
     // Min node.
     ParetoFront mini{};
     // Early cut.
+    
     if (cfg_.early_cut) {
       if (is_state_in_tt && ParetoFrontDominate(alpha, tt_[state])) {
         //        std::cout << "Perform early cut." << std::endl;
         return mini;
       }
     }
-
+    bool tt_move_first = false;
     std::vector<ble::BridgeMove> all_moves = worlds.GetAllPossibleMoves();
     if (is_state_in_tt) {
-      auto it = std::find(all_moves.begin(), all_moves.end(), tt_[state].BestOutcome().move);
+      auto it = std::find(all_moves.begin(), all_moves.end(),
+                          tt_[state].BestOutcome().move);
       if (it != all_moves.end()) {
+        tt_move_first = true;
         std::rotate(all_moves.begin(), it, it + 1);
       }
     }
@@ -132,14 +134,16 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo& state,
 
     tt_[state] = mini;
     return mini;
-  }
-  else {
+  } else {
     // Max node.
     ParetoFront front{};
     std::vector<ble::BridgeMove> all_moves = worlds.GetAllPossibleMoves();
+    bool tt_move_first = false;
     if (is_state_in_tt) {
-      auto it = std::find(all_moves.begin(), all_moves.end(), tt_[state].BestOutcome().move);
+      auto it = std::find(all_moves.begin(), all_moves.end(),
+                          tt_[state].BestOutcome().move);
       if (it != all_moves.end()) {
+        tt_move_first = true;
         std::rotate(all_moves.begin(), it, it + 1);
       }
     }
@@ -157,9 +161,13 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo& state,
       if (cfg_.root_cut) {
         if (num_max_moves == cfg_.num_max_moves) {
           // Root node.
-          if (last_iteration_front_.has_value() && last_iteration_front_->BestOutcome().Score() == front.BestOutcome().
-            Score()) {
-            //            std::cout << "Perform root cut." << std::endl;
+          if (tt_move_first&& last_iteration_front_.has_value() &&
+              last_iteration_front_->BestOutcome().Score() ==
+                  front.BestOutcome().Score()) {
+                       std::cout << "Perform root cut." << std::endl;
+                       std::cout << "Current state:\n" << state << std::endl;
+                       std::cout << "Last iteration front :\n" << last_iteration_front_.value() << std::endl;
+                       std::cout << "front: \n" << front << std::endl;
             break;
           }
         }
@@ -170,27 +178,33 @@ ParetoFront AlphaMuBot::Search(const ble::BridgeStateWithoutHiddenInfo& state,
   }
 }
 
-std::unique_ptr<PlayBot> MakeAlphaMuBot(ble::Player player_id, AlphaMuConfig cfg) {
+std::unique_ptr<PlayBot> MakeAlphaMuBot(ble::Player player_id,
+                                        AlphaMuConfig cfg) {
   return std::make_unique<AlphaMuBot>(nullptr, cfg, player_id);
 }
 
 namespace {
 class AlphaMuFactory : public BotFactory {
-  public:
-    ~AlphaMuFactory() = default;
+ public:
+  ~AlphaMuFactory() = default;
 
-    std::unique_ptr<PlayBot> Create(std::shared_ptr<const ble::BridgeGame> game,
-                                    ble::Player player,
-                                    const ble::GameParameters& bot_params) override {
-      const int num_max_moves = ble::ParameterValue<int>(bot_params, "num_max_moves", 1);
-      const int num_worlds = ble::ParameterValue<int>(bot_params, "num_worlds", 20);
-      const bool early_cut = ble::ParameterValue<bool>(bot_params, "early_cut", false);
-      const bool root_cut = ble::ParameterValue<bool>(bot_params, "root_cut", false);
-      const bool use_tt = ble::ParameterValue<bool>(bot_params, "use_tt", false);
-      const AlphaMuConfig cfg{num_max_moves, num_worlds, false, use_tt, early_cut, root_cut};
-      return MakeAlphaMuBot(player, cfg);
-    }
+  std::unique_ptr<PlayBot> Create(
+      std::shared_ptr<const ble::BridgeGame> game, ble::Player player,
+      const ble::GameParameters& bot_params) override {
+    const int num_max_moves =
+        ble::ParameterValue<int>(bot_params, "num_max_moves", 1);
+    const int num_worlds =
+        ble::ParameterValue<int>(bot_params, "num_worlds", 20);
+    const bool early_cut =
+        ble::ParameterValue<bool>(bot_params, "early_cut", false);
+    const bool root_cut =
+        ble::ParameterValue<bool>(bot_params, "root_cut", false);
+    const bool use_tt = ble::ParameterValue<bool>(bot_params, "use_tt", false);
+    const AlphaMuConfig cfg{num_max_moves, num_worlds, false,
+                            use_tt,        early_cut,  root_cut};
+    return MakeAlphaMuBot(player, cfg);
+  }
 };
 
 REGISTER_PLAY_BOT("alpha_mu", AlphaMuFactory);
-}
+}  // namespace

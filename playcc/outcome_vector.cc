@@ -34,7 +34,7 @@ double OutcomeVector::Score() const {
       count += 1;
     }
   }
-  return count == 0 ? 0.0 : sum / count;
+  return count == 0 ? 0.0 : sum / static_cast<double>(count);
 }
 std::string OutcomeVector::ToString() const {
   std::string rv;
@@ -59,7 +59,7 @@ std::pair<int, bool> GetGameStatusAndPossibleWorlds(const int lhs_game_status,
   } else {
     if(!lhs_possible && !rhs_possible){
       // Both impossible
-      return {0, false};
+      return {-1, false};
     }
     if (lhs_possible){
       return {lhs_game_status, true};
