@@ -5,25 +5,30 @@
 @file: evaluate_opening_lead2.py
 @time: 2024/1/22 9:36
 """
+
 import argparse
 import os
 from typing import List
 
 import multiprocessing as mp
 
-import common_utils
+
 import set_path
+import hydra
+from omegaconf import OmegaConf, DictConfig
 
 set_path.append_sys_path()
+import common_utils
 import bridge
+import rela
 import bridgeplay
-import bba_bot
-from pysrc.utils import extract_not_passed_out_trajectories
-from rule_based_bot import RuleBasedBot
+from create_bridge import BotFactory
+from utils import extract_not_passed_out_trajectories
 
 
-def construct_deal_and_bidding_state(trajectory: List[int],
-                                     game: bridge.BridgeGame = bridge.default_game) -> bridge.BridgeState:
+def construct_deal_and_bidding_state(
+    trajectory: List[int], game: bridge.BridgeGame = bridge.default_game
+) -> bridge.BridgeState:
     assert len(trajectory) > game.min_game_length()
     state = bridge.BridgeState(game)
     idx = 0
@@ -40,7 +45,9 @@ def construct_deal_and_bidding_state(trajectory: List[int],
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
+    parser.add_argument(
+        "--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert"
+    )
     parser.add_argument("--policy_model_dir", type=str, default="sl/exp6")
     parser.add_argument("--policy_model_name", type=str, default="model0.pthw")
     parser.add_argument("--belief_model_dir", type=str, default="belief_sl/exp3")
@@ -57,11 +64,18 @@ def parse_args():
 
 
 class Worker(mp.Process):
-    def __init__(self, flags: argparse.Namespace, trajectories: List[List[int]], q: mp.SimpleQueue,
-                 process_idx: int = 0):
+    def __init__(
+        self,
+        flags,
+        trajectories: List[List[int]],
+        q: mp.SimpleQueue,
+        aq: mp.SimpleQueue,
+        process_idx: int = 0,
+    ):
         super().__init__()
         self.args = flags
         self.trajectories = trajectories
+        self.aq = aq
         self.q = q
         self.process_idx = process_idx
 
@@ -93,31 +107,39 @@ class Worker(mp.Process):
         # batch_runner = rela.BatchRunner(agent, self.args.device, 100, ["get_policy", "get_belief"])
         # batch_runner.start()
 
-        cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
-        cfg.num_worlds = self.args.num_worlds
-        cfg.num_max_sample = self.args.num_max_sample
-        cfg.fill_with_uniform_sample = bool(self.args.fill_with_uniform_sample)
-        cfg.verbose = False
-        cfg.rollout_result = bridgeplay.RolloutResult.NUM_FUTURE_TRICKS
+        # cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
+        # cfg.num_worlds = self.args.num_worlds
+        # cfg.num_max_sample = self.args.num_max_sample
+        # cfg.fill_with_uniform_sample = bool(self.args.fill_with_uniform_sample)
+        # cfg.verbose = False
+        # cfg.rollout_result = bridgeplay.RolloutResult.NUM_FUTURE_TRICKS
 
         # torch_actor = bridgeplay.TorchActor(batch_runner)
         # bot = bridgeplay.TorchOpeningLeadBot(torch_actor, bridge.default_game, 1, dds_evaluator, cfg)
 
-        pimc_cfg = bridgeplay.PIMCConfig()
-        pimc_cfg.num_worlds = self.args.num_worlds
-        pimc_cfg.search_with_one_legal_move = False
-        resampler = bridgeplay.UniformResampler(1)
-        # bot = bridgeplay.PIMCBot(resampler, pimc_cfg)
-        # bot = bridgeplay.WBridge5TrajectoryBot(self.trajectories, bridge.default_game)
-        conventions_list = bba_bot.load_conventions("conf/bidding_system/WBridge5-SAYC.bbsa")
+        # pimc_cfg = bridgeplay.PIMCConfig()
+        # pimc_cfg.num_worlds = self.args.num_worlds
+        # pimc_cfg.search_with_one_legal_move = False
+        # resampler = bridgeplay.UniformResampler(1)
+        # # bot = bridgeplay.PIMCBot(resampler, pimc_cfg)
+        # # bot = bridgeplay.WBridge5TrajectoryBot(self.trajectories, bridge.default_game)
+        # conventions_list = bba_bot.load_conventions("conf/bidding_system/WBridge5-SAYC.bbsa")
 
-        bot = RuleBasedBot(bridge.default_game,
-                           [1, 1], conventions_list,
-                           dds_evaluator, cfg)  # 779 798 798 804
+        # bot = RuleBasedBot(bridge.default_game,
+        #                    [1, 1], conventions_list,
+        #                    dds_evaluator, cfg)  # 779 798 798 804
+        bot_factory: BotFactory = hydra.utils.instantiate(self.args.bot_factory)
+        opening_lead_bots = [bot_factory.create_bot(self.args.bot_name) for i in range(bridge.NUM_PLAYERS)]
         num_match = 0
+        logger = common_utils.Logger(
+            os.path.join(self.args.save_dir, f"logs_{self.process_idx}.txt"),
+            verbose=False,
+            auto_line_feed=True,
+        )
 
         for j, trajectory in enumerate(self.trajectories):
-            bot.restart()
+            for bot in opening_lead_bots:
+                bot.restart()
             state = construct_deal_and_bidding_state(trajectory)
             # print(state)
             assert not state.is_terminal()
@@ -125,20 +147,29 @@ class Worker(mp.Process):
             dds_moves = dds_evaluator.dds_moves(state)
 
             # Get bot's move
-            bot_move = bot.step(state)
+            bot_move = opening_lead_bots[state.current_player()].step(state)
+            
+            msg = f"Deal {j}, DDS moves:\n{dds_moves}\nBot move:{bot_move}"
+            logger.write(msg)
 
             if bot_move in dds_moves:
                 num_match += 1
                 self.q.put(1)
+                if not len(dds_moves) == bridge.NUM_CARDS_PER_HAND:
+                    self.aq.put(1)
+                else:
+                    self.aq.put(0)
             else:
                 self.q.put(0)
+                self.aq.put(0)
 
-            print(f"Process {self.process_idx}, num match: {num_match}/{j + 1}, total: {len(self.trajectories)}")
+            print(
+                f"Process {self.process_idx}, num match: {num_match}/{j + 1}, total: {len(self.trajectories)}"
+            )
 
 
-if __name__ == '__main__':
-    args = parse_args()
-
+@hydra.main("conf", "opening_lead", version_base="1.2")
+def main(args: DictConfig):
     # Load dataset
     with open(os.path.join(args.dataset_dir, "test.txt"), "r") as f:
         lines = f.readlines()
@@ -148,14 +179,15 @@ if __name__ == '__main__':
         line = lines[i].split(" ")
         test_dataset.append([int(x) for x in line])
 
-    test_dataset = extract_not_passed_out_trajectories(test_dataset)[:1000]
-    datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_threads)
+    test_dataset = extract_not_passed_out_trajectories(test_dataset)[:10]
+    datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_processes)
 
     queue = mp.SimpleQueue()
+    actual_queue = mp.SimpleQueue()
 
     workers = []
-    for i in range(args.num_threads):
-        worker = Worker(args, datasets[i], queue, i)
+    for i in range(args.num_processes):
+        worker = Worker(args, datasets[i], queue, actual_queue, i)
         workers.append(worker)
 
     for worker in workers:
@@ -169,4 +201,14 @@ if __name__ == '__main__':
         item = queue.get()
         results.append(item)
 
-    print(f"Final result: {sum(results)}/{len(results)}")
+    results2 = []
+    while not actual_queue.empty():
+        item = actual_queue.get()
+        results2.append(item)
+
+    print(f"DDOLAR: {sum(results)}/{len(results)}")
+    print(f"ADDOLAR: {sum(results2)}/{len(results2)}")
+
+
+if __name__ == "__main__":
+    main()

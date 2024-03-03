@@ -9,6 +9,7 @@
 /outputs
 /declarer_eval
 /belief_sl
+/opening_lead_eval
 */__pycache__
 *.pth*
 *.pyc
