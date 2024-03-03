@@ -11,7 +11,7 @@ import rela
 import bridgeplay
 
 from utils import load_net_conf_and_state_dict
-from bba_bot import BBABot, load_conventions
+from bba.utils  import load_conventions
 from rule_based_bot import RuleBasedBot
 from bluechip_bot import BlueChipBridgeBot
 
@@ -139,6 +139,7 @@ class BotFactory:
         conventions = load_conventions(self.convention_file)
 
         if bot_type == "bba":
+            from bba_bot import BBABot
             assert "player_id" in kwargs.keys()
             player_id = kwargs["player_id"]
 
