@@ -11,7 +11,6 @@ import rela
 import bridgeplay
 
 from utils import load_net_conf_and_state_dict
-from bba.utils  import load_conventions
 from rule_based_bot import RuleBasedBot
 from bluechip_bot import BlueChipBridgeBot
 
@@ -135,10 +134,12 @@ class BotFactory:
             nn_belief_opening_bot = bridgeplay.NNBeliefOpeningLeadBot(torch_actor, game, self.seed,
                                                                       dds_evaluator, cfg)
             return nn_belief_opening_bot
-
-        conventions = load_conventions(self.convention_file)
+        
+        
 
         if bot_type == "bba":
+            from bba import load_conventions
+            conventions = load_conventions(self.convention_file)
             from bba_bot import BBABot
             assert "player_id" in kwargs.keys()
             player_id = kwargs["player_id"]
@@ -146,6 +147,8 @@ class BotFactory:
             return BBABot(player_id, game, self.bidding_systems, conventions)
 
         if bot_type == "rule_based_opening":
+            from bba import load_conventions
+            conventions = load_conventions(self.convention_file)
             cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
             cfg.num_worlds = self.num_worlds
             cfg.num_max_sample = self.num_max_sample
