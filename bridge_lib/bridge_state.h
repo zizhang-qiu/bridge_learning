@@ -8,9 +8,10 @@
 #include <iostream>
 #include <set>
 
-#include "third_party/dds/src/Memory.h"
-#include "third_party/dds/src/SolverIF.h"
-#include "third_party/dds/src/TransTableL.h"
+// #include "third_party/dds/src/Memory.h"
+// #include "third_party/dds/src/SolverIF.h"
+// #include "third_party/dds/src/TransTableL.h"
+#include "dll.h"
 
 #include "auction_tracker.h"
 #include "bridge_card.h"
@@ -135,7 +136,7 @@ class BridgeState {
 
     std::string Serialize() const;
 
-    static BridgeState Deserialize(const string& str,
+    static BridgeState Deserialize(const std::string& str,
                                    const std::shared_ptr<BridgeGame>& game);
 
     std::vector<BridgeHistoryItem> DealHistory() const {

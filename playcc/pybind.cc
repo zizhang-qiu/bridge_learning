@@ -2,6 +2,7 @@
 // Created by qzz on 2024/1/6.
 //
 #include "bridge_lib/bridge_utils.h"
+#include "playcc/utils.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/cast.h"
@@ -222,6 +223,7 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def(py::init<std::shared_ptr<Resampler>, AlphaMuConfig>())
       .def(py::init<std::shared_ptr<Resampler>, AlphaMuConfig, ble::Player>())
       .def("step", &AlphaMuBot::Step)
+      .def("restart", &AlphaMuBot::Restart)
       .def("search", &AlphaMuBot::Search)
       .def("get_tt", &AlphaMuBot::GetTT)
       .def("set_tt", &AlphaMuBot::SetTT);
@@ -329,4 +331,6 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def(py::init<const std::vector<std::vector<int>> &,
                     const std::shared_ptr<ble::BridgeGame> &>())
       .def("step", &WBridge5TrajectoryBot::Step);
+
+    m.def("test", &Test);
 }

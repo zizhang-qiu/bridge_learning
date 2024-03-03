@@ -21,7 +21,7 @@ from common_utils.torch_utils import activation_function_from_str
 from compute_sl_metric import get_metrics
 from create_bridge import create_params
 from net import MLP
-from pysrc.utils import extract_not_passed_out_trajectories
+from utils import extract_not_passed_out_trajectories
 from set_path import append_sys_path
 from train_belief import compute_hand_acc
 from supervised_learn2 import BiddingDataset, cross_entropy, compute_accuracy
@@ -33,7 +33,7 @@ import bridgelearn
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file_dir", type=str, default="belief_sl/exp3")
+    parser.add_argument("--file_dir", type=str, default="../belief_sl/exp3")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert")
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--batch_size", type=int, default=10000)

@@ -35,7 +35,7 @@ std::string TranspositionTable::Serialize() const {
   }
   return rv;
 }
-TranspositionTable TranspositionTable::Deserialize(const string &str, const std::shared_ptr<ble::BridgeGame> &game) {
+TranspositionTable TranspositionTable::Deserialize(const std::string &str, const std::shared_ptr<ble::BridgeGame> &game) {
   TranspositionTable tt{};
   std::vector<std::string> lines = absl::StrSplit(str, '\n');
   auto it = std::find(lines.begin(), lines.end(), "state");
@@ -62,7 +62,7 @@ TranspositionTable TranspositionTable::Deserialize(const string &str, const std:
   return tt;
 }
 
-std::ostream &operator<<(ostream &stream, const TranspositionTable &tt) {
+std::ostream &operator<<(std::ostream &stream, const TranspositionTable &tt) {
   return stream << tt.ToString();
 }
 bool operator==(const TranspositionTable &lhs, const TranspositionTable &rhs) {

@@ -39,6 +39,12 @@ class AlphaMuBot final : public PlayBot {
 
     ble::BridgeMove Step(const ble::BridgeState& state) override;
 
+    void Restart() override{
+      tt_.Clear();
+      last_iteration_front_ = {};
+      
+    }
+
     [[nodiscard]] ParetoFront Search(const ble::BridgeStateWithoutHiddenInfo& state,
                                      int num_max_moves,
                                      const Worlds& worlds,

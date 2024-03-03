@@ -11,6 +11,8 @@
 
 #include "bridge_lib/bridge_scoring.h"
 #include "bridge_lib/bridge_utils.h"
+#include "dll.h"
+#include "playcc/common_utils/log_utils.h"
 #include "playcc/dds_evaluator.h"
 #include "playcc/pareto_front.h"
 
@@ -20,6 +22,91 @@ bool IsFirstMaxNode(const ble::BridgeStateWithoutHiddenInfo& state) {
 
 bool IsFirstMaxNode(const ble::BridgeState& state) {
   return state.NumCardsPlayed() == 1;
+}
+
+int Result(const RolloutResult rollout_result, bool is_result_player_declarer,
+           int target_tricks, int num_declarer_future_tricks,
+           int num_declarer_total_tricks, int num_tricks_left) {
+  switch (rollout_result) {
+    case kWinLose:
+      if (is_result_player_declarer) {
+        return num_declarer_total_tricks >= target_tricks;
+      }
+      return num_declarer_total_tricks < target_tricks;
+    case kNumFutureTricks:
+      if (is_result_player_declarer) {
+        return num_declarer_future_tricks;
+      }
+      return num_tricks_left - num_declarer_future_tricks;
+    case kNumTotalTricks:
+      if (is_result_player_declarer) {
+        return num_declarer_total_tricks;
+      }
+      return ble::kNumTricks - num_declarer_total_tricks;
+    default:
+      SpielFatalError(absl::StrCat("Wrong rollout result: ", rollout_result));
+  }
+}
+
+std::vector<int> EvaluateWorldsParallel(const Worlds& worlds,
+                                        const RolloutResult rollout_result) {
+  SetMaxThreads(0);
+  const auto& possible = worlds.Possible();
+  const auto states = worlds.States();
+  ::boards bo{};
+  int num_possible_states = 0;
+  for (int i = 0; i < states.size(); ++i) {
+    if (possible[i]) {
+      bo.deals[num_possible_states] =
+          DDSEvaluator::PlayStateToDDSdeal(states[i]);
+      bo.mode[num_possible_states] = 2;
+      bo.solutions[num_possible_states] = 1;
+      bo.target[num_possible_states] = -1;
+      ++num_possible_states;
+    }
+  }
+  bo.noOfBoards = num_possible_states;
+  solvedBoards solved;
+  const int return_code = SolveAllBoardsBin(&bo, &solved);
+  if (return_code != RETURN_NO_FAULT) {
+    char line[80];
+    ErrorMessage(return_code, line);
+    SpielFatalError(absl::StrCat("double dummy solver error", line));
+  }
+
+  // For each possible state, evaluate the result
+  int idx = 0;
+  std::vector<int> evaluation(worlds.Size());
+  for (int i = 0; i < states.size(); ++i) {
+    if (possible[i]) {
+      const auto& state = states[i];
+      const ble::Contract contract = state.GetContract();
+      const int target_tricks = contract.level + 6;
+      const ble::Player declarer = contract.declarer;
+      const ble::Player current_player = state.CurrentPlayer();
+      const auto result_player = current_player;
+      const bool is_cur_player_declarer =
+          ble::Partnership(current_player) == ble::Partnership(declarer);
+      const bool is_result_player_declarer = is_cur_player_declarer;
+      const auto fut = solved.solvedBoard[idx];
+      const int num_tricks_left = ble::kNumTricks - state.NumTricksPlayed();
+      const int num_declarer_future_tricks =
+          is_cur_player_declarer ? fut.score[0]
+                                 : num_tricks_left - fut.score[0];
+
+      const int num_declarer_total_tricks =
+          num_declarer_future_tricks + state.NumDeclarerTricks();
+
+      evaluation[i] = Result(rollout_result, true,
+                             target_tricks, num_declarer_future_tricks,
+                             num_declarer_total_tricks, num_tricks_left);
+      ++idx;
+    } else {
+      evaluation[i] =-1;
+    }
+  }
+  SPIEL_CHECK_EQ(idx, solved.noOfBoards);
+  return evaluation;
 }
 
 ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
@@ -65,22 +152,23 @@ std::pair<bool, ParetoFront> AlphaMuBot::Stop(
     auto possible = worlds.Possible();
     switch (cfg_.rollout_result) {
 
-      case kWinLose:
-        {
-          const int win = num_declarer_tricks >= target_tricks;
-          std::fill(game_outcomes.begin(), game_outcomes.end(), win);
-          result.Insert({game_outcomes, possible});
-          return {true, result};
-        }
+      case kWinLose: {
+        const int win = num_declarer_tricks >= target_tricks;
+        std::fill(game_outcomes.begin(), game_outcomes.end(), win);
+        result.Insert({game_outcomes, possible});
+        return {true, result};
+      }
       case kNumFutureTricks:
-        result.Insert({ game_outcomes, possible});
+        result.Insert({game_outcomes, possible});
         return {true, result};
       case kNumTotalTricks:
-        std::fill(game_outcomes.begin(), game_outcomes.end(), num_declarer_tricks);
-        result.Insert({game_outcomes,possible});
+        std::fill(game_outcomes.begin(), game_outcomes.end(),
+                  num_declarer_tricks);
+        result.Insert({game_outcomes, possible});
         return {true, result};
       default:
-        SpielFatalError(absl::StrCat("Wrong rollout result: ", cfg_.rollout_result));
+        SpielFatalError(
+            absl::StrCat("Wrong rollout result: ", cfg_.rollout_result));
     }
   }
 
@@ -117,6 +205,7 @@ std::pair<bool, ParetoFront> AlphaMuBot::Stop(
         evaluation[i] = -1;
       }
     }
+    // evaluation = EvaluateWorldsParallel(worlds, cfg_.rollout_result);
     ParetoFront result{};
     result.Insert({evaluation, possible});
     return {true, result};

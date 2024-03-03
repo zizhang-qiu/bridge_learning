@@ -156,7 +156,7 @@ target_link_libraries(_bridgelearn PUBLIC
         absl::strings
         absl::time)
 
-add_library(_bridgeplay OBJECT
+add_library(_bridgeplay
         playcc/utils.h
         playcc/pimc.h
         playcc/resampler.h
@@ -215,8 +215,11 @@ add_library(_bridgeplay OBJECT
         playcc/rule_based_defender.cc
         playcc/rule_based_defender.h
 )
+# target_link_directories(_bridgeplay PUBLIC bridge_lib/third_party/dds/src)
+# target_link_libraries(_bridgeplay PUBLIC dds)
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
 target_link_libraries(_bridgeplay PUBLIC rela_lib)
+
 target_link_libraries(_bridgeplay PUBLIC
         absl::algorithm
         absl::flags
@@ -229,7 +232,7 @@ target_link_libraries(_bridgeplay PUBLIC
         absl::time
         ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
 target_include_directories(_bridgeplay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
+target_include_directories(_bridgeplay PUBLIC bridge_lib/third_party/dds/include)
 #add_executable(pareto_front_test playcc/unit_tests/pareto_front_test.cc)
 #target_link_libraries(pareto_front_test PRIVATE _bridgeplay)
 #add_test(pareto_front_test pareto_front_test)
@@ -264,12 +267,18 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_include_directories(bridgeplay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_executable(temp test.cc)
+
+
     target_link_libraries(temp PUBLIC bridge_lib)
+    # target_link_libraries(temp PUBLIC bridge_lib/third_party/dds/src/dds)
     target_link_libraries(temp PUBLIC rela_lib)
     target_link_libraries(temp PUBLIC _bridgeplay)
     target_link_libraries(temp PUBLIC _bridgelearn)
+    # target_link_directories(temp PUBLIC bridge_lib/third_party/dds/src)
+    # target_link_libraries(temp PRIVATE dds)
     target_link_libraries(temp PUBLIC ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES} ${Python3_LIBRARIES})
     target_include_directories(temp PUBLIC ${Python3_INCLUDE_DIRS})
+    target_include_directories(temp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()
 
 #add_executable(main main.cc)

@@ -1,5 +1,5 @@
-#ifndef BRIDGE_LEARNING_BRIDGE_LIB_UTILS_H
-#define BRIDGE_LEARNING_BRIDGE_LIB_UTILS_H
+#ifndef BRIDGE_LIB_UTILS_H
+#define BRIDGE_LIB_UTILS_H
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include "dll.h"
 
 namespace bridge_learning_env {
 using GameParameters = std::unordered_map<std::string, std::string>;
@@ -67,6 +68,8 @@ std::string StrCat(const Args&... args) {
 
 std::vector<std::string> StrSplit(const std::string& str, char delimiter);
 
+
+
 template<class... Args>
 void AssertWithMessage(bool condition, Args&&... args) {
   if (!condition) {
@@ -75,6 +78,8 @@ void AssertWithMessage(bool condition, Args&&... args) {
     abort();
   }
 }
+
+void SimpleDDSFunctions();
 
 // fprintf(stderr, "Input requirements failed at %s:%d in %s: %s\n", __FILE__, __LINE__, __func__, #expr)
 #if defined(NDEBUG)
@@ -116,4 +121,4 @@ std::abort(); \
 // #endif
 } // namespace bridge_learning_env
 
-#endif // BRIDGE_LEARNING_BRIDGE_LIB_UTILS_H
+#endif /* BRIDGE_LIB_UTILS_H */

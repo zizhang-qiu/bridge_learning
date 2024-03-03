@@ -19,13 +19,12 @@
 #include "absl/strings/str_split.h"
 #include "bridge_lib/utils.h"
 #include "playcc/alpha_mu_bot.h"
-#include "playcc/alpha_mu_search.h"
 #include "playcc/bridge_state_without_hidden_info.h"
-#include "playcc/log_utils.h"
+#include "playcc/common_utils/log_utils.h"
 #include "playcc/pareto_front.h"
 #include "playcc/worlds.h"
 #include "playcc/transposition_table.h"
-#include "playcc/logger.h"
+#include "playcc/common_utils/logger.h"
 namespace ble = bridge_learning_env;
 
 const ble::GameParameters params = {};
@@ -186,3 +185,4 @@ int main() {
   }
   return 0;
 }
+

@@ -29,7 +29,7 @@ import bridge
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file_dir", type=str, default="sl/exp5")
+    parser.add_argument("--file_dir", type=str, default="../sl/exp5")
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert\sl_data")
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--batch_size", type=int, default=10000)

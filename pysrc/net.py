@@ -68,7 +68,7 @@ class MLP(torch.jit.ScriptModule):
 
     def __init__(self, input_size: int = 480, output_size: int = 38, num_hidden_layers: int = 4,
                  hidden_size: int = 1024,
-                 activation_function: nn.Module = nn.ReLU, activation_args: Optional[Dict] = None,
+                 activation_function: nn.Module = nn.ReLU, activation_args: Optional[Dict] = None, # type: ignore
                  use_dropout: bool = False,
                  dropout_prob: float = 0.5, use_layer_norm: bool = False):
         super().__init__()

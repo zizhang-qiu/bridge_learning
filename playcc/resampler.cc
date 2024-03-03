@@ -151,7 +151,7 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
   //    }
   return {true, HandsToCardIndices(sampled_hands)};
 }
-void UniformResampler::ResetWithParams(const unordered_map<std::string, std::string> &params) {
+void UniformResampler::ResetWithParams(const std::unordered_map<std::string, std::string> &params) {
   const auto seed = ble::ParameterValue<int>(params, "seed", 42);
   rng_.seed(seed);
 }

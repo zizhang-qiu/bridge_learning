@@ -13,7 +13,6 @@ import torch
 import yaml
 
 
-
 def load_dataset(file_path: str) -> List[List[int]]:
     """
     Load a dataset from a text file, e.g.
@@ -57,3 +56,5 @@ def extract_not_passed_out_trajectories(trajectories: List[List[int]]) -> List[L
         if is_trajectory_not_passed_out(trajectory):
             res.append(trajectory)
     return res
+
+

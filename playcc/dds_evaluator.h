@@ -24,10 +24,10 @@ class DDSEvaluator {
   public:
     DDSEvaluator() = default;
 
-    deal PlayStateToDDSdeal(const ble::BridgeState& state) const;
+    static deal PlayStateToDDSdeal(const ble::BridgeState& state);
 
-    ddTableDeal AuctionStateToDDSddTableDeal(
-        const ble::BridgeState& state) const;
+    static ddTableDeal AuctionStateToDDSddTableDeal(
+        const ble::BridgeState& state);
 
     // Apply move at state and use dds result.
     int Rollout(const ble::BridgeState& state,
@@ -47,5 +47,7 @@ class DDSEvaluator {
     std::condition_variable cv_;
     bool free_ = true;
 };
+
+
 
 #endif //DDS_EVALUATOR_H

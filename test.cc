@@ -13,7 +13,10 @@
 #include "bridge_lib/bridge_move.h"
 #include "bridge_lib/bridge_state.h"
 #include "bridge_lib/bridge_utils.h"
+#include "bridge_lib/example_cards_ddts.h"
 #include "bridge_lib/utils.h"
+// #include "dll.h"
+#include "dll.h"
 #include "playcc/alpha_mu_bot.h"
 #include "playcc/dds_evaluator.h"
 #include "playcc/pimc.h"
@@ -52,7 +55,7 @@ int main(int argc, char** argv) {
       14, 26, 11, 10, 30, 46, 36, 33, 40, 8,  29, 38, 35, 19, 42};
   std::vector<std::vector<int>> trajectories = {trajectory};
 
-  std::mt19937 rng(33);
+  std::mt19937 rng(13);
   const auto deal = ble::Permutation(ble::kNumCards, rng);
 
   auto state = ConstructStateFromDeal(deal, ble::default_game);
@@ -63,11 +66,16 @@ int main(int argc, char** argv) {
 
   std::cout << state << std::endl;
 
-  std::shared_ptr<Resampler> resampler = std::make_shared<UniformResampler>(22);
-  const AlphaMuConfig cfg{3, 20, false, true, true, true, kNumTotalTricks};
-  AlphaMuBot bot{resampler, cfg};
+  // Test(200);
 
-  const PIMCConfig pimc_cfg{20, false};
+
+  
+
+  std::shared_ptr<Resampler> resampler = std::make_shared<UniformResampler>(22);
+  const AlphaMuConfig cfg{2, 40, false, true, true, true, kNumTotalTricks};
+  AlphaMuBot bot{resampler, cfg, state.GetContract().declarer};
+
+  const PIMCConfig pimc_cfg{40, false};
   PIMCBot pimc_bot{resampler, pimc_cfg};
 
   while (!state.IsTerminal()) {

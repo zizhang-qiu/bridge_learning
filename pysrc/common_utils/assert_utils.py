@@ -1,5 +1,5 @@
 """Utils for assertions"""
-from typing import NoReturn, Iterable
+from typing import Any, NoReturn, Iterable
 
 import numpy as np
 import torch
@@ -111,7 +111,7 @@ def assert_in(item, obj: Iterable):
     assert item in obj, f"item {item} not in iterable {obj}."
 
 
-def assert_in_range(real, range_left, range_right) -> NoReturn:
+def assert_in_range(real, range_left, range_right) :
     """
     Assert a num in a left closed right open range interval
     Args:
@@ -137,3 +137,11 @@ def assert_network_normal(network: nn.Module):
     for param in network.parameters():
         if torch.isnan(param).any() or torch.isinf(param).any():
             assert False, "the network contains nan or inf!"
+
+def assert_not_none(obj:Any):
+    """Assert the object is not None
+
+    Args:
+        obj (Any): object
+    """
+    assert obj is not None, "The object is None"

@@ -59,7 +59,7 @@ std::vector<ble::BridgeMove> Worlds::GetAllPossibleMoves() const {
   return {possible_moves.begin(), possible_moves.end()};
 }
 
-std::ostream &operator<<(ostream &stream, const Worlds &worlds) {
+std::ostream &operator<<(std::ostream &stream, const Worlds &worlds) {
   stream << worlds.ToString();
   return stream;
 }

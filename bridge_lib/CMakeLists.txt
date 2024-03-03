@@ -62,6 +62,8 @@ add_library(double_dummy_solver OBJECT
         third_party/dds/src/TransTableS.cpp
         third_party/dds/src/TransTableS.h
 )
+target_compile_definitions(double_dummy_solver PUBLIC DDS_THREADS_STL)
+# include_directories(third_party/dds/include)
 
 add_library(bridge_lib
         bridge_card.cc
@@ -94,6 +96,8 @@ add_library(bridge_lib
         utils.cc
         utils.h
 )
+target_include_directories(bridge_lib PUBLIC third_party/dds/include)
+# target_link_directories(bridge_lib PUBLIC third_party/dds/src)
 target_link_libraries(bridge_lib PUBLIC double_dummy_solver)
 
 add_executable(bridge_test bridge_test.cc)

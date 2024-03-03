@@ -2,17 +2,27 @@
 // Created by qzz on 2023/10/19.
 //
 
-#ifndef BRIDGE_LEARNING_PLAYCC_UTILS_H_
-#define BRIDGE_LEARNING_PLAYCC_UTILS_H_
+#ifndef PLAYCC_UTILS_H
+#define PLAYCC_UTILS_H
 #include <algorithm>
+#include <chrono>
 #include <cstring>
+#include <iostream>
+#include <random>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <set>
+
+
+#include "bridge_lib/bridge_game.h"
+#include "bridge_lib/bridge_utils.h"
+#include "bridge_lib/utils.h"
+#include "dll.h"
 
 #include "bridge_lib/bridge_state.h"
 
+#include "bridge_lib/example_cards_ddts.h"
 #include "common_utils/log_utils.h"
 
 namespace ble = bridge_learning_env;
@@ -36,9 +46,8 @@ std::array<int, ble::kNumCards> HandsToCardIndices(
     const std::vector<ble::BridgeHand>& hands);
 
 template <typename Container>
-ble::BridgeState ConstructStateFromDeal(const Container& deal,
-                                        const std::shared_ptr<ble::BridgeGame>&
-                                        game) {
+ble::BridgeState ConstructStateFromDeal(
+    const Container& deal, const std::shared_ptr<ble::BridgeGame>& game) {
   SPIEL_CHECK_EQ(deal.size(), ble::kNumCards);
   auto state = ble::BridgeState(game);
   for (int i = 0; i < ble::kNumCards; ++i) {
@@ -49,9 +58,9 @@ ble::BridgeState ConstructStateFromDeal(const Container& deal,
 }
 
 template <typename Container>
-ble::BridgeState ConstructStateFromDealAndOriginalState(const Container& deal,
-  const std::shared_ptr<ble::BridgeGame>& game,
-  const ble::BridgeState& original_state) {
+ble::BridgeState ConstructStateFromDealAndOriginalState(
+    const Container& deal, const std::shared_ptr<ble::BridgeGame>& game,
+    const ble::BridgeState& original_state) {
   auto state = ble::BridgeState(game);
   for (int i = 0; i < ble::kNumCards; ++i) {
     ble::BridgeMove move = game->GetChanceOutcome(deal[i]);
@@ -150,9 +159,63 @@ ble::BridgeHand ConstructHandFromCardStrings(
 // Usually used for debugging algorithms.
 ble::BridgeState ConstructStateFromCardStrings(
     const std::array<std::vector<std::string>, ble::kNumPlayers>& cards,
-    const std::shared_ptr<ble::BridgeGame>& game,
-    std::mt19937& rng);
+    const std::shared_ptr<ble::BridgeGame>& game, std::mt19937& rng);
 
 ble::BridgeState SampleRandomStateFromGivenCards(
     std::array<std::vector<ble::BridgeCard>, ble::kNumPlayers> known_cards);
-#endif // BRIDGE_LEARNING_PLAYCC_UTILS_H_
+
+inline void Test(int n = 100) {
+  SetMaxThreads(0);
+  boards bo;
+  bo.noOfBoards = n;
+  solvedBoards solved;
+  std::mt19937 rng;
+
+  for (int i = 0; i < n; ++i) {
+    // auto cur_deal = ble::example_deals[i];
+    auto cur_deal = ble::Permutation(ble::kNumCards);
+    auto state = ConstructStateFromDeal(cur_deal, ble::default_game);
+
+    for(const auto uid:{55, 52, 52, 52}){
+      auto move = ble::default_game->GetMove(uid);
+      state.ApplyMove(move);
+    }
+    SPIEL_CHECK_FALSE(state.IsTerminal());
+    ::deal dl = StateToDDSDeal(state);
+
+    bo.deals[i] = dl;
+    bo.mode[i] = 2;
+    bo.solutions[i] = 1;
+    bo.target[i] = -1;
+  }
+  std::chrono::high_resolution_clock::time_point st, ed;
+  st = std::chrono::high_resolution_clock::now();
+  ::futureTricks fut;
+  for (int i = 0; i < n; ++i) {
+    auto dl = bo.deals[i];
+    const int res = SolveBoard(dl, -1, 1, 2, &fut, 0);
+    char line[80];
+    if (res != RETURN_NO_FAULT) {
+      ErrorMessage(res, line);
+      printf("DDS error: %s\n", line);
+    }
+    // std::cout << "Solve board done." << std::endl;
+  }
+  ed = std::chrono::high_resolution_clock::now();
+  std::cout << "Duration: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>((ed - st))
+                   .count()
+            << std::endl;
+
+  // SolveAllBoardsBin(&bo, &solved);
+  st = std::chrono::high_resolution_clock::now();
+  SolveAllBoardsBin(&bo, &solved);
+  ed = std::chrono::high_resolution_clock::now();
+
+  std::cout << "Solve all boards done!" << std::endl;
+  std::cout << "Duration: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>((ed - st))
+                   .count()
+            << std::endl;
+}
+#endif /* PLAYCC_UTILS_H */

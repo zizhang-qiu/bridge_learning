@@ -12,7 +12,7 @@
 #include "common_utils/log_utils.h"
 #include "utils.h"
 
-deal DDSEvaluator::PlayStateToDDSdeal(const ble::BridgeState& state) const {
+deal DDSEvaluator::PlayStateToDDSdeal(const ble::BridgeState& state){
   SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()),
                  static_cast<int>(ble::Phase::kPlay));
   deal dl{};
@@ -64,7 +64,7 @@ deal DDSEvaluator::PlayStateToDDSdeal(const ble::BridgeState& state) const {
 }
 
 ddTableDeal DDSEvaluator::AuctionStateToDDSddTableDeal(
-    const ble::BridgeState& state) const {
+    const ble::BridgeState& state) {
   SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()),
                  static_cast<int>(ble::Phase::kAuction));
   ddTableDeal dd_table_deal{};

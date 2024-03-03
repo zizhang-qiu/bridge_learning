@@ -209,7 +209,7 @@ void BridgeVecEnv::Step(rela::TensorDict reply) {
 }
 
 void BridgeVecEnv::DisPlay(int num_envs) const {
-  num_envs = min(num_envs, Size());
+  num_envs = std::min(num_envs, Size());
   std::string rv;
   for (size_t i = 0; i < num_envs; ++i) {
     rv += "Env " + std::to_string(i) + "\n";

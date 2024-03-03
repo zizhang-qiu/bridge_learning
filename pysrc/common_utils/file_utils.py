@@ -31,3 +31,12 @@ def find_files_in_dir(directory: str, search_string: str, mode: int = 2) -> List
                 file_list.append(os.path.join(root, file))
     return file_list
 
+
+def mkdir_if_not_exist(directory: str):
+    """Make directory if the directory does not exist
+
+    Args:
+        directory (str): The directory to make.
+    """
+    if not os.path.exists(directory):
+        os.mkdir(directory)

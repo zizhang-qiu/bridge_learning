@@ -7,3 +7,8 @@
 /.idea
 /workspace.code-workspace
 /outputs
+/declarer_eval
+/belief_sl
+*/__pycache__
+*.pth*
+*.pyc

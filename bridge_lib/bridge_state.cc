@@ -451,7 +451,7 @@ void BridgeState::SetDoubleDummyResults(
 }
 
 void BridgeState::SetDoubleDummyResults(
-    const array<int, kNumPlayers * kNumDenominations>& double_dummy_tricks)
+    const std::array<int, kNumPlayers * kNumDenominations>& double_dummy_tricks)
 const {
   auto double_dummy_results = ddTableResults{};
   for (const auto denomination : {kClubsTrump, kDiamondsTrump, kHeartsTrump,
@@ -466,7 +466,7 @@ const {
 }
 
 std::vector<int> BridgeState::ScoreForContracts(const Player player,
-                                                const vector<int>& contracts)
+                                                const std::vector<int>& contracts)
 const {
   // Storage for the number of tricks.
   std::array<std::array<int, kNumPlayers>, kNumDenominations> dd_tricks{};
@@ -479,7 +479,7 @@ const {
           DDSStrainToDenomination(trumps)][declarer];
       }
     }
-  } else {
+  } else {    
     {
       // This performs some sort of global initialization; unclear
       // exactly what.
@@ -487,20 +487,12 @@ const {
       DDS_EXTERNAL(SetMaxThreads)(0);
     }
 
-    // Working storage for DD calculation.
-    const auto thread_data = std::make_unique<ThreadData>();
-    const auto transposition_table = std::make_unique<TransTableL>();
-    transposition_table->SetMemoryDefault(95);  // megabytes
-    transposition_table->SetMemoryMaximum(160); // megabytes
-    transposition_table->MakeTT();
-    thread_data->transTable = transposition_table.get();
-
     // Which trump suits do we need to handle?
-    std::set<int> suits;
+    std::set<Denomination> trumps;
     for (const auto index : contracts) {
       const auto& contract = kAllContracts[index];
       if (contract.level > 0)
-        suits.emplace(contract.denomination);
+        trumps.emplace(contract.denomination);
     }
     // Build the deal
     ::deal dl{};
@@ -515,62 +507,115 @@ const {
       dl.currentTrickSuit[k] = 0;
     }
 
-    // Analyze for each trump suit.
-    for (const int suit : suits) {
-      dl.trump = suit;
-      transposition_table->ResetMemory(TT_RESET_NEW_TRUMP);
+    for(const Denomination trump:trumps){
+      dl.trump = DenominationToDDSStrain(trump);
 
-      // Assemble the declarers we need to consider.
       std::set<int> declarers;
-      for (const auto index : contracts) {
+      for (auto index : contracts) {
         const auto& contract = kAllContracts[index];
-        if (contract.level > 0 && contract.denomination == suit)
+        if (contract.level > 0 && contract.denomination == trump)
           declarers.emplace(contract.declarer);
       }
 
-      // Analyze the deal for each declarer.
-      std::optional<Player> first_declarer;
-      std::optional<int> first_tricks;
-      for (int declarer : declarers) {
-        ::futureTricks fut{};
+      for (const int declarer : declarers){
+        ::futureTricks fut;
         dl.first = (declarer + 1) % kNumPlayers;
-        if (!first_declarer.has_value()) {
-          // First time we're calculating this trump suit.
-          if (const int return_code = SolveBoardInternal(thread_data.get(),
-                  dl,
-                  /*target=*/-1,   // Find max number of tricks
-                  /*solutions=*/1, // Just the tricks (no card-by-card result)
-                  /*mode=*/2,      // Unclear
-                  &fut             // Output
-                );
-            return_code != RETURN_NO_FAULT) {
-            char error_message[80];
-            DDS_EXTERNAL(ErrorMessage)(return_code, error_message);
-            std::cerr << "double dummy solver: " << error_message << std::endl;
-            std::exit(1);
-          }
-          dd_tricks[DDSStrainToDenomination(suit)][declarer] =
-              13 - fut.score[0];
-          first_declarer = declarer;
-          first_tricks = 13 - fut.score[0];
-        } else {
-          // Reuse data from last time.
-          const int hint = Partnership(declarer) == Partnership(*first_declarer)
-                             ? *first_tricks
-                             : 13 - *first_tricks;
-          if (const int return_code = SolveSameBoard(
-                thread_data.get(), dl, &fut, hint);
-            return_code != RETURN_NO_FAULT) {
-            char error_message[80];
-            DDS_EXTERNAL(ErrorMessage)(return_code, error_message);
-            std::cerr << "double dummy solver: " << error_message << std::endl;
-            std::exit(1);
-          }
-          dd_tricks[DDSStrainToDenomination(suit)][declarer] =
-              13 - fut.score[0];
+        const int return_code = DDS_EXTERNAL(SolveBoard(dl, -1, 1, 2, &fut, 0));
+
+        if (return_code != RETURN_NO_FAULT) {
+          char error_message[80];
+          DDS_EXTERNAL(ErrorMessage)(return_code, error_message);
+          std::cerr << "double_dummy_solver:" << error_message << std::endl;
+          std::exit(1);
         }
+        dd_tricks[trump][declarer] = kNumTricks - fut.score[0];
       }
     }
+
+    // // Working storage for DD calculation.
+    // const auto thread_data = std::make_unique<ThreadData>();
+    // const auto transposition_table = std::make_unique<TransTableL>();
+    // transposition_table->SetMemoryDefault(95);  // megabytes
+    // transposition_table->SetMemoryMaximum(160); // megabytes
+    // transposition_table->MakeTT();
+    // thread_data->transTable = transposition_table.get();
+
+    // // Which trump suits do we need to handle?
+    // std::set<int> suits;
+    // for (const auto index : contracts) {
+    //   const auto& contract = kAllContracts[index];
+    //   if (contract.level > 0)
+    //     suits.emplace(contract.denomination);
+    // }
+    // // Build the deal
+    // ::deal dl{};
+    // for (const Player pl : kAllSeats) {
+    //   for (const auto card : hands_[pl].Cards()) {
+    //     dl.remainCards[pl][SuitToDDSSuit(card.CardSuit())] += 1 << (
+    //       2 + card.Rank());
+    //   }
+    // }
+    // for (int k = 0; k <= 2; k++) {
+    //   dl.currentTrickRank[k] = 0;
+    //   dl.currentTrickSuit[k] = 0;
+    // }
+
+    // // Analyze for each trump suit.
+    // for (const int suit : suits) {
+    //   dl.trump = suit;
+    //   transposition_table->ResetMemory(TT_RESET_NEW_TRUMP);
+
+    //   // Assemble the declarers we need to consider.
+    //   std::set<int> declarers;
+    //   for (const auto index : contracts) {
+    //     const auto& contract = kAllContracts[index];
+    //     if (contract.level > 0 && contract.denomination == suit)
+    //       declarers.emplace(contract.declarer);
+    //   }
+
+    //   // Analyze the deal for each declarer.
+    //   std::optional<Player> first_declarer;
+    //   std::optional<int> first_tricks;
+    //   for (int declarer : declarers) {
+    //     ::futureTricks fut{};
+    //     dl.first = (declarer + 1) % kNumPlayers;
+    //     if (!first_declarer.has_value()) {
+    //       // First time we're calculating this trump suit.
+    //       if (const int return_code = SolveBoardInternal(thread_data.get(),
+    //               dl,
+    //               /*target=*/-1,   // Find max number of tricks
+    //               /*solutions=*/1, // Just the tricks (no card-by-card result)
+    //               /*mode=*/2,      // Unclear
+    //               &fut             // Output
+    //             );
+    //         return_code != RETURN_NO_FAULT) {
+    //         char error_message[80];
+    //         DDS_EXTERNAL(ErrorMessage)(return_code, error_message);
+    //         std::cerr << "double dummy solver: " << error_message << std::endl;
+    //         std::exit(1);
+    //       }
+    //       dd_tricks[DDSStrainToDenomination(suit)][declarer] =
+    //           13 - fut.score[0];
+    //       first_declarer = declarer;
+    //       first_tricks = 13 - fut.score[0];
+    //     } else {
+    //       // Reuse data from last time.
+    //       const int hint = Partnership(declarer) == Partnership(*first_declarer)
+    //                          ? *first_tricks
+    //                          : 13 - *first_tricks;
+    //       if (const int return_code = SolveSameBoard(
+    //             thread_data.get(), dl, &fut, hint);
+    //         return_code != RETURN_NO_FAULT) {
+    //         char error_message[80];
+    //         DDS_EXTERNAL(ErrorMessage)(return_code, error_message);
+    //         std::cerr << "double dummy solver: " << error_message << std::endl;
+    //         std::exit(1);
+    //       }
+    //       dd_tricks[DDSStrainToDenomination(suit)][declarer] =
+    //           13 - fut.score[0];
+    //     }
+    //   }
+    // }
   }
   // Compute the scores.
   std::vector<int> scores;

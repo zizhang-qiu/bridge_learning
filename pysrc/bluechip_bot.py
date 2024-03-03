@@ -1,4 +1,5 @@
 from typing import Callable, Optional
+from common_utils.assert_utils import assert_not_none
 from wbridge5_client import Controller
 from bluechip_bridge import _SEATS, _connect, _new_deal, _hand_string, _expect_regex, _READY_FOR_OTHER, \
     _OTHER_PLAYER_ACTION, _action_to_string, _DUMMY_CARDS, _PLAYER_TO_LEAD, _PLAYER_ACTION, _ACTION_PASS, _ACTION_DBL, \
@@ -38,7 +39,7 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
         self.dummy = None
         self.is_play_phase = False
         self.cards_played = 0
-        if not self._state.is_terminal():
+        if not self._state.is_terminal() and self._controller is not None:
             self._controller.terminate()
             self._controller = None
         self._state = bridge.BridgeState(self._game)
@@ -73,21 +74,22 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
         self.is_play_phase = (self._state.current_phase() == bridge.Phase.PLAY)
         self.cards_played = self._state.num_cards_played()
 
+
         # If this is the first time we've seen the deal, send our hand.
         if len(uid_history) == 52:
             self._board += 1
-            _new_deal(controller=self._controller,
+            _new_deal(controller=self._controller, # type: ignore
                       seat=self._seat,
                       hand=_hand_string(uid_history[self._player_id:52:4]),
                       board=str(self._board))
 
         # Send actions since last `step` call.
         for other_player_action in uid_history[self._num_actions:]:
-            other = _expect_regex(controller=self._controller,
+            other = _expect_regex(controller=self._controller, # type: ignore
                                   regex=_READY_FOR_OTHER.format(seat=self._seat))
             other_player = other["other"]
             if other_player == "Dummy":
-                other_player = _SEATS[self.dummy]
+                other_player = _SEATS[self.dummy] # type: ignore
             self._controller.send_line(
                 line=_OTHER_PLAYER_ACTION.format(
                     player=other_player,
@@ -98,7 +100,7 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
         if self.is_play_phase and self.cards_played == 1:
             self.dummy = self._state.current_player() ^ 2
             if self._player_id != self.dummy:
-                other = _expect_regex(self._controller,
+                other = _expect_regex(self._controller, # type: ignore
                                       _READY_FOR_OTHER.format(seat=self._seat))
                 dummy_cards = _hand_string(uid_history[self.dummy:52:4])
                 self._controller.send_line(_DUMMY_CARDS.format(dummy_cards))
@@ -113,7 +115,7 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
             self.is_play_phase = False
             self.cards_played = 0
 
-    def _step(self, state):
+    def _step(self, state) -> int:
         """Returns an action for the given state."""
         # Bring the external bot up-to-date.
         self.inform_state(state)
@@ -123,7 +125,7 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
             self._controller.send_line(_PLAYER_TO_LEAD.format(seat=self._seat))
 
         # Get our action from the bot.
-        our_action = _expect_regex(self._controller, _PLAYER_ACTION)
+        our_action = _expect_regex(self._controller, _PLAYER_ACTION) # type: ignore
         self._num_actions += 1
         if our_action["pass"]:
             return _ACTION_PASS
@@ -135,6 +137,8 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
             return _bid_to_action(our_action["bid"])
         elif our_action["play"]:
             return _play_to_action(our_action["play"])
+        else:
+            raise ValueError
         
     def step(self, state):
         uid = self._step(state)
@@ -142,5 +146,7 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
         return move
 
     def terminate(self):
-        self._controller.terminate()
+        if self._controller is not None:
+            self._controller.terminate()
         self._controller = None
+

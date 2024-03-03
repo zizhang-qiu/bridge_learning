@@ -7,54 +7,56 @@
 #include <algorithm>
 
 namespace bridge_learning_env {
-BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo(const std::shared_ptr<BridgeGame> &parent_game,
-                                                           const BridgeHand &dummy_hand) :
-    parent_game_(parent_game),
-    auction_tracker_(),
-    contract_(),
-    phase_(Phase::kAuction),
-    current_player_(parent_game_->Dealer()),
-    last_round_winner_(kInvalidPlayer),
-    num_cards_played_(0),
-    num_declarer_tricks_(0),
-    scores_(kNumPlayers, 0) {
+BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo(
+    const std::shared_ptr<BridgeGame>& parent_game,
+    const BridgeHand& dummy_hand)
+    : parent_game_(parent_game),
+      auction_tracker_(),
+      contract_(),
+      phase_(Phase::kAuction),
+      current_player_(parent_game_->Dealer()),
+      last_round_winner_(kInvalidPlayer),
+      num_cards_played_(0),
+      num_declarer_tricks_(0),
+      scores_(kNumPlayers, 0) {
   is_dealer_vulnerable_ = parent_game_->IsDealerVulnerable();
   is_non_dealer_vulnerable_ = parent_game_->IsNonDealerVulnerable();
   dealer_ = parent_game_->Dealer();
-  REQUIRE(dummy_hand.IsFullHand());
-  dummy_hand_ = dummy_hand;
 }
 
-BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo(const std::shared_ptr<BridgeGame> &parent_game,
-                                                           const Contract &contract,
-                                                           const BridgeHand &dummy_hand) :
-    parent_game_(parent_game),
-    auction_tracker_(),
-    contract_(contract),
-    phase_(Phase::kPlay),
-    current_player_((1 + contract.declarer) % kNumPlayers),
-    last_round_winner_(kInvalidPlayer),
-    num_cards_played_(0),
-    num_declarer_tricks_(0),
-    scores_(kNumPlayers, 0) {
+BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo(
+    const std::shared_ptr<BridgeGame>& parent_game, const Contract& contract,
+    const BridgeHand& dummy_hand)
+    : parent_game_(parent_game),
+      auction_tracker_(),
+      contract_(contract),
+      phase_(Phase::kPlay),
+      current_player_((1 + contract.declarer) % kNumPlayers),
+      last_round_winner_(kInvalidPlayer),
+      num_cards_played_(0),
+      num_declarer_tricks_(0),
+      scores_(kNumPlayers, 0) {
   is_dealer_vulnerable_ = parent_game_->IsDealerVulnerable();
   is_non_dealer_vulnerable_ = parent_game_->IsNonDealerVulnerable();
   dealer_ = parent_game_->Dealer();
-  REQUIRE(dummy_hand.IsFullHand());
-  dummy_hand_ = dummy_hand;
 }
-BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo() :
-    phase_(Phase::kAuction),
-    dealer_(kNorth),
-    current_player_(kNorth),
-    last_round_winner_(kInvalidPlayer),
-    is_dealer_vulnerable_(false),
-    is_non_dealer_vulnerable_(false),
-    num_cards_played_(0),
-    num_declarer_tricks_(0) {}
 
-BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo(const BridgeState &state) :
-    auction_tracker_(), num_cards_played_(0), num_declarer_tricks_(0), scores_(kNumPlayers, 0) {
+BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo()
+    : phase_(Phase::kAuction),
+      dealer_(kNorth),
+      current_player_(kNorth),
+      last_round_winner_(kInvalidPlayer),
+      is_dealer_vulnerable_(false),
+      is_non_dealer_vulnerable_(false),
+      num_cards_played_(0),
+      num_declarer_tricks_(0) {}
+
+BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo(
+    const BridgeState& state)
+    : auction_tracker_(),
+      num_cards_played_(0),
+      num_declarer_tricks_(0),
+      scores_(kNumPlayers, 0) {
   REQUIRE(state.CurrentPhase() >= Phase::kPlay);
   parent_game_ = state.ParentGame();
   //  contract_ = state.GetContract();
@@ -62,15 +64,12 @@ BridgeStateWithoutHiddenInfo::BridgeStateWithoutHiddenInfo(const BridgeState &st
   //  std::cout << "current_player: " << current_player_ << std::endl;
 
   phase_ = Phase::kAuction;
-  if (state.IsDummyCardShown()) {
-    dummy_hand_ = state.OriginalDeal()[state.GetDummy()];
-  }
   is_dealer_vulnerable_ = parent_game_->IsDealerVulnerable();
   is_non_dealer_vulnerable_ = parent_game_->IsNonDealerVulnerable();
   dealer_ = parent_game_->Dealer();
   last_round_winner_ = kInvalidPlayer;
-  const auto &history = state.History();
-  for (const auto &item : history) {
+  const auto& history = state.History();
+  for (const auto& item : history) {
     if (item.move.MoveType() != BridgeMove::kDeal)
       //      std::cout << item.ToString() << std::endl;
       ApplyMove(item.move);
@@ -82,28 +81,25 @@ void BridgeStateWithoutHiddenInfo::AdvanceToNextPlayer() {
   if (phase_ == Phase::kAuction) {
     if (move_history_.empty()) {
       current_player_ = dealer_;
-    }
-    else {
+    } else {
       current_player_ = (current_player_ + 1) % kNumPlayers;
     }
-  }
-  else if (phase_ == Phase::kPlay) {
+  } else if (phase_ == Phase::kPlay) {
     if (num_cards_played_ == 0) {
       current_player_ = (contract_.declarer + 1) % kNumPlayers;
-    }
-    else if (num_cards_played_ % kNumPlayers == 0) {
+    } else if (num_cards_played_ % kNumPlayers == 0) {
       // Winner leads next round.
       current_player_ = last_round_winner_;
-    }
-    else {
+    } else {
       current_player_ = (current_player_ + 1) % kNumPlayers;
     }
-  }
-  else {
+  } else {
     current_player_ = kInvalidPlayer;
   }
 }
-bool BridgeStateWithoutHiddenInfo::AuctionIsLegal(const BridgeMove &move) const {
+
+bool BridgeStateWithoutHiddenInfo::AuctionIsLegal(
+    const BridgeMove& move) const {
   if (phase_ != Phase::kAuction) {
     return false;
   }
@@ -126,14 +122,14 @@ Player BridgeStateWithoutHiddenInfo::CurrentPlayer() const {
   }
 }
 
-bool BridgeStateWithoutHiddenInfo::PlayIsLegal(const BridgeMove &move) const {
+bool BridgeStateWithoutHiddenInfo::PlayIsLegal(const BridgeMove& move) const {
   //  std::cout << "current_player: " << current_player_ << std::endl;
   if (phase_ != Phase::kPlay) {
     return false;
   }
 
   // A card is illegal if it has been played.
-  for (const auto &history_item : move_history_) {
+  for (const auto& history_item : move_history_) {
     if (history_item.move == move) {
       return false;
     }
@@ -146,12 +142,9 @@ bool BridgeStateWithoutHiddenInfo::PlayIsLegal(const BridgeMove &move) const {
   //    std::cout << "dummy hand: " << dummy_hand_->ToString() << std::endl;
   //  }
   // If dummy hand is known, check the card is in.
-  if (dummy_hand_.has_value() && current_player_ == GetDummy()) {
-    if (!dummy_hand_->IsCardInHand({move.CardSuit(), move.CardRank()})) return false;
-  }
 
   // If a suit is void, the move is not legal.
-  const auto &void_suits = VoidSuitsForPlayer(current_player_);
+  const auto& void_suits = VoidSuitsForPlayer(current_player_);
   if (void_suits[move.CardSuit()]) {
     return false;
   }
@@ -159,7 +152,7 @@ bool BridgeStateWithoutHiddenInfo::PlayIsLegal(const BridgeMove &move) const {
   return true;
 }
 
-bool BridgeStateWithoutHiddenInfo::MoveIsLegal(const BridgeMove &move) const {
+bool BridgeStateWithoutHiddenInfo::MoveIsLegal(const BridgeMove& move) const {
   switch (move.MoveType()) {
     case BridgeMove::kAuction:
       return AuctionIsLegal(move);
@@ -169,7 +162,8 @@ bool BridgeStateWithoutHiddenInfo::MoveIsLegal(const BridgeMove &move) const {
       return false;
   }
 }
-void BridgeStateWithoutHiddenInfo::ApplyMove(const BridgeMove &move) {
+
+void BridgeStateWithoutHiddenInfo::ApplyMove(const BridgeMove& move) {
   // if (!MoveIsLegal(move)) {
   //   std::cout << "state:\n" << ToString() << "encounter illegal move: " << move << std::endl;
   // }
@@ -187,8 +181,7 @@ void BridgeStateWithoutHiddenInfo::ApplyMove(const BridgeMove &move) {
         if (contract_.level == 0) {
           phase_ = Phase::kGameOver;
           ScoreUp();
-        }
-        else {
+        } else {
           phase_ = Phase::kPlay;
         }
       }
@@ -196,22 +189,21 @@ void BridgeStateWithoutHiddenInfo::ApplyMove(const BridgeMove &move) {
     case BridgeMove::kPlay:
       history.suit = move.CardSuit();
       history.rank = move.CardRank();
-      if (dummy_hand_.has_value() && current_player_ == GetDummy()) {
-        dummy_hand_->RemoveFromHand(move.CardSuit(), move.CardRank(), nullptr);
-      }
       if (num_cards_played_ % kNumPlayers == 0) {
         // A new round
-        CurrentTrick() = Trick(current_player_, contract_.denomination, CardIndex(move.CardSuit(), move.CardRank()));
-      }
-      else {
-        CurrentTrick().Play(current_player_, CardIndex(move.CardSuit(), move.CardRank()));
+        CurrentTrick() = Trick(current_player_, contract_.denomination,
+                               CardIndex(move.CardSuit(), move.CardRank()));
+      } else {
+        CurrentTrick().Play(current_player_,
+                            CardIndex(move.CardSuit(), move.CardRank()));
       }
       {
         const Player winner = CurrentTrick().Winner();
         ++num_cards_played_;
         if (num_cards_played_ % kNumPlayers == 0) {
           last_round_winner_ = winner;
-          if (Partnership(last_round_winner_) == Partnership(contract_.declarer)) {
+          if (Partnership(last_round_winner_) ==
+              Partnership(contract_.declarer)) {
             ++num_declarer_tricks_;
           }
         }
@@ -222,37 +214,40 @@ void BridgeStateWithoutHiddenInfo::ApplyMove(const BridgeMove &move) {
       }
       break;
     default:
-      std::abort(); // Should not be possible.
+      std::abort();  // Should not be possible.
   }
   move_history_.push_back(history);
   AdvanceToNextPlayer();
 }
+
 void BridgeStateWithoutHiddenInfo::ScoreUp() {
   REQUIRE(IsTerminal());
   if (contract_.level == 0) {
     for (const Player pl : kAllSeats) {
       scores_[pl] = 0;
     }
-  }
-  else {
-    const int declarer_score = Score(contract_, num_declarer_tricks_, is_dealer_vulnerable_);
+  } else {
+    const int declarer_score =
+        Score(contract_, num_declarer_tricks_, is_dealer_vulnerable_);
     for (const Player pl : kAllSeats) {
       if (Partnership(pl) == Partnership(contract_.declarer)) {
         scores_[pl] = declarer_score;
-      }
-      else {
+      } else {
         scores_[pl] = -declarer_score;
       }
     }
   }
 }
 
-BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::Child(const BridgeMove &move) const {
+BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::Child(
+    const BridgeMove& move) const {
   BridgeStateWithoutHiddenInfo child(*this);
   child.ApplyMove(move);
   return child;
 }
-std::vector<BridgeMove> BridgeStateWithoutHiddenInfo::LegalMoves(Player player) const {
+
+std::vector<BridgeMove> BridgeStateWithoutHiddenInfo::LegalMoves(
+    Player player) const {
   std::vector<BridgeMove> legal_moves;
   // kChancePlayer=-1 must be handled by ChanceOutcome.
   REQUIRE(player >= 0 && player < kNumPlayers);
@@ -276,9 +271,9 @@ std::string BridgeStateWithoutHiddenInfo::FormatDeal() const {
   for (const Player player : kAllSeats) {
     rv += kPlayerChar[player];
     rv += ": ";
-    if (player == GetDummy() && num_cards_played_ > 0 && dummy_hand_.has_value()) {
-      rv += dummy_hand_->ToString();
-    }
+    // if (player == GetDummy() && num_cards_played_ > 0 && dummy_hand_.has_value()) {
+    //   rv += dummy_hand_->ToString();
+    // }
     rv += "\n";
   }
   return rv;
@@ -299,9 +294,11 @@ std::string BridgeStateWithoutHiddenInfo::FormatAuction() const {
   }
   return rv;
 }
+
 std::string BridgeStateWithoutHiddenInfo::FormatPlay() const {
   REQUIRE(num_cards_played_ > 0);
-  std::string rv = "\nContract is " + contract_.ToString() + "\n\nN  E  S  W  N  E  S";
+  std::string rv =
+      "\nContract is " + contract_.ToString() + "\n\nN  E  S  W  N  E  S";
   Player player = (1 + contract_.declarer) % kNumPlayers;
   Trick trick{kInvalidPlayer, kNoTrump, 0};
   for (int i = 0; i < num_cards_played_; ++i) {
@@ -311,18 +308,17 @@ std::string BridgeStateWithoutHiddenInfo::FormatPlay() const {
       }
       rv += "\n";
       rv += std::string(3 * player, ' ');
-    }
-    else {
+    } else {
       player = (1 + player) % kNumPlayers;
     }
 
-    const auto item = move_history_[move_history_.size() - num_cards_played_ + i];
+    const auto item =
+        move_history_[move_history_.size() - num_cards_played_ + i];
     const auto card = CardIndex(item.suit, item.rank);
     // A new trick
     if (i % kNumPlayers == 0) {
       trick = Trick(player, contract_.denomination, card);
-    }
-    else {
+    } else {
       trick.Play(player, card);
     }
     rv += CardString(card);
@@ -332,6 +328,7 @@ std::string BridgeStateWithoutHiddenInfo::FormatPlay() const {
   rv += std::to_string(num_declarer_tricks_);
   return rv;
 }
+
 std::string BridgeStateWithoutHiddenInfo::FormatResult() const {
   REQUIRE(IsTerminal());
   std::string rv;
@@ -341,11 +338,14 @@ std::string BridgeStateWithoutHiddenInfo::FormatResult() const {
   rv += std::to_string(scores_[kEast]);
   return rv;
 }
+
 std::string BridgeStateWithoutHiddenInfo::FormatVulnerability() const {
-  const bool is_ns_vulnerable =
-      Partnership(dealer_) == Partnership(kNorth) ? is_dealer_vulnerable_ : is_non_dealer_vulnerable_;
-  const bool is_ew_vulnerable =
-      Partnership(dealer_) == Partnership(kEast) ? is_dealer_vulnerable_ : is_non_dealer_vulnerable_;
+  const bool is_ns_vulnerable = Partnership(dealer_) == Partnership(kNorth)
+                                    ? is_dealer_vulnerable_
+                                    : is_non_dealer_vulnerable_;
+  const bool is_ew_vulnerable = Partnership(dealer_) == Partnership(kEast)
+                                    ? is_dealer_vulnerable_
+                                    : is_non_dealer_vulnerable_;
   if (is_ns_vulnerable && is_ew_vulnerable) {
     return "Vul: All\n";
   }
@@ -360,9 +360,9 @@ std::string BridgeStateWithoutHiddenInfo::FormatVulnerability() const {
 
 std::string BridgeStateWithoutHiddenInfo::ToString() const {
   std::string rv = FormatVulnerability() + FormatDeal();
-  if (!move_history_.empty()) {
-    rv += FormatAuction();
-  }
+  // if (!move_history_.empty()) {
+  //   rv += FormatAuction();
+  // }
   if (num_cards_played_ > 0) {
     rv += FormatPlay();
   }
@@ -371,18 +371,20 @@ std::string BridgeStateWithoutHiddenInfo::ToString() const {
   }
   return rv;
 }
-BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::FromBridgeState(const BridgeState &state,
-                                                                           const bool with_bidding_history) {
+
+BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::FromBridgeState(
+    const BridgeState& state, const bool with_bidding_history) {
   switch (state.CurrentPhase()) {
     case Phase::kDeal:
       return BridgeStateWithoutHiddenInfo(state.ParentGame(), {});
     case Phase::kPlay: {
-      const auto &dummy_hand = state.Hands()[state.GetDummy()];
+      const auto& dummy_hand = state.Hands()[state.GetDummy()];
       if (!with_bidding_history) {
         const Contract contract = state.GetContract();
-        const auto &history = state.History();
-        BridgeStateWithoutHiddenInfo res_state{state.ParentGame(), contract, dummy_hand};
-        for (const auto &item : history) {
+        const auto& history = state.History();
+        BridgeStateWithoutHiddenInfo res_state{state.ParentGame(), contract,
+                                               dummy_hand};
+        for (const auto& item : history) {
           if (item.move.MoveType() == BridgeMove::kPlay) {
             res_state.ApplyMove(item.move);
           }
@@ -393,10 +395,10 @@ BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::FromBridgeState(const
     case Phase::kAuction:
     case Phase::kGameOver:
       std::cout << "dummy: " << state.GetDummy() << std::endl;
-      const auto &dummy_hand = state.Hands()[state.GetDummy()];
+      const auto& dummy_hand = state.Hands()[state.GetDummy()];
       std::cout << "dummy hand: " << dummy_hand.ToString() << std::endl;
       BridgeStateWithoutHiddenInfo res_state{state.ParentGame(), dummy_hand};
-      const auto &history = state.History();
+      const auto& history = state.History();
       for (size_t i = kNumCards; i < history.size(); ++i) {
         res_state.ApplyMove(history[i].move);
       }
@@ -404,10 +406,12 @@ BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::FromBridgeState(const
   }
   std::abort();
 }
-std::array<bool, kNumSuits> BridgeStateWithoutHiddenInfo::VoidSuitsForPlayer(const Player player) const {
+
+std::array<bool, kNumSuits> BridgeStateWithoutHiddenInfo::VoidSuitsForPlayer(
+    const Player player) const {
   REQUIRE(player >= 0 && player < kNumPlayers);
   std::array<bool, kNumSuits> void_suit{false, false, false, false};
-  const auto &play_history = PlayHistory();
+  const auto& play_history = PlayHistory();
 
   Suit led_suit = Suit::kInvalidSuit;
   for (int i = 0; i < num_cards_played_; ++i) {
@@ -431,44 +435,49 @@ std::array<bool, kNumSuits> BridgeStateWithoutHiddenInfo::VoidSuitsForPlayer(con
   }
   return void_suit;
 }
-std::vector<BridgeHistoryItem> BridgeStateWithoutHiddenInfo::PlayHistory() const {
+
+std::vector<BridgeHistoryItem> BridgeStateWithoutHiddenInfo::PlayHistory()
+    const {
   std::vector<BridgeHistoryItem> play_history;
-  for (const auto &item : move_history_) {
+  for (const auto& item : move_history_) {
     if (item.move.MoveType() == BridgeMove::kPlay) {
       play_history.push_back(item);
     }
   }
   return play_history;
 }
+
 Player BridgeStateWithoutHiddenInfo::GetDummy() const {
   if (phase_ < Phase::kPlay) {
     return kInvalidPlayer;
   }
   return Partner(contract_.declarer);
 }
-void BridgeStateWithoutHiddenInfo::SetDummyHand(const BridgeHand &dummy_hand) {
-  REQUIRE(dummy_hand.IsFullHand());
-  REQUIRE(num_cards_played_ <= 1);
-  dummy_hand_ = dummy_hand;
-}
+
+// void BridgeStateWithoutHiddenInfo::SetDummyHand(const BridgeHand &dummy_hand) {
+//   REQUIRE(dummy_hand.IsFullHand());
+//   REQUIRE(num_cards_played_ <= 1);
+//   dummy_hand_ = dummy_hand;
+// }
 std::string BridgeStateWithoutHiddenInfo::Serialize() const {
   std::string rv{};
   for (int uid : UidHistory()) {
     rv += std::to_string(uid) + "\n";
   }
-  if (dummy_hand_.has_value()) {
-    std::string dummy = "Dummy Hand\n";
-    auto original_dummy_hand = OriginalDummyHand();
-    auto dummy_cards = original_dummy_hand.Cards();
-    for (const auto &card : dummy_cards) {
-      dummy += std::to_string(card.Index()) + "\n";
-    }
-    rv += dummy;
-  }
+  // if (dummy_hand_.has_value()) {
+  //   std::string dummy = "Dummy Hand\n";
+  //   auto original_dummy_hand = OriginalDummyHand();
+  //   auto dummy_cards = original_dummy_hand.Cards();
+  //   for (const auto &card : dummy_cards) {
+  //     dummy += std::to_string(card.Index()) + "\n";
+  //   }
+  // rv += dummy;
+  // }
   return rv;
 }
-BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::Deserialize(const std::string &str,
-                                                                       const std::shared_ptr<BridgeGame> &game) {
+
+BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::Deserialize(
+    const std::string& str, const std::shared_ptr<BridgeGame>& game) {
   BridgeStateWithoutHiddenInfo state{};
   state.parent_game_ = game;
   std::vector<std::string> lines = StrSplit(str, '\n');
@@ -478,12 +487,13 @@ BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::Deserialize(const std
     auto it = separator;
     BridgeHand dummy_hand{};
     while (++it != lines.end()) {
-      if (it->empty()) continue;
+      if (it->empty())
+        continue;
       const int card_index = std::stoi(*it);
       const BridgeCard card{CardSuit(card_index), CardRank(card_index)};
       dummy_hand.AddCard(card);
     }
-    state.dummy_hand_ = dummy_hand;
+    // state.dummy_hand_ = dummy_hand;
     if (dummy_hand.Cards().size() != kNumCardsPerHand) {
       std::cout << "dummy hand error, lines=\n";
       std::cout << str << std::endl;
@@ -498,7 +508,8 @@ BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::Deserialize(const std
 
   for (int i = 0; i < std::distance(lines.begin(), separator); ++i) {
     //    std::cout << i << ", " << lines[i] << std::endl;
-    if (lines[i].empty()) continue;
+    if (lines[i].empty())
+      continue;
     int action_uid = std::stoi(lines[i]);
     BridgeMove move{};
     move = game->GetMove(action_uid);
@@ -506,22 +517,27 @@ BridgeStateWithoutHiddenInfo BridgeStateWithoutHiddenInfo::Deserialize(const std
   }
   return state;
 }
-BridgeHand BridgeStateWithoutHiddenInfo::OriginalDummyHand() const {
-  if (!dummy_hand_.has_value()) {
-    return {};
-  }
-  auto hand = dummy_hand_.value();
-  for (const auto &item : move_history_) {
-    if (item.player == GetDummy() && item.move.MoveType() == BridgeMove::Type::kPlay) {
-      const auto card = BridgeCard{item.move.CardSuit(), item.move.CardRank()};
-      hand.AddCard(card);
-    }
-  }
-  return hand;
+
+// BridgeHand BridgeStateWithoutHiddenInfo::OriginalDummyHand() const {
+//   if (!dummy_hand_.has_value()) {
+//     return {};
+//   }
+//   auto hand = dummy_hand_.value();
+//   for (const auto &item : move_history_) {
+//     if (item.player == GetDummy() && item.move.MoveType() == BridgeMove::Type::kPlay) {
+//       const auto card = BridgeCard{item.move.CardSuit(), item.move.CardRank()};
+//       hand.AddCard(card);
+//     }
+//   }
+//   return hand;
+// }
+
+bool operator==(const BridgeHand& lhs, const BridgeHand& rhs) {
+  return lhs.Cards() == rhs.Cards();
 }
 
-bool operator==(const BridgeHand &lhs, const BridgeHand &rhs) { return lhs.Cards() == rhs.Cards(); }
-std::ostream &operator<<(ostream &stream, const BridgeStateWithoutHiddenInfo &state) {
+std::ostream& operator<<(std::ostream& stream,
+                         const BridgeStateWithoutHiddenInfo& state) {
   return stream << state.ToString();
 }
-} // namespace bridge_learning_env
+}  // namespace bridge_learning_env

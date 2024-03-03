@@ -8,7 +8,6 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
 
-#include "playcc/alpha_mu_search.h"
 #include "playcc/bridge_state_without_hidden_info.h"
 #include "bridge_lib/bridge_state.h"
 #include "playcc/pimc.h"
