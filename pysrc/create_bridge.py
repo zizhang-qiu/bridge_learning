@@ -11,7 +11,7 @@ import rela
 import bridgeplay
 
 from utils import load_net_conf_and_state_dict
-from rule_based_bot import RuleBasedBot
+
 from bluechip_bot import BlueChipBridgeBot
 
 
@@ -66,8 +66,6 @@ class BotFactory:
     def create_bot(self, bot_type: str, **kwargs) -> bridgeplay.PlayBot:
         if bot_type == "dds":
             return bridgeplay.DDSBot()
-        
-        
 
         if bot_type == "pimc":
             resampler = bridgeplay.UniformResampler(self.seed)
@@ -134,8 +132,6 @@ class BotFactory:
             nn_belief_opening_bot = bridgeplay.NNBeliefOpeningLeadBot(torch_actor, game, self.seed,
                                                                       dds_evaluator, cfg)
             return nn_belief_opening_bot
-        
-        
 
         if bot_type == "bba":
             from bba import load_conventions
@@ -147,6 +143,7 @@ class BotFactory:
             return BBABot(player_id, game, self.bidding_systems, conventions)
 
         if bot_type == "rule_based_opening":
+            from rule_based_bot import RuleBasedBot
             from bba import load_conventions
             conventions = load_conventions(self.convention_file)
             cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
@@ -171,6 +168,5 @@ class BotFactory:
                 return client
 
             return BlueChipBridgeBot(game, player_id, controller_factory)
-        
-        raise ValueError(f"bot_type {bot_type} is not supported.")
 
+        raise ValueError(f"bot_type {bot_type} is not supported.")
