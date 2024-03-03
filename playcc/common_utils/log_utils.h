@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
 #include "absl/types/optional.h"
 #include "absl/types/span.h"
 
