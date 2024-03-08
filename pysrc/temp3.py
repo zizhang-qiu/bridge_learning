@@ -11,6 +11,7 @@ from typing import List
 import hydra
 import numpy as np
 import matplotlib.pyplot as plt
+import omegaconf
 import torch
 import pickle
 import common_utils
@@ -24,45 +25,47 @@ import bridgeplay
 #         print(opt)
 
 if __name__ == "__main__":
-    file_dir = "../declarer_eval/exp16"
-    execution_times_arr = np.load(os.path.join(file_dir, "execution_times.npy"))
-    print(len(execution_times_arr))
-    print(common_utils.get_avg_and_sem(execution_times_arr))
+    file_dir = "../declarer_eval/exp19"
+    execution_times = np.load(os.path.join(file_dir, "p1_execution_times.npy"))
+    print(common_utils.get_avg_and_sem(execution_times))
+    # execution_times_arr = np.load(os.path.join(file_dir, "execution_times.npy"))
+    # print(len(execution_times_arr))
+    # print(common_utils.get_avg_and_sem(execution_times_arr))
 
-    with open(os.path.join(file_dir, "items"), "rb") as fp:
+    # with open(os.path.join(file_dir, "items"), "rb") as fp:
 
-        duplicate_items: List[DuplicateSaveItem] = pickle.load(fp)
+    #     duplicate_items: List[DuplicateSaveItem] = pickle.load(fp)
 
-    alpha_mu_tricks = [item.state0.num_declarer_tricks() for item in duplicate_items]
-    wb_tricks = [item.state1.num_declarer_tricks() for item in duplicate_items]
-    print(common_utils.get_avg_and_sem(alpha_mu_tricks))
-    print(common_utils.get_avg_and_sem(wb_tricks))
+    # alpha_mu_tricks = [item.state0.num_declarer_tricks() for item in duplicate_items]
+    # wb_tricks = [item.state1.num_declarer_tricks() for item in duplicate_items]
+    # print(common_utils.get_avg_and_sem(alpha_mu_tricks))
+    # print(common_utils.get_avg_and_sem(wb_tricks))
 
-    alpha_mu_scores = [
-        item.state0.scores()[item.state0.get_contract().declarer]
-        for item in duplicate_items
-    ]
-    wb_scores = [
-        item.state1.scores()[item.state1.get_contract().declarer]
-        for item in duplicate_items
-    ]
-    print(common_utils.get_avg_and_sem(alpha_mu_scores))
-    print(common_utils.get_avg_and_sem(wb_scores))
+    # alpha_mu_scores = [
+    #     item.state0.scores()[item.state0.get_contract().declarer]
+    #     for item in duplicate_items
+    # ]
+    # wb_scores = [
+    #     item.state1.scores()[item.state1.get_contract().declarer]
+    #     for item in duplicate_items
+    # ]
+    # print(common_utils.get_avg_and_sem(alpha_mu_scores))
+    # print(common_utils.get_avg_and_sem(wb_scores))
 
-    num_alpha_mu_win = 0
-    num_wb_win = 0
-    for item in duplicate_items:
-        state0_win = item.state0.scores()[item.state0.get_contract().declarer] > 0
-        state1_win = item.state1.scores()[item.state1.get_contract().declarer] > 0
-        if state0_win != state1_win:
-            if state0_win:
-                num_alpha_mu_win += 1
-            else:
-                num_wb_win += 1
+    # num_alpha_mu_win = 0
+    # num_wb_win = 0
+    # for item in duplicate_items:
+    #     state0_win = item.state0.scores()[item.state0.get_contract().declarer] > 0
+    #     state1_win = item.state1.scores()[item.state1.get_contract().declarer] > 0
+    #     if state0_win != state1_win:
+    #         if state0_win:
+    #             num_alpha_mu_win += 1
+    #         else:
+    #             num_wb_win += 1
 
-    print(
-        f"Num difference: {num_alpha_mu_win + num_wb_win}, num_alpha_mu_win: {num_alpha_mu_win}"
-    )
+    # print(
+    #     f"Num difference: {num_alpha_mu_win + num_wb_win}, num_alpha_mu_win: {num_alpha_mu_win}"
+    # )
 
     #     #     main()
     #     tricks = [0, 0]
@@ -133,3 +136,34 @@ if __name__ == "__main__":
     # plt.legend(lines, labels, loc="right")
 
     # plt.show()
+
+    from other_models import A2CAgent, PBEModel
+
+    conf = omegaconf.OmegaConf.load("conf/jps_a2c/a2c.yaml")
+    # print(conf)
+
+    agent  : A2CAgent= hydra.utils.instantiate(conf)
+
+    # print(agent)
+
+    # weight = torch.load("../external_models/jps/agent-1610-0.63.pth")
+    
+    # print(weight)
+    
+    
+    
+    pbe_encoder = bridge.PBEEncoder(bridge.default_game)
+    
+    pbe_model = PBEModel()
+    
+    state = bridge.BridgeState(bridge.default_game)
+    
+    while state.is_chance_node():
+        state.apply_random_chance()
+        
+    obs = bridge.BridgeObservation(state)
+    
+    pbe_feature = pbe_encoder.encode(obs)
+    
+    print(pbe_feature)
+    

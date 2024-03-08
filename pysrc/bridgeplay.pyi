@@ -1,77 +1,51 @@
+"""A stub file for bridgeplay module."""
+
 import abc
 from enum import IntEnum
 from typing import List, Dict, Optional, overload
 import bridge
 import rela
 
-
 class Resampler:
-    def __init__(self):
-        ...
-
+    def __init__(self): ...
     def resample(self, state: bridge.BridgeState) -> ResampleResult: ...
-
     def reset_with_params(self, params: Dict[str, str]): ...
-
 
 class ResampleResult:
     success: bool
     result: List[int]
 
-
 class UniformResampler(Resampler):
-    def __init__(self, seed: int):
-        ...
-
-    def resample(self, state: bridge.BridgeState) -> ResampleResult:
-        ...
-
+    def __init__(self, seed: int): ...
+    def resample(self, state: bridge.BridgeState) -> ResampleResult: ...
     def reset_with_params(self, params: Dict[str, str]): ...
-
 
 class SearchResult:
     moves: List[bridge.BridgeMove]
     scores: List[int]
 
-
 class PlayBot:
     def __init__(self): ...
-
     @abc.abstractmethod
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
-
     def restart(self): ...
-
     def restart_at(self, state: bridge.BridgeState): ...
-
     def is_clonable(self) -> bool: ...
-
     def clone(self) -> PlayBot: ...
-
     def name(self) -> str: ...
 
-
 class DDSBot(PlayBot):
-    def __init__(self):
-        ...
-
+    def __init__(self): ...
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
-
 
 class PIMCConfig:
     num_worlds: int
     search_with_one_legal_move: bool
 
-
 class PIMCBot(PlayBot):
-    def __init__(self, resampler: Resampler, cfg: PIMCConfig):
-        ...
-
-    def search(self, state: bridge.BridgeState) -> SearchResult:
-        ...
-
+    def __init__(self, resampler: Resampler, cfg: PIMCConfig): ...
+    def search(self, state: bridge.BridgeState) -> SearchResult: ...
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
-
 
 class OutcomeVector:
     game_status: List[int]
@@ -80,39 +54,25 @@ class OutcomeVector:
 
     def score(self) -> float: ...
 
-
 class ParetoFront:
     def __init__(self, outcome_vectors: Optional[List[OutcomeVector]]): ...
-
     def size(self) -> int: ...
-
     def insert(self, outcome_vector: OutcomeVector) -> bool: ...
-
     def empty(self) -> bool: ...
-
     def score(self) -> float: ...
-
     def best_outcome(self) -> OutcomeVector: ...
-
     def set_move(self, move: bridge.BridgeMove): ...
-
     @staticmethod
-    def pareto_front_with_one_outcome_vector(possible_worlds: List[bool], fill_value: int) -> ParetoFront: ...
-
+    def pareto_front_with_one_outcome_vector(
+        possible_worlds: List[bool], fill_value: int
+    ) -> ParetoFront: ...
     def serialize(self) -> str: ...
-
     @staticmethod
     def deserialize(sr_str: str) -> ParetoFront: ...
 
-
 def pareto_front_min(lhs: ParetoFront, rhs: ParetoFront) -> ParetoFront: ...
-
-
 def pareto_front_max(lhs: ParetoFront, rhs: ParetoFront) -> ParetoFront: ...
-
-
 def pareto_front_dominate(lhs: ParetoFront, rhs: ParetoFront) -> bool: ...
-
 
 class AlphaMuConfig:
     num_max_moves: int
@@ -120,83 +80,55 @@ class AlphaMuConfig:
     search_with_one_legal_move: bool
     root_cut: bool
     early_cut: bool
-    rollout_result : RolloutResult
-
+    rollout_result: RolloutResult
 
 class BridgeStateWithoutHiddenInfo:
     def __init__(self, state: bridge.BridgeState): ...
-
     def uid_history(self) -> List[int]: ...
-
     def apply_move(self, move: bridge.BridgeMove): ...
-
     def legal_moves(self) -> List[bridge.BridgeMove]: ...
-
     def current_player(self) -> bridge.Player: ...
-
     def is_terminal(self) -> bool: ...
-
     def num_declarer_tricks(self) -> int: ...
-
     def get_contract(self) -> bridge.Contract: ...
-
     def serialize(self) -> str: ...
-
     def deserialize(self, sr_str: str, game: bridge.BridgeGame): ...
-
 
 class TranspositionTable:
     def __init__(self): ...
-
     def table(self) -> Dict[BridgeStateWithoutHiddenInfo, ParetoFront]: ...
-
     def serialize(self) -> str: ...
-
     def deserialize(self, sr_str: str, game: bridge.BridgeGame): ...
-
 
 class AlphaMuBot(PlayBot):
     @overload
     def __init__(self, resampler: Resampler, cfg: AlphaMuConfig): ...
-
     @overload
-    def __init__(self, resampler: Resampler, cfg:AlphaMuConfig, player_id:int): ...
-
+    def __init__(self, resampler: Resampler, cfg: AlphaMuConfig, player_id: int): ...
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
-
     def search(self, state: bridge.BridgeState) -> ParetoFront: ...
-
     def set_tt(self, tt: TranspositionTable): ...
-
     def get_tt(self) -> TranspositionTable: ...
 
-
-def construct_state_from_deal(deal: List[int], game: bridge.BridgeGame) -> bridge.BridgeState: ...
-
-
-def construct_state_from_deal_and_original_state(deal: List[int], game: bridge.BridgeGame,
-                                                 original_state: bridge.BridgeState) -> bridge.BridgeState: ...
-
-
-def construct_state_from_trajectory(trajectory: List[int], game: bridge.BridgeGame) -> bridge.BridgeState: ...
-
-
+def construct_state_from_deal(
+    deal: List[int], game: bridge.BridgeGame
+) -> bridge.BridgeState: ...
+def construct_state_from_deal_and_original_state(
+    deal: List[int], game: bridge.BridgeGame, original_state: bridge.BridgeState
+) -> bridge.BridgeState: ...
+def construct_state_from_trajectory(
+    trajectory: List[int], game: bridge.BridgeGame
+) -> bridge.BridgeState: ...
 def is_acting_player_declarer_side(state: bridge.BridgeState) -> bool: ...
-
 
 class TorchActor:
     def __init__(self, runner: rela.BatchRunner): ...
-
     def get_policy(self, obs: rela.TensorDict) -> rela.TensorDict: ...
-
     def get_belief(self, obs: rela.TensorDict) -> rela.TensorDict: ...
-
 
 class NNBeliefResampler:
     def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int): ...
-
     def resample(self, state: bridge.BridgeState) -> ResampleResult: ...
-
 
 class BeliefBasedOpeningLeadBotConfig:
     num_max_sample: int = 1000
@@ -205,57 +137,54 @@ class BeliefBasedOpeningLeadBotConfig:
     rollout_result: RolloutResult = RolloutResult.WIN_LOSE
     verbose: bool
 
-
 class NNBeliefOpeningLeadBot(PlayBot):
-    def __init__(self, torch_actor: TorchActor, game: bridge.BridgeGame, seed: int, evaluator: DDSEvaluator,
-                 cfg: BeliefBasedOpeningLeadBotConfig): ...
-
+    def __init__(
+        self,
+        torch_actor: TorchActor,
+        game: bridge.BridgeGame,
+        seed: int,
+        evaluator: DDSEvaluator,
+        cfg: BeliefBasedOpeningLeadBotConfig,
+    ): ...
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...
 
-
 def load_bot(name: str, game: bridge.BridgeGame, player: bridge.Player) -> PlayBot: ...
-
-
 def dds_moves(state: bridge.BridgeState) -> List[bridge.BridgeMove]: ...
-
 
 class RolloutResult(IntEnum):
     WIN_LOSE = 0
     NUM_FUTURE_TRICKS = 1
     NUM_TOTAL_TRICKS = 2
 
-
 class DDSEvaluator:
     def __init__(self): ...
-
-    def rollout(self, state: bridge.BridgeState, move: bridge.BridgeMove, result_for: bridge.Player,
-                rollout_result: RolloutResult) -> int: ...
-
+    def rollout(
+        self,
+        state: bridge.BridgeState,
+        move: bridge.BridgeMove,
+        result_for: bridge.Player,
+        rollout_result: RolloutResult,
+    ) -> int: ...
     def dds_moves(self, state: bridge.BridgeState) -> List[bridge.BridgeMove]: ...
-
 
 class ThreadedQueueInt:
     def __init__(self, max_size: int): ...
-
     def pop(self) -> int: ...
-
     def empty(self) -> bool: ...
-
     def size(self) -> int: ...
 
-
 class OpeningLeadEvaluationThreadLoop(rela.ThreadLoop):
-    def __init__(self,
-                 dds_evaluator: DDSEvaluator,
-                 bot: PlayBot,
-                 game: bridge.BridgeGame,
-                 trajectories: List[List[int]],
-                 queue: ThreadedQueueInt,
-                 thread_idx: int = 0,
-                 verbose: bool = False): ...
-
+    def __init__(
+        self,
+        dds_evaluator: DDSEvaluator,
+        bot: PlayBot,
+        game: bridge.BridgeGame,
+        trajectories: List[List[int]],
+        queue: ThreadedQueueInt,
+        thread_idx: int = 0,
+        verbose: bool = False,
+    ): ...
 
 class WBridge5TrajectoryBot(PlayBot):
     def __init__(self, trajectories: List[List[int]], game: bridge.BridgeGame): ...
-
     def step(self, state: bridge.BridgeState) -> bridge.BridgeMove: ...

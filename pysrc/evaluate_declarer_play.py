@@ -176,7 +176,7 @@ def main(args: DictConfig):
         os.mkdir(args.save_dir)
     dataset = load_dataset(os.path.join(args.dataset_dir, args.dataset_name))
 
-    dataset = extract_not_passed_out_trajectories(dataset)[:500]
+    dataset = extract_not_passed_out_trajectories(dataset)[:20]
 
     trajectories_per_process = common_utils.allocate_list_uniformly(
         dataset, args.num_processes

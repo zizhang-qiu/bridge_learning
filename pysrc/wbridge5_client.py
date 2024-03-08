@@ -2,6 +2,7 @@ import abc
 import re
 import socket
 import subprocess
+from typing import Optional
 
 
 class Controller(abc.ABC):
@@ -28,12 +29,12 @@ class WBridge5Client(Controller):
 
     def __init__(self, command: str, timeout_secs: int = 60):
         self.addr = None
-        self.conn = None
+        self.conn: Optional[socket.socket] = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind(("", 0))
         self.port = self.sock.getsockname()[1]
         self.sock.listen(1)
-        self.process = None
+        self.process:Optional[subprocess.Popen] = None
         self.command = command.format(port=self.port)
         self.timeout_secs = timeout_secs
 
@@ -44,6 +45,7 @@ class WBridge5Client(Controller):
         self.conn, self.addr = self.sock.accept()
 
     def read_line(self):
+        assert self.conn is not None
         line = ""
         while True:
             self.conn.settimeout(self.timeout_secs)
@@ -55,8 +57,10 @@ class WBridge5Client(Controller):
                 return re.sub(r"\s+", " ", line).strip()
 
     def send_line(self, line):
+        assert self.conn is not None
         self.conn.send((line + "\r\n").encode("ascii"))
 
     def terminate(self):
+        assert self.process is not None
         self.process.kill()
         self.process = None

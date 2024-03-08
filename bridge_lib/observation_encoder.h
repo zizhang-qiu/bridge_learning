@@ -12,7 +12,7 @@ namespace bridge_learning_env {
 
 class ObservationEncoder {
  public:
-  enum Type { kCanonical = 0 };
+  enum Type { kCanonical = 0, kPBE=1};
   virtual ~ObservationEncoder() = default;
 
   // Returns the shape (dimension sizes of the tensor).

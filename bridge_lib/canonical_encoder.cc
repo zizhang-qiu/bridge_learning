@@ -1,5 +1,6 @@
 #include "canonical_encoder.h"
 
+#include <cassert>
 #include <numeric>
 #include <sstream>
 
@@ -56,8 +57,8 @@ int EncodeAuction(const BridgeObservation& obs, const int start_offset,
     } else if (item.move.IsBid()) {
       // Should be a bid.
       const int bid_index = BidIndex(item.level, item.denomination);
-      (*encoding)[offset + (bid_index - kFirstBid) * kSingleBidTensorSize + item
-                  .player] = 1;
+      (*encoding)[offset + (bid_index - kFirstBid) * kSingleBidTensorSize +
+                  item.player] = 1;
       last_bid = bid_index;
     }
   }
@@ -67,10 +68,8 @@ int EncodeAuction(const BridgeObservation& obs, const int start_offset,
   return offset - start_offset;
 }
 
-int EncodePlayerHand(const BridgeObservation& obs,
-                     const int start_offset,
-                     std::vector<int>* encoding,
-                     const int relative_player) {
+int EncodePlayerHand(const BridgeObservation& obs, const int start_offset,
+                     std::vector<int>* encoding, const int relative_player) {
   int offset = start_offset;
   const auto& cards = obs.Hands()[relative_player].Cards();
   REQUIRE(cards.size() <= kNumCardsPerHand);
@@ -119,9 +118,8 @@ int EncodeContract(const BridgeObservation& obs, const int start_offset,
       (contract.declarer + kNumPlayers - obs.ObservingPlayer()) % kNumPlayers;
   (*encoding)[offset + relative_declarer] = 1;
   offset += kNumPlayers;
-  REQUIRE_EQ(offset - start_offset,
-             kNumBidLevels + kNumDenominations + kNumDoubleStatus +
-             kNumPlayers);
+  REQUIRE_EQ(offset - start_offset, kNumBidLevels + kNumDenominations +
+                                        kNumDoubleStatus + kNumPlayers);
   return offset - start_offset;
 }
 
@@ -130,11 +128,10 @@ int EncodeVulnerabilityDeclarer(const BridgeObservation& obs,
                                 std::vector<int>* encoding) {
   int offset = start_offset;
   const bool is_observing_player_declarer =
-      Partnership(obs.ObservingPlayer()) == Partnership(
-          obs.GetContract().declarer);
-  const bool vul = is_observing_player_declarer
-                     ? obs.IsPlayerVulnerable()
-                     : obs.IsOpponentVulnerable();
+      Partnership(obs.ObservingPlayer()) ==
+      Partnership(obs.GetContract().declarer);
+  const bool vul = is_observing_player_declarer ? obs.IsPlayerVulnerable()
+                                                : obs.IsOpponentVulnerable();
 
   (*encoding)[offset + vul] = 1;
   offset += kNumVulnerabilities;
@@ -158,10 +155,8 @@ int EncodeDummyHand(const BridgeObservation& obs, const int start_offset,
   return offset - start_offset;
 }
 
-int EncodePlayedTricks(const BridgeObservation& obs,
-                       const int start_offset,
-                       std::vector<int>* encoding,
-                       const int num_tricks) {
+int EncodePlayedTricks(const BridgeObservation& obs, const int start_offset,
+                       std::vector<int>* encoding, const int num_tricks) {
   int offset = start_offset;
 
   const int current_trick = obs.NumCardsPlayed() / kNumPlayers;
@@ -184,11 +179,11 @@ int EncodePlayedTricks(const BridgeObservation& obs,
   offset += kNumCards * kNumPlayers;
 
   // Previous tricks.
-  for (int j = current_trick - 1; j >= std::max(
-                                      0, current_trick - num_tricks + 1); --j) {
+  for (int j = current_trick - 1;
+       j >= std::max(0, current_trick - num_tricks + 1); --j) {
     for (int i = 0; i < kNumPlayers; ++i) {
-      const auto item = play_history[
-        this_trick_start - kNumPlayers * (current_trick - j) + i];
+      const auto item = play_history[this_trick_start -
+                                     kNumPlayers * (current_trick - j) + i];
       // const int relative_player = PlayerToOffset(item.player, obs.ObservingPlayer());
       const int card_index = CardIndex(item.suit, item.rank);
       (*encoding)[offset + item.player * kNumCards + card_index] = 1;
@@ -218,7 +213,7 @@ int EncodeNumTricksWon(const BridgeObservation& obs, const int start_offset,
   (*encoding)[offset + num_defender_tricks] = 1;
   offset += kNumTricks;
 
-  REQUIRE_EQ(offset-start_offset, kNumPartnerships * kNumTricks);
+  REQUIRE_EQ(offset - start_offset, kNumPartnerships * kNumTricks);
   return offset - start_offset;
 }
 
@@ -267,6 +262,46 @@ int EncodeHandEvaluation(const BridgeObservation& obs, int start_offset,
   return offset - start_offset;
 }
 
+// int EncodeHandRankMajorStyle(const BridgeObservation& obs, int start_offset,
+//                              std::vector<int>* encoding, int relative_player) {
+//   int offset = start_offset;
+//   // Rank major, S2, S3, ..SA, H2, ..., HA, ...CA
+//   for (const auto& card : obs.Hands()[relative_player].Cards()) {
+//     const int rank_major_card_index =
+//         (3 - card.CardSuit()) * kNumCardsPerSuit + card.Rank();
+//     (*encoding)[rank_major_card_index] = 1;
+//   }
+//   offset += kNumCards;
+//   REQUIRE_EQ(offset - start_offset, kNumCards);
+
+//   return offset - start_offset;
+// }
+
+// int EncodePBEBiddingHistory(const BridgeObservation& obs, int start_offset,
+//                             std::vector<int>* encoding) {
+//   int offset = start_offset;
+//   for (int i = kPBEBiddingHistoryTensorSize - 6; i < kPBEBiddingHistoryTensorSize;
+//        ++i) {
+//     (*encoding)[i] = 1;
+//   }
+//   const auto& bidding_history = obs.AuctionHistory();
+//   for (const auto& item : bidding_history) {
+//     if (item.player == 0 || item.player == 2) {
+//       (*encoding)[kPBEBiddingHistoryTensorSize - 1] += 1;
+//       if (item.other_call == OtherCalls::kPass) {
+//         (*encoding)[0] = 1;
+//       } else {
+//         (*encoding)[(item.level - 1) * kNumDenominations + item.denomination] =
+//             1;
+//       }
+//     }
+//   }
+//   offset += kPBEBiddingHistoryTensorSize;
+//   REQUIRE_EQ(offset - start_offset, kPBEBiddingHistoryTensorSize);
+
+//   return offset - start_offset;
+// }
+
 std::vector<int> CanonicalEncoder::Shape() const {
   return {std::max(kAuctionTensorSize, GetPlayTensorSize())};
 }
@@ -299,8 +334,8 @@ std::vector<int> CanonicalEncoder::EncodeOtherHandEvaluationsOneHot(
   int offset = 0;
   const auto& hands = obs.Hands();
   for (int relative_player = 1; relative_player <= 3; ++relative_player) {
-    offset += EncodeHandEvaluationOneHot(obs, offset, &encoding,
-                                         relative_player);
+    offset +=
+        EncodeHandEvaluationOneHot(obs, offset, &encoding, relative_player);
   }
   REQUIRE_EQ(offset, (kNumPlayers - 1) * kHandEvaluationOneHotTensorSize);
   return encoding;
@@ -330,13 +365,13 @@ std::vector<int> CanonicalEncoder::Encode(const BridgeObservation& obs) const {
     // 19~20
     offset += EncodeVulnerabilityDeclarer(obs, offset, &encoding);
     // 21~72
-    offset += EncodePlayerHand(obs, offset, &encoding,/*relative_player=*/0);
+    offset += EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/0);
     // 73~124
     offset += EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/
                                obs.Dummy());
     // 125~2828 (Assuming 13 tricks).
-    offset += EncodePlayedTricks(obs, offset, &encoding,
-                                 num_tricks_in_observation_);
+    offset +=
+        EncodePlayedTricks(obs, offset, &encoding, num_tricks_in_observation_);
     // 2829~2854
     offset += EncodeNumTricksWon(obs, offset, &encoding);
   } else {
@@ -348,4 +383,19 @@ std::vector<int> CanonicalEncoder::Encode(const BridgeObservation& obs) const {
   REQUIRE(offset <= encoding.size());
   return encoding;
 }
-} // namespace bridge_learning_env
+
+// std::vector<int> CanonicalEncoder::EncodePBE(
+//     const BridgeObservation& obs) const {
+//   std::vector<int> encoding(kNumCards + kPBEBiddingHistoryTensorSize, 0);
+//   int offset = 0;
+
+//   // Encode player hand.
+//   offset += EncodeHandRankMajorStyle(obs, offset, &encoding, /*relative_player=*/0);
+
+//   // Encode bidding history.
+//   offset += EncodePBEBiddingHistory(obs, offset, &encoding);
+
+//   REQUIRE_EQ(offset, kPBEBiddingHistoryTensorSize + kNumCards);
+//   return encoding;
+// }
+}  // namespace bridge_learning_env

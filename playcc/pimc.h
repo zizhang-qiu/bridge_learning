@@ -27,6 +27,7 @@ std::pair<ble::BridgeMove, int> GetBestAction(const SearchResult& res);
 struct PIMCConfig {
   int num_worlds;
   bool search_with_one_legal_move;
+  bool verbose = false;
 };
 
 class PIMCBot final : public PlayBot {

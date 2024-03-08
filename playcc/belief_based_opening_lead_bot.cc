@@ -89,7 +89,7 @@ ble::BridgeMove NNBeliefOpeningLeadBot::Step(const ble::BridgeState& state) {
     }
   }
 
-  if (cfg_.verbose)
+  // if (cfg_.verbose)
     PrintSearchResult(res);
 
   auto [move, score] = GetBestAction(res);

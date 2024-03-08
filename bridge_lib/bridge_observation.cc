@@ -16,8 +16,7 @@ void ChangeHistoryItemToObserverRelative(const Player observer_player,
     REQUIRE(item->player == kChancePlayerId && item->deal_to_player > 0);
     item->deal_to_player =
         (item->deal_to_player - observer_player + kNumPlayers) % kNumPlayers;
-  }
-  else {
+  } else {
     REQUIRE(item->player >= 0);
     item->player = (item->player - observer_player + kNumPlayers) % kNumPlayers;
   }
@@ -25,15 +24,15 @@ void ChangeHistoryItemToObserverRelative(const Player observer_player,
 
 BridgeObservation::BridgeObservation(const BridgeState& state,
                                      const Player observing_player)
-  : cur_player_offset_(
-      PlayerToOffset(state.CurrentPlayer(), observing_player)),
-    observing_player_(observing_player),
-    current_phase_(state.CurrentPhase()),
-    legal_moves_(state.LegalMoves(observing_player)),
-    contract_(state.GetContract()),
-    tricks_(state.Tricks()),
-    num_declarer_tricks_(state.NumDeclarerTricks()),
-    parent_game_(state.ParentGame()) {
+    : cur_player_offset_(
+          PlayerToOffset(state.CurrentPlayer(), observing_player)),
+      observing_player_(observing_player),
+      current_phase_(state.CurrentPhase()),
+      legal_moves_(state.LegalMoves(observing_player)),
+      contract_(state.GetContract()),
+      tricks_(state.Tricks()),
+      num_declarer_tricks_(state.NumDeclarerTricks()),
+      parent_game_(state.ParentGame()) {
   hands_.reserve(kNumPlayers);
   hands_.push_back(state.Hands()[observing_player_]);
   for (int offset = 1; offset < kNumPlayers; ++offset) {
@@ -70,10 +69,51 @@ BridgeObservation::BridgeObservation(const BridgeState& state,
 std::string BridgeObservation::ToString() const {
   std::string rv;
   rv += StrCat("Hand:\n", hands_[0].ToString());
-  rv += "\nAuction history:\n";
-  for (const auto& item : auction_history_) {
-    rv += StrCat(item.ToString(), "");
+  if (!auction_history_.empty()) {
+    rv += "\nAuction history:\n";
+    // for (const auto& item : auction_history_) {
+    //   rv += StrCat(item.ToString(), "");
+    // }
+    rv += "\nWest  North East  South\n      ";
+    for (int i = 0; i < auction_history_.size(); ++i) {
+      if (i % kNumPlayers == kNumPlayers - 1) {
+        rv.push_back('\n');
+      }
+      rv +=
+          StrFormat("%-6s", auction_history_[i].move.AuctionToString().c_str());
+    }
   }
+
+  if (!play_history_.empty()) {
+    rv += "\nContract is " + contract_.ToString() + "\n\nN  E  S  W  N  E  S";
+    Player player = (1 + contract_.declarer) % kNumPlayers;
+    Trick trick{kInvalidPlayer, kNoTrump, 0};
+    for (int i = 0; i < play_history_.size(); ++i) {
+      if (i % kNumPlayers == 0) {
+        if (i > 0) {
+          player = trick.Winner();
+        }
+        rv += "\n";
+        rv += std::string(3 * player, ' ');
+      } else {
+        player = (1 + player) % kNumPlayers;
+      }
+
+      const auto item = play_history_[i];
+      const auto card = CardIndex(item.suit, item.rank);
+      // A new trick
+      if (i % kNumPlayers == 0) {
+        trick = Trick(player, contract_.denomination, card);
+      } else {
+        trick.Play(player, card);
+      }
+      rv += CardString(card);
+      rv += " ";
+    }
+    rv += "\n\nDeclarer tricks: ";
+    rv += std::to_string(num_declarer_tricks_);
+  }
+
   return rv;
 }
-} // namespace bridge
+}  // namespace bridge_learning_env

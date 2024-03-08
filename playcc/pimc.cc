@@ -38,8 +38,8 @@ int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   // The player act at original state is declarer side.
   if (const bool is_max_node = IsActingPlayerDeclarerSide(state); is_max_node) {
     // The player act at child state is declarer side.
-    if (ble::Partnership(child_player) == ble::Partnership(
-            state.CurrentPlayer())) {
+    if (ble::Partnership(child_player) ==
+        ble::Partnership(state.CurrentPlayer())) {
       return fut.score[0] + child.NumDeclarerTricks() >= contract.level + 6;
     } else {
       // The player act at child state is defender side.
@@ -121,23 +121,23 @@ ble::BridgeMove PIMCBot::Step(const ble::BridgeState& state) {
   //  const auto legal_moves = state.LegalMoves();
   const auto legal_moves = GetLegalMovesWithoutEquivalentCards(state);
   if (const int num_legal_moves = static_cast<int>(legal_moves.size());
-    num_legal_moves == 1) {
+      num_legal_moves == 1) {
     if (!cfg_.search_with_one_legal_move) {
       return legal_moves[0];
     }
   }
   const SearchResult res = Search(state);
   auto [move, score] = GetBestAction(res);
-
-  //  PrintSearchResult(res);
-
+  if (cfg_.verbose) {
+    PrintSearchResult(res);
+  }
   return move;
 }
 
 void PrintSearchResult(const SearchResult& res) {
   for (int i = 0; i < res.moves.size(); ++i) {
-    std::cout << "Move " << res.moves[i].ToString() << ", Score: " << res.scores
-        [i] << "\n";
+    std::cout << "Move " << res.moves[i].ToString()
+              << ", Score: " << res.scores[i] << "\n";
   }
 }
 
@@ -147,19 +147,18 @@ std::unique_ptr<PlayBot> MakePIMCBot(ble::Player player_id, PIMCConfig cfg) {
 
 namespace {
 class PIMCFactory : public BotFactory {
-  public:
-    ~PIMCFactory() = default;
+ public:
+  ~PIMCFactory() = default;
 
-    std::unique_ptr<PlayBot> Create(std::shared_ptr<const ble::BridgeGame> game,
-                                    ble::Player player,
-                                    const ble::GameParameters&
-                                    bot_params) override {
-      const int num_worlds = ble::ParameterValue<int>(
-          bot_params, "num_worlds", 20);
-      const PIMCConfig cfg{num_worlds, false};
-      return MakePIMCBot(player, cfg);
-    }
+  std::unique_ptr<PlayBot> Create(
+      std::shared_ptr<const ble::BridgeGame> game, ble::Player player,
+      const ble::GameParameters& bot_params) override {
+    const int num_worlds =
+        ble::ParameterValue<int>(bot_params, "num_worlds", 20);
+    const PIMCConfig cfg{num_worlds, false};
+    return MakePIMCBot(player, cfg);
+  }
 };
 
 REGISTER_PLAY_BOT("pimc", PIMCFactory);
-}
+}  // namespace

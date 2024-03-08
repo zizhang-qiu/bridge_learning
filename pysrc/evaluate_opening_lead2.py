@@ -157,8 +157,6 @@ class Worker(mp.Process):
                 self.q.put(1)
                 if not len(dds_moves) == bridge.NUM_CARDS_PER_HAND:
                     self.aq.put(1)
-                else:
-                    self.aq.put(0)
             else:
                 self.q.put(0)
                 self.aq.put(0)
@@ -179,7 +177,7 @@ def main(args: DictConfig):
         line = lines[i].split(" ")
         test_dataset.append([int(x) for x in line])
 
-    test_dataset = extract_not_passed_out_trajectories(test_dataset)[:10]
+    test_dataset = extract_not_passed_out_trajectories(test_dataset)[:1000]
     datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_processes)
 
     queue = mp.SimpleQueue()

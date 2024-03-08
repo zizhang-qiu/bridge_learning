@@ -135,7 +135,7 @@ ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
   if (best.move.MoveType() == bridge_learning_env::BridgeMove::kInvalid) {
     best.move = state.LegalMoves()[0];
   }
-  //  std::cout << front << std::endl;
+   std::cout << front << std::endl;
   return best.move;
 }
 
@@ -196,16 +196,16 @@ std::pair<bool, ParetoFront> AlphaMuBot::Stop(
     std::vector<int> evaluation(worlds.Size(), 0);
     const auto& states = worlds.States();
     const auto possible = worlds.Possible();
-    const ble::Player declarer = state.GetContract().declarer;
-    for (size_t i = 0; i < states.size(); ++i) {
-      if (possible[i]) {
-        evaluation[i] =
-            dds_evaluator_.Evaluate(states[i], declarer, cfg_.rollout_result);
-      } else {
-        evaluation[i] = -1;
-      }
-    }
-    // evaluation = EvaluateWorldsParallel(worlds, cfg_.rollout_result);
+    // const ble::Player declarer = state.GetContract().declarer;
+    // for (size_t i = 0; i < states.size(); ++i) {
+    //   if (possible[i]) {
+    //     evaluation[i] =
+    //         dds_evaluator_.Evaluate(states[i], declarer, cfg_.rollout_result);
+    //   } else {
+    //     evaluation[i] = -1;
+    //   }
+    // }
+    evaluation = EvaluateWorldsParallel(worlds, cfg_.rollout_result);
     ParetoFront result{};
     result.Insert({evaluation, possible});
     return {true, result};

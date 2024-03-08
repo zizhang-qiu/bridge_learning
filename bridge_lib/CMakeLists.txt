@@ -93,6 +93,8 @@ add_library(bridge_lib
         observation_encoder.h
         canonical_encoder.cc
         canonical_encoder.h
+        pbe_encoder.cc
+        pbe_encoder.h
         utils.cc
         utils.h
 )

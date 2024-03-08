@@ -67,14 +67,14 @@ class BotFactory:
         if bot_type == "dds":
             return bridgeplay.DDSBot()
 
-        if bot_type == "pimc":
+        if bot_type.lower() == "pimc":
             resampler = bridgeplay.UniformResampler(self.seed)
             pimc_config = bridgeplay.PIMCConfig()
             pimc_config.num_worlds = self.num_worlds
             pimc_config.search_with_one_legal_move = False
             return bridgeplay.PIMCBot(resampler, pimc_config)
 
-        if bot_type == "alpha_mu":
+        if bot_type.lower() == "alpha_mu":
             assert "player_id" in kwargs.keys()
             resampler = bridgeplay.UniformResampler(self.seed)
             alpha_mu_config = bridgeplay.AlphaMuConfig()
@@ -93,7 +93,7 @@ class BotFactory:
 
         dds_evaluator = bridgeplay.DDSEvaluator()
 
-        if bot_type == "nn_belief_opening":
+        if bot_type == "nn_belief_opening" or bot_type=="NNB-OL":
             if "torch_actor" in kwargs.keys():
                 torch_actor = kwargs["torch_actor"]
             else:
@@ -142,7 +142,7 @@ class BotFactory:
 
             return BBABot(player_id, game, self.bidding_systems, conventions)
 
-        if bot_type == "rule_based_opening":
+        if bot_type == "rule_based_opening" or bot_type=="RBB-OL":
             from rule_based_bot import RuleBasedBot
             from bba import load_conventions
             conventions = load_conventions(self.convention_file)

@@ -1,6 +1,8 @@
 //
 // Created by qzz on 2023/11/3.
 //
+#include "bridge_lib/observation_encoder.h"
+#include "bridge_lib/pbe_encoder.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "bridge_lib/bridge_card.h"
@@ -352,6 +354,8 @@ PYBIND11_MODULE(bridge, m) {
       .def("auction_history", &BridgeState::AuctionHistory)
       .def("play_history", &BridgeState::PlayHistory)
       .def("num_declarer_tricks", &BridgeState::NumDeclarerTricks)
+      .def("is_dummy_acting", &BridgeState::IsDummyActing)
+      .def("get_dummy", &BridgeState::GetDummy)
       .def("__repr__", &BridgeState::ToString)
       .def(py::pickle([](const BridgeState &state) {
         //__setstate__
@@ -381,12 +385,15 @@ PYBIND11_MODULE(bridge, m) {
       .def("parent_game", &BridgeObservation::ParentGame)
       .def("legal_moves", &BridgeObservation::LegalMoves)
       .def("is_player_vulnerable", &BridgeObservation::IsPlayerVulnerable)
-      .def("is_opponent_vulnerable", &BridgeObservation::IsOpponentVulnerable);
+      .def("is_opponent_vulnerable", &BridgeObservation::IsOpponentVulnerable)
+      .def("__repr__", &BridgeObservation::ToString);
 
   py::class_<ObservationEncoder>(m, "ObservationEncoder");
 
   py::enum_<ObservationEncoder::Type>(m, "EncoderType")
-      .value("CANONICAL", ObservationEncoder::Type::kCanonical);
+      .value("CANONICAL", ObservationEncoder::Type::kCanonical)
+      .value("PBE", ObservationEncoder::Type::kPBE)
+      .export_values();
 
   m.attr("AUCTION_TENSOR_SIZE") = kAuctionTensorSize;
   py::class_<CanonicalEncoder, ObservationEncoder>(m, "CanonicalEncoder")
@@ -397,5 +404,11 @@ PYBIND11_MODULE(bridge, m) {
       .def("get_play_tensor_size", &CanonicalEncoder::GetPlayTensorSize)
       .def("get_auction_tensor_size", &CanonicalEncoder::GetAuctionTensorSize)
       .def("type", &CanonicalEncoder::type);
+
+  py::class_<PBEEncoder, ObservationEncoder>(m, "PBEEncoder")
+      .def(py::init<std::shared_ptr<BridgeGame>>())
+      .def("shape", &PBEEncoder::Shape)
+      .def("encode", &PBEEncoder::Encode)
+      .def("type", &PBEEncoder::type);
 }
 }

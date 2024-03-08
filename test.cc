@@ -25,6 +25,18 @@
 
 // #include "rlcc/belief_data_gen.h"
 
+static constexpr int _singleBidChannels = 35;
+
+  static constexpr int _kMyBidStart = 52;
+  static constexpr int _kPBidStart = _kMyBidStart + _singleBidChannels;
+  static constexpr int _kLeftBidStart = _kMyBidStart + 2 * _singleBidChannels;
+  static constexpr int _kRightBidStart = _kMyBidStart + 3 * _singleBidChannels;
+  static constexpr int _kDoubledStart = _kMyBidStart + 4 * _singleBidChannels;
+  static constexpr int _kVulStart = _kMyBidStart + 5 * _singleBidChannels;
+  static constexpr int _kVulChannels = 2;
+  static constexpr int _kAvailStart = _kVulStart + _kVulChannels;
+  static constexpr int _kFeatureDim = _kAvailStart + 39;
+
 const ble::GameParameters params = {};
 const auto game = std::make_shared<ble::BridgeGame>(params);
 
