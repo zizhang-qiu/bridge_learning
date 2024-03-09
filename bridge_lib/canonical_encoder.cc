@@ -1,8 +1,6 @@
 #include "canonical_encoder.h"
 
-#include <cassert>
 #include <numeric>
-#include <sstream>
 
 #include "bridge_observation.h"
 
@@ -82,7 +80,7 @@ int EncodePlayerHand(const BridgeObservation& obs, const int start_offset,
 }
 
 // Convert double status to index, undoubled=0, doubled=1, redoubled=2.
-int DoubleStausToIndex(const DoubleStatus& double_status) {
+int DoubleStatusToIndex(const DoubleStatus& double_status) {
   switch (double_status) {
     case kUndoubled:
       return 0;
@@ -110,7 +108,7 @@ int EncodeContract(const BridgeObservation& obs, const int start_offset,
   offset += kNumDenominations;
 
   // Double status.
-  (*encoding)[offset + DoubleStausToIndex(contract.double_status)] = 1;
+  (*encoding)[offset + DoubleStatusToIndex(contract.double_status)] = 1;
   offset += kNumDoubleStatus;
 
   // Declarer.
@@ -162,12 +160,10 @@ int EncodePlayedTricks(const BridgeObservation& obs, const int start_offset,
   const int current_trick = obs.NumCardsPlayed() / kNumPlayers;
   const int this_trick_cards_played = obs.NumCardsPlayed() % kNumPlayers;
   const int this_trick_start = obs.NumCardsPlayed() - this_trick_cards_played;
-  const auto tricks = obs.Tricks();
   const auto& play_history = obs.PlayHistory();
 
   // Current trick.
   if (obs.CurrentPhase() != Phase::kGameOver) {
-    int leader = tricks[current_trick].Leader();
     for (int i = 0; i < this_trick_cards_played; ++i) {
       const auto item = play_history[current_trick + i];
       // const int relative_player = PlayerToOffset(item.player, obs.ObservingPlayer());
@@ -262,46 +258,6 @@ int EncodeHandEvaluation(const BridgeObservation& obs, int start_offset,
   return offset - start_offset;
 }
 
-// int EncodeHandRankMajorStyle(const BridgeObservation& obs, int start_offset,
-//                              std::vector<int>* encoding, int relative_player) {
-//   int offset = start_offset;
-//   // Rank major, S2, S3, ..SA, H2, ..., HA, ...CA
-//   for (const auto& card : obs.Hands()[relative_player].Cards()) {
-//     const int rank_major_card_index =
-//         (3 - card.CardSuit()) * kNumCardsPerSuit + card.Rank();
-//     (*encoding)[rank_major_card_index] = 1;
-//   }
-//   offset += kNumCards;
-//   REQUIRE_EQ(offset - start_offset, kNumCards);
-
-//   return offset - start_offset;
-// }
-
-// int EncodePBEBiddingHistory(const BridgeObservation& obs, int start_offset,
-//                             std::vector<int>* encoding) {
-//   int offset = start_offset;
-//   for (int i = kPBEBiddingHistoryTensorSize - 6; i < kPBEBiddingHistoryTensorSize;
-//        ++i) {
-//     (*encoding)[i] = 1;
-//   }
-//   const auto& bidding_history = obs.AuctionHistory();
-//   for (const auto& item : bidding_history) {
-//     if (item.player == 0 || item.player == 2) {
-//       (*encoding)[kPBEBiddingHistoryTensorSize - 1] += 1;
-//       if (item.other_call == OtherCalls::kPass) {
-//         (*encoding)[0] = 1;
-//       } else {
-//         (*encoding)[(item.level - 1) * kNumDenominations + item.denomination] =
-//             1;
-//       }
-//     }
-//   }
-//   offset += kPBEBiddingHistoryTensorSize;
-//   REQUIRE_EQ(offset - start_offset, kPBEBiddingHistoryTensorSize);
-
-//   return offset - start_offset;
-// }
-
 std::vector<int> CanonicalEncoder::Shape() const {
   return {std::max(kAuctionTensorSize, GetPlayTensorSize())};
 }
@@ -319,7 +275,6 @@ std::vector<int> CanonicalEncoder::EncodeOtherHands(
     const BridgeObservation& obs) const {
   std::vector<int> encoding((kNumPlayers - 1) * kNumCards, 0);
   int offset = 0;
-  const auto& hands = obs.Hands();
   for (int relative_player = 1; relative_player <= 3; ++relative_player) {
     offset += EncodePlayerHand(obs, offset, &encoding, relative_player);
   }
@@ -332,7 +287,6 @@ std::vector<int> CanonicalEncoder::EncodeOtherHandEvaluationsOneHot(
   std::vector<int> encoding((kNumPlayers - 1) * kHandEvaluationOneHotTensorSize,
                             0);
   int offset = 0;
-  const auto& hands = obs.Hands();
   for (int relative_player = 1; relative_player <= 3; ++relative_player) {
     offset +=
         EncodeHandEvaluationOneHot(obs, offset, &encoding, relative_player);
@@ -345,7 +299,6 @@ std::vector<int> CanonicalEncoder::EncodeOtherHandEvaluations(
     const BridgeObservation& obs) const {
   std::vector<int> encoding((kNumPlayers - 1) * kHandEvaluationTensorSize, 0);
   int offset = 0;
-  const auto& hands = obs.Hands();
   for (int relative_player = 1; relative_player <= 3; ++relative_player) {
     offset += EncodeHandEvaluation(obs, offset, &encoding, relative_player);
   }
@@ -383,19 +336,4 @@ std::vector<int> CanonicalEncoder::Encode(const BridgeObservation& obs) const {
   REQUIRE(offset <= encoding.size());
   return encoding;
 }
-
-// std::vector<int> CanonicalEncoder::EncodePBE(
-//     const BridgeObservation& obs) const {
-//   std::vector<int> encoding(kNumCards + kPBEBiddingHistoryTensorSize, 0);
-//   int offset = 0;
-
-//   // Encode player hand.
-//   offset += EncodeHandRankMajorStyle(obs, offset, &encoding, /*relative_player=*/0);
-
-//   // Encode bidding history.
-//   offset += EncodePBEBiddingHistory(obs, offset, &encoding);
-
-//   REQUIRE_EQ(offset, kPBEBiddingHistoryTensorSize + kNumCards);
-//   return encoding;
-// }
 }  // namespace bridge_learning_env

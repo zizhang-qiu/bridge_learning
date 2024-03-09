@@ -137,10 +137,10 @@ def _hand_string(cards: List[int]) -> str:
         suits[suit].append(_RANKS[rank])
     for i in range(4):
         if suits[i]:
-            suits[i] = _TRUMP_SUIT[i] + " " + " ".join(suits[i]) + "."
+            suits[i] = _TRUMP_SUIT[i] + " " + " ".join(suits[i]) + "." # type: ignore
         else:
-            suits[i] = _TRUMP_SUIT[i] + " -."
-    return " ".join(suits)
+            suits[i] = _TRUMP_SUIT[i] + " -." # type: ignore
+    return " ".join(suits) # type: ignore
 
 
 def _connect(controller: Controller, seat: str):

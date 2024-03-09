@@ -18,7 +18,6 @@
 #include "bridge_lib/bridge_game.h"
 #include "bridge_lib/bridge_utils.h"
 #include "bridge_lib/utils.h"
-#include "dll.h"
 
 #include "bridge_lib/bridge_state.h"
 

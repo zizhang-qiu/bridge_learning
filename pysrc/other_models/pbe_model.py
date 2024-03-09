@@ -60,7 +60,8 @@ class PBEModel(torch.jit.ScriptModule):
 
     @torch.jit.script_method
     def act(self, obs:Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        x = obs["baseline_s"].cuda()
+        # We change the key to "pbe_s".
+        x = obs["pbe_s"].cuda()
 
         bs = x.size(0)
         # assert((x[:, self.bid_index] < 4).all())

@@ -14,7 +14,7 @@ class Controller(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def read_line(self):
+    def read_line(self) -> str:
         """Read line from the external bot."""
         pass
 

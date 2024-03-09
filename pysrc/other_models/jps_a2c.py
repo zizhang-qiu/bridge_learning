@@ -85,7 +85,7 @@ class A2CAgent(torch.jit.ScriptModule):
         self, obs: Dict[str, torch.Tensor]
     ) -> Tuple[torch.Tensor, torch.Tensor, Dict[str, torch.Tensor]]:
         reply = self.online_net.forward(obs, act=True)
-        mask = obs["legal_move"].to(torch.bool)
+        mask = obs["jps_legal_move"].to(torch.bool)
 
         if "pi" in reply:
             prob = reply["pi"]

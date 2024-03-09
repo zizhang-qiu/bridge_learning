@@ -74,7 +74,7 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
         self.is_play_phase = (self._state.current_phase() == bridge.Phase.PLAY)
         self.cards_played = self._state.num_cards_played()
 
-
+        assert self._controller is not None
         # If this is the first time we've seen the deal, send our hand.
         if len(uid_history) == 52:
             self._board += 1
@@ -119,7 +119,7 @@ class BlueChipBridgeBot(bridgeplay.PlayBot):
         """Returns an action for the given state."""
         # Bring the external bot up-to-date.
         self.inform_state(state)
-
+        assert self._controller is not None
         # If we're on a new trick, tell the bot it is its turn.
         if self.is_play_phase and self.cards_played % 4 == 0:
             self._controller.send_line(_PLAYER_TO_LEAD.format(seat=self._seat))

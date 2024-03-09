@@ -8,7 +8,7 @@ from common_utils import activation_function_from_str
 
 
 def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden_size: int,
-               activation_function: Union[nn.Module, str], activation_args: Optional[Dict] = None,
+               activation_function: str, activation_args: Optional[Dict] = None,
                use_dropout: bool = False,
                dropout_prob: float = 0.5, use_layer_norm: bool = False) -> nn.Module:
     """
@@ -30,13 +30,17 @@ def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden
     """
     layers = []
     if isinstance(activation_function, str):
-        activation_function = activation_function_from_str(activation_function)
+        # activation_function = getattr(torch.nn, activation_function)
+        
+        activation_func = activation_function_from_str(activation_function)
+    else:
+        activation_func = activation_function
 
     # Add input layer to the first hidden layer
     layers.append(nn.Linear(input_size, hidden_size))
     if use_layer_norm:
         layers.append(nn.LayerNorm(hidden_size))
-    layers.append(activation_function(**activation_args) if activation_args else activation_function())
+    layers.append(activation_func(**activation_args) if activation_args else activation_func())
     if use_dropout:
         layers.append(nn.Dropout(p=dropout_prob))
 
@@ -45,7 +49,7 @@ def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden
         layers.append(nn.Linear(hidden_size, hidden_size))
         if use_layer_norm:
             layers.append(nn.LayerNorm(hidden_size))
-        layers.append(activation_function(**activation_args) if activation_args else activation_function())
+        layers.append(activation_func(**activation_args) if activation_args else activation_func())
         if use_dropout:
             layers.append(nn.Dropout(p=dropout_prob))
 
@@ -68,7 +72,7 @@ class MLP(torch.jit.ScriptModule):
 
     def __init__(self, input_size: int = 480, output_size: int = 38, num_hidden_layers: int = 4,
                  hidden_size: int = 1024,
-                 activation_function: nn.Module = nn.ReLU, activation_args: Optional[Dict] = None, # type: ignore
+                 activation_function: str="gelu", activation_args: Optional[Dict] = None, # type: ignore
                  use_dropout: bool = False,
                  dropout_prob: float = 0.5, use_layer_norm: bool = False):
         super().__init__()
@@ -97,7 +101,7 @@ class MLP(torch.jit.ScriptModule):
         x = self.net(s)
         return x
 
-    def get_conf(self) -> Dict[str, Union[int, bool, Dict, nn.Module]]:
+    def get_conf(self) -> Dict[str, Union[int, bool, float, Dict, None]]:
         conf = dict(input_size=self.input_size,
                     output_size=self.output_size,
                     num_hidden_layers=self.num_hidden_layers,
@@ -107,7 +111,7 @@ class MLP(torch.jit.ScriptModule):
                     use_dropout=self.use_dropout,
                     dropout_prob=self.dropout_prob,
                     use_layer_norm=self.use_layer_norm)
-        return conf
+        return conf # type: ignore
 
     def get_save_dict(self):
         conf = self.get_conf()
@@ -129,16 +133,16 @@ class MLP(torch.jit.ScriptModule):
 
     @classmethod
     def from_conf(cls, conf: Dict[str, Union[int, bool, Dict, nn.Module, str]]) -> MLP:
-        return cls(**conf)
+        return cls(**conf) # type: ignore
 
     @classmethod
     def from_file(cls, file: Union[str, Dict]) -> MLP:
         if isinstance(file, str):
             file = torch.load(file)
-        conf: Dict = file["conf"]
+        conf: Dict = file["conf"] # type: ignore
 
         net = cls.from_conf(conf)
         if "state_dict" in conf.keys():
-            state_dict = file["state_dict"]
-            net.load_state_dict(state_dict)
+            state_dict = file["state_dict"] # type: ignore
+            net.load_state_dict(state_dict) # type: ignore
         return net

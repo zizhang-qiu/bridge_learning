@@ -5,6 +5,7 @@
 @file: utils.py
 @time: 2024/2/5 15:27
 """
+
 import os
 
 from typing import List, Tuple, Dict, OrderedDict
@@ -37,8 +38,9 @@ def load_dataset(file_path: str) -> List[List[int]]:
     return res
 
 
-def load_net_conf_and_state_dict(model_dir: str, model_name: str, net_conf_filename: str = "net.yaml") \
-        -> Tuple[Dict, OrderedDict]:
+def load_net_conf_and_state_dict(
+    model_dir: str, model_name: str, net_conf_filename: str = "net.yaml"
+) -> Tuple[Dict, OrderedDict]:
     with open(os.path.join(model_dir, net_conf_filename), "r") as fp:
         conf = yaml.full_load(fp)
     state_dict_path = os.path.join(model_dir, model_name)
@@ -50,7 +52,9 @@ def is_trajectory_not_passed_out(trajectory: List[int]):
     return trajectory[-4:] != [52 for _ in range(4)]
 
 
-def extract_not_passed_out_trajectories(trajectories: List[List[int]]) -> List[List[int]]:
+def extract_not_passed_out_trajectories(
+    trajectories: List[List[int]],
+) -> List[List[int]]:
     res = []
     for trajectory in trajectories:
         if is_trajectory_not_passed_out(trajectory):
@@ -58,3 +62,18 @@ def extract_not_passed_out_trajectories(trajectories: List[List[int]]) -> List[L
     return res
 
 
+def tensor_dict_to_device(
+    d: Dict[str, torch.Tensor], device: str
+) -> Dict[str, torch.Tensor]:
+    res = {}
+    for k, v in d.items():
+        res[k] = v.to(device)
+
+    return res
+
+
+def tensor_dict_unsqueeze(d: Dict[str, torch.Tensor], dim=0)-> Dict[str, torch.Tensor]:
+    res = {}
+    for k, v in d.items():
+        res[k] = torch.unsqueeze(v, dim)
+    return res

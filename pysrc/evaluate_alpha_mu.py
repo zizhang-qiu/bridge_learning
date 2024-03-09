@@ -93,8 +93,8 @@ stats = MultiStats()
 
 class Worker(mp.Process):
     def __init__(self, ev_cfg: EvaluateConfig,
-                 num_deals_played: mp.Value,
-                 num_deals_win_by_alpha_mu: mp.Value,
+                 num_deals_played: mp.Value, # type: ignore
+                 num_deals_win_by_alpha_mu: mp.Value, # type: ignore
                  pid: int):
         super().__init__()
         self.ev_cfg = ev_cfg

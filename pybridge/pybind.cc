@@ -1,6 +1,7 @@
 //
 // Created by qzz on 2023/11/3.
 //
+#include "bridge_lib/jps_encoder.h"
 #include "bridge_lib/observation_encoder.h"
 #include "bridge_lib/pbe_encoder.h"
 #include "pybind11/pybind11.h"
@@ -393,6 +394,7 @@ PYBIND11_MODULE(bridge, m) {
   py::enum_<ObservationEncoder::Type>(m, "EncoderType")
       .value("CANONICAL", ObservationEncoder::Type::kCanonical)
       .value("PBE", ObservationEncoder::Type::kPBE)
+      .value("JPS", ObservationEncoder::Type::kJPS)
       .export_values();
 
   m.attr("AUCTION_TENSOR_SIZE") = kAuctionTensorSize;
@@ -410,5 +412,11 @@ PYBIND11_MODULE(bridge, m) {
       .def("shape", &PBEEncoder::Shape)
       .def("encode", &PBEEncoder::Encode)
       .def("type", &PBEEncoder::type);
+
+  py::class_<JPSEncoder, ObservationEncoder>(m, "JPSEncoder")
+      .def(py::init<std::shared_ptr<BridgeGame>>())
+      .def("shape", &JPSEncoder::Shape)
+      .def("encode", &JPSEncoder::Encode)
+      .def("type", &JPSEncoder::type);
 }
 }

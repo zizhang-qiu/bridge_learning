@@ -9,9 +9,10 @@ import argparse
 import os
 import pickle
 from typing import Tuple
-
+import hydra
 import numpy as np
 import torch
+import omegaconf
 import yaml
 from pprint import pformat
 from torch.nn.functional import one_hot
@@ -95,31 +96,21 @@ def parse_args():
     parser.add_argument("--dataset_dir", type=str, default=r"D:\Projects\bridge_research\expert\sl_data")
     return parser.parse_args()
 
-
-if __name__ == '__main__':
-    args = parse_args()
+@hydra.main("conf", "policy_sl", version_base="1.2")
+def main(args):
     dataset_dir = args.dataset_dir
     if not os.path.exists(args.save_dir):
-        os.mkdir(args.save_dir)
-    with open(args.train_conf, "r") as f:
-        train_conf = yaml.full_load(f)
-    with open(args.net_conf, "r") as f:
-        net_conf = yaml.full_load(f)
-    with open(os.path.join(args.save_dir, "net.yaml"), "w") as f:
-        yaml.dump(net_conf, f)
-    net_conf["activation_function"] = activation_function_from_str(net_conf["activation_function"])
-    policy_net = MLP.from_conf(net_conf)
+            os.mkdir(args.save_dir)
+    policy_net = MLP.from_conf(args.net)
     initialize_fc(policy_net)
-    policy_net.to(device=train_conf["device"])
+    policy_net.to(device=args.device)
     policy_net.train()
 
     logger = Logger(os.path.join(args.save_dir, "log.txt"), auto_line_feed=True)
-
-    saver = TopkSaver(args.save_dir, 10)
-    logger.write(pformat(net_conf))
-    logger.write(pformat(train_conf))
-    opt_cls = optimizer_from_str(train_conf["optimizer"], ["Adan"])
-    opt = opt_cls(params=policy_net.parameters(), lr=train_conf["lr"], **train_conf["optimizer_args"])
+    logger.write(omegaconf.OmegaConf.to_yaml(args))
+    saver = TopkSaver(args.save_dir, args.topk)
+    opt = hydra.utils.instantiate(args.optimizer, params=policy_net.parameters())
+    
     train_dataset = BiddingDataset(
         obs_path=os.path.join(args.dataset_dir, "train_obs.p"),
         label_path=os.path.join(args.dataset_dir, "train_label.p"),
@@ -129,12 +120,12 @@ if __name__ == '__main__':
         label_path=os.path.join(args.dataset_dir, "valid_label.p"),
     )
 
-    train_loader = DataLoader(train_dataset, batch_size=train_conf["batch_size"], shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=train_conf["valid_batch_size"], shuffle=False)
-
+    train_loader = DataLoader(train_dataset, batch_size=args["batch_size"], shuffle=True)
+    valid_loader = DataLoader(valid_dataset, batch_size=args["valid_batch_size"], shuffle=False)
+    
     print(
         f"Load dataset successfully! Train dataset has {len(train_dataset)} samples. Valid dataset has {len(valid_dataset)} samples.")
-
+    
     multi_stats = MultiStats()
 
     num_mini_batches = 0
@@ -146,8 +137,8 @@ if __name__ == '__main__':
             log_probs = []
             labels = []
             for s, label in valid_loader:
-                s = s.to(train_conf["device"])
-                label = label.to(train_conf["device"])
+                s = s.to(args["device"])
+                label = label.to(args["device"])
                 digits = policy_net(s)
                 log_prob = torch.nn.functional.log_softmax(digits, -1)
                 log_probs.append(log_prob)
@@ -167,8 +158,8 @@ if __name__ == '__main__':
             # print(s, label)
             num_mini_batches += 1
             opt.zero_grad()
-            s = s.to(train_conf["device"])
-            label = label.to(train_conf["device"])
+            s = s.to(args["device"])
+            label = label.to(args["device"])
             digits = policy_net(s)
             log_prob = torch.nn.functional.log_softmax(digits, -1)
             loss = cross_entropy(log_prob, label, bridge.NUM_CALLS)
@@ -177,17 +168,113 @@ if __name__ == '__main__':
             # torch.nn.utils.clip_grad_norm_(parameters=net.parameters(), max_norm=args.grad_clip)
             opt.step()
             # eval
-            if num_mini_batches % train_conf["eval_freq"] == 0:
+            if num_mini_batches % args["eval_freq"] == 0:
                 # multi_stats.save("train_loss", save_dir)
                 eval_loss, acc = evaluate()
                 multi_stats.feed("eval_loss", eval_loss)
                 multi_stats.feed("accuracy", acc)
                 multi_stats.save_all(args.save_dir, True)
-                msg = f"checkpoint {(num_mini_batches + 1) // train_conf['eval_freq']}, eval loss={eval_loss}, accuracy={acc}."
+                msg = f"checkpoint {(num_mini_batches + 1) // args['eval_freq']}, eval loss={eval_loss}, accuracy={acc}."
                 logger.write(msg)
                 # save params
                 saver.save(None, policy_net.state_dict(), acc, save_latest=True)
-            if num_mini_batches == train_conf["num_iterations"]:
+            if num_mini_batches ==args["num_iterations"]:
                 break
+    
+    
+if __name__ == '__main__':
+    main()
+    # args = parse_args()
+    # dataset_dir = args.dataset_dir
+    # if not os.path.exists(args.save_dir):
+    #     os.mkdir(args.save_dir)
+    # with open(args.train_conf, "r") as f:
+    #     train_conf = yaml.full_load(f)
+    # with open(args.net_conf, "r") as f:
+    #     net_conf = yaml.full_load(f)
+    # with open(os.path.join(args.save_dir, "net.yaml"), "w") as f:
+    #     yaml.dump(net_conf, f)
+    # net_conf["activation_function"] = activation_function_from_str(net_conf["activation_function"])
+    # policy_net = MLP.from_conf(net_conf)
+    # initialize_fc(policy_net)
+    # policy_net.to(device=train_conf["device"])
+    # policy_net.train()
+
+    # logger = Logger(os.path.join(args.save_dir, "log.txt"), auto_line_feed=True)
+
+    # saver = TopkSaver(args.save_dir, 10)
+    # logger.write(pformat(net_conf))
+    # logger.write(pformat(train_conf))
+    # opt_cls = optimizer_from_str(train_conf["optimizer"], ["Adan"])
+    # opt = opt_cls(params=policy_net.parameters(), lr=train_conf["lr"], **train_conf["optimizer_args"])
+    # train_dataset = BiddingDataset(
+    #     obs_path=os.path.join(args.dataset_dir, "train_obs.p"),
+    #     label_path=os.path.join(args.dataset_dir, "train_label.p"),
+    # )
+    # valid_dataset = BiddingDataset(
+    #     obs_path=os.path.join(args.dataset_dir, "valid_obs.p"),
+    #     label_path=os.path.join(args.dataset_dir, "valid_label.p"),
+    # )
+
+    # train_loader = DataLoader(train_dataset, batch_size=train_conf["batch_size"], shuffle=True)
+    # valid_loader = DataLoader(valid_dataset, batch_size=train_conf["valid_batch_size"], shuffle=False)
+
+    # print(
+    #     f"Load dataset successfully! Train dataset has {len(train_dataset)} samples. Valid dataset has {len(valid_dataset)} samples.")
+
+    # multi_stats = MultiStats()
+
+    # num_mini_batches = 0
+
+
+    # def evaluate() -> Tuple[float, float]:
+    #     policy_net.eval()
+    #     with torch.no_grad():
+    #         log_probs = []
+    #         labels = []
+    #         for s, label in valid_loader:
+    #             s = s.to(train_conf["device"])
+    #             label = label.to(train_conf["device"])
+    #             digits = policy_net(s)
+    #             log_prob = torch.nn.functional.log_softmax(digits, -1)
+    #             log_probs.append(log_prob)
+    #             labels.append(label)
+    #         log_probs = torch.cat(log_probs)
+    #         probs = torch.exp(log_probs)
+    #         labels = torch.cat(labels)
+    #         acc = compute_accuracy(probs, labels)
+    #         loss = cross_entropy(log_probs, labels, bridge.NUM_CALLS)
+    #         policy_net.train()
+    #     return loss.item(), acc.item()
+
+
+    # while True:
+
+    #     for s, label in train_loader:
+    #         # print(s, label)
+    #         num_mini_batches += 1
+    #         opt.zero_grad()
+    #         s = s.to(train_conf["device"])
+    #         label = label.to(train_conf["device"])
+    #         digits = policy_net(s)
+    #         log_prob = torch.nn.functional.log_softmax(digits, -1)
+    #         loss = cross_entropy(log_prob, label, bridge.NUM_CALLS)
+    #         # loss = focal_loss_func(log_prob, label)
+    #         loss.backward()
+    #         # torch.nn.utils.clip_grad_norm_(parameters=net.parameters(), max_norm=args.grad_clip)
+    #         opt.step()
+    #         # eval
+    #         if num_mini_batches % train_conf["eval_freq"] == 0:
+    #             # multi_stats.save("train_loss", save_dir)
+    #             eval_loss, acc = evaluate()
+    #             multi_stats.feed("eval_loss", eval_loss)
+    #             multi_stats.feed("accuracy", acc)
+    #             multi_stats.save_all(args.save_dir, True)
+    #             msg = f"checkpoint {(num_mini_batches + 1) // train_conf['eval_freq']}, eval loss={eval_loss}, accuracy={acc}."
+    #             logger.write(msg)
+    #             # save params
+    #             saver.save(None, policy_net.state_dict(), acc, save_latest=True)
+    #         if num_mini_batches == train_conf["num_iterations"]:
+    #             break
 
 

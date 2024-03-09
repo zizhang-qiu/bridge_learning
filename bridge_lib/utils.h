@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include "dll.h"
 
 namespace bridge_learning_env {
 using GameParameters = std::unordered_map<std::string, std::string>;

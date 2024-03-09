@@ -88,7 +88,7 @@ if __name__ == '__main__':
             if logger is not None:
                 logger.write(f"{f}, acc={acc.item()}, loss={loss.item()}")
 
-    policy_net.load_state_dict(torch.load(best_model))
+    policy_net.load_state_dict(torch.load(best_model)) # type: ignore
     probs = []
     labels = []
     with torch.no_grad():

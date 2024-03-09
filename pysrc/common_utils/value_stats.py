@@ -54,7 +54,7 @@ class ValueStats:
 
         self.counter += 1
 
-    def save(self, save_dir: str, plot=False) -> NoReturn:
+    def save(self, save_dir: str, plot=False):
         """
         Save the list as npy file and plot figure if need
 

@@ -214,7 +214,7 @@ class RuleBasedResampler(bridgeplay.Resampler):
             # }
 
             for player, hand_info in inferred_hand_infos.items():
-                deal_player = get_deal_player(deal, player)
+                deal_player = get_deal_player(deal, player) # type: ignore
 
                 hcp_constraint = hand_info.max_hcp >= deal_player.hcp >= hand_info.min_hcp
                 constraint = constraint and hcp_constraint

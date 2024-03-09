@@ -82,8 +82,9 @@ class ValidateWorker(mp.Process):
             idx = bridge.NUM_CARDS
             match = True
             while state.current_phase() == bridge.Phase.AUCTION:
-                uid = bots[state.current_player()].step(state)
-                state.apply_move(game.get_move(uid))
+                move = bots[state.current_player()].step(state)
+                state.apply_move(move)
+                uid = game.get_move_uid(move)
                 if uid != trajectory[idx]:
                     # Print the state to see.
                     print(

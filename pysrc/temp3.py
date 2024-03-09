@@ -18,6 +18,8 @@ import common_utils
 from evaluate_declarer_play_against_wbridge5 import DuplicateSaveItem
 import bridge
 import bridgeplay
+import rela
+import bridgelearn
 
 # @hydra.main(config_path="conf/optimizer", config_name="adam", version_base="1.2")
 # def main(args):
@@ -25,9 +27,9 @@ import bridgeplay
 #         print(opt)
 
 if __name__ == "__main__":
-    file_dir = "../declarer_eval/exp19"
-    execution_times = np.load(os.path.join(file_dir, "p1_execution_times.npy"))
-    print(common_utils.get_avg_and_sem(execution_times))
+    # file_dir = "../declarer_eval/exp19"
+    # execution_times = np.load(os.path.join(file_dir, "p1_execution_times.npy"))
+    # print(common_utils.get_avg_and_sem(execution_times))
     # execution_times_arr = np.load(os.path.join(file_dir, "execution_times.npy"))
     # print(len(execution_times_arr))
     # print(common_utils.get_avg_and_sem(execution_times_arr))
@@ -137,33 +139,64 @@ if __name__ == "__main__":
 
     # plt.show()
 
-    from other_models import A2CAgent, PBEModel
+    # from other_models import A2CAgent, PBEModel
 
-    conf = omegaconf.OmegaConf.load("conf/jps_a2c/a2c.yaml")
+    # conf = omegaconf.OmegaConf.load("conf/jps_a2c/a2c.yaml")
     # print(conf)
 
-    agent  : A2CAgent= hydra.utils.instantiate(conf)
+    # agent  : A2CAgent= hydra.utils.instantiate(conf)
 
     # print(agent)
 
     # weight = torch.load("../external_models/jps/agent-1610-0.63.pth")
-    
+
     # print(weight)
+
+    # pbe_encoder = bridge.PBEEncoder(bridge.default_game)
+
+    # pbe_model = PBEModel()
+
+    # state = bridge.BridgeState(bridge.default_game)
+
+    # while state.is_chance_node():
+    #     state.apply_random_chance()
+
+    # obs = bridge.BridgeObservation(state)
+
+    # pbe_feature = pbe_encoder.encode(obs)
+
+    # print(pbe_feature)
+
+    # jps_encoder = bridge.JPSEncoder(bridge.default_game)
+
+    # f = jps_encoder.encode(obs)
+
+    # print(f)
+
+    # reply = agent.act(
+    #     {
+    #         "s": torch.unsqueeze(torch.tensor(f, dtype=torch.float32), 0),
+    #         "legal_move": torch.unsqueeze(torch.tensor(f, dtype=torch.float32), 0)[:, -39:],
+    #     }
+    # )
+
+    # print(reply)
+    options = bridgelearn.BridgeEnvOptions()
+    options.bidding_phase = True
+    options.playing_phase = False
+    options.pbe_feature = True
+    options.jps_feature = True
+    
+    dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_ddts)
+    env = bridgelearn.BridgeEnv({}, options)
+    env.set_bridge_dataset(dataset)
+    
+    env.reset()
+    
+    feature = env.feature()
     
     
+    print(env)
     
-    pbe_encoder = bridge.PBEEncoder(bridge.default_game)
-    
-    pbe_model = PBEModel()
-    
-    state = bridge.BridgeState(bridge.default_game)
-    
-    while state.is_chance_node():
-        state.apply_random_chance()
-        
-    obs = bridge.BridgeObservation(state)
-    
-    pbe_feature = pbe_encoder.encode(obs)
-    
-    print(pbe_feature)
+    print(feature)
     

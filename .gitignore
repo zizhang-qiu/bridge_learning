@@ -1,5 +1,6 @@
 /build/
 /sl/
+/policy_sl/
 /pysrc/conf
 /pysrc/__pycache__
 /pysrc/outputs
@@ -10,6 +11,9 @@
 /declarer_eval
 /belief_sl
 /opening_lead_eval
+/model_exec_times/
 */__pycache__
 *.pth*
 *.pyc
+*.mat
+/.vscode

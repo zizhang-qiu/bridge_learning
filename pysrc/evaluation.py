@@ -79,9 +79,9 @@ logger.add(os.path.join(save_dir, "log.txt"), enqueue=True)
 
 class Worker(mp.Process):
     def __init__(self, ev_cfg: EvaluateConfig,
-                 num_deals_played: mp.Value,
-                 num_deals_win_by_player1: mp.Value,
-                 num_deals_win_by_player2: mp.Value,
+                 num_deals_played: mp.Value, # type: ignore
+                 num_deals_win_by_player1: mp.Value, # type: ignore
+                 num_deals_win_by_player2: mp.Value, # type: ignore
                  pid: int):
         super().__init__()
         self.ev_cfg = ev_cfg

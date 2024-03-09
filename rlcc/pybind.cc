@@ -30,6 +30,8 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def(py::init<>())
       .def_readwrite("bidding_phase", &BridgeEnvOptions::bidding_phase)
       .def_readwrite("playing_phase", &BridgeEnvOptions::playing_phase)
+      .def_readwrite("pbe_feature", &BridgeEnvOptions::pbe_feature)
+      .def_readwrite("jps_feature", &BridgeEnvOptions::jps_feature)
       .def_readwrite("verbose", &BridgeEnvOptions::verbose);
 
   py::class_<BridgeEnv, std::shared_ptr<BridgeEnv>>(m, "BridgeEnv")

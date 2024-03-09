@@ -170,24 +170,6 @@ agent.to("cuda")
 batch_runner = rela.BatchRunner(agent, "cuda", 100, ["get_policy", "get_belief"])
 batch_runner.start()
 torch_actor = bridgeplay.TorchActor(batch_runner)
-
-env = bridgelearn.BridgeEnv(params, False)
-
-env.set_bridge_dataset(bridge_dataset)
-env.reset_with_bridge_data()
-
-while env.ble_state().current_phase() == bridge.Phase.AUCTION:
-    f = env.feature()
-    f["s"] = f["s"][:480]
-    policy = torch_actor.get_policy(f)
-    action_uid = policy["pi"].argmax() + 52
-    env.step(action_uid)
-
-print(env)
-
-f = env.feature()
-f["s"] = f["s"][:480]
-
 # policy = torch_actor.get_policy(f)
 # print(policy)
 #

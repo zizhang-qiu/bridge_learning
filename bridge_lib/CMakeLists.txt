@@ -63,7 +63,7 @@ add_library(double_dummy_solver OBJECT
         third_party/dds/src/TransTableS.h
 )
 target_compile_definitions(double_dummy_solver PUBLIC DDS_THREADS_STL)
-# include_directories(third_party/dds/include)
+include_directories(third_party/dds/include)
 
 add_library(bridge_lib
         bridge_card.cc
@@ -95,6 +95,8 @@ add_library(bridge_lib
         canonical_encoder.h
         pbe_encoder.cc
         pbe_encoder.h
+        jps_encoder.cc
+        jps_encoder.h
         utils.cc
         utils.h
 )

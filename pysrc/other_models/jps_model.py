@@ -9,7 +9,7 @@ from .model_utils import Swish, LinearList
 def post_process(
     obs: Dict[str, torch.Tensor], reply: Dict[str, torch.Tensor], verbose: bool = False
 ) -> None:
-    mask = obs["legal_move"].to(torch.bool)
+    mask = obs["jps_legal_move"].to(torch.bool)
 
     if "adv" in reply:
         reply["adv"].masked_fill_(~mask, -1e38)
@@ -71,7 +71,7 @@ class A2CModel(torch.jit.ScriptModule):
     ) -> Dict[str, torch.Tensor]:
         # print(obs.keys())
         # print(f"Forwarding with batchsize: {obs['s'].size(0)}")
-        s = obs["s"][:, : self.in_dim]
+        s = obs["jps_s"][:, : self.in_dim]
 
         assert s.dim() == 2, "should be 2 [batch, dim], get %d" % s.dim()
         x = self.net(s)
@@ -141,11 +141,11 @@ class BridgeA2CModel(torch.jit.ScriptModule):
         self, obs: Dict[str, torch.Tensor], act: bool
     ) -> Dict[str, torch.Tensor]:
         # print(obs.keys())
-        # if "s" not in obs:
+        # if "jps_s" not in obs:
         #    print(obs.keys())
         #    print(obs)
 
-        s = obs["s"][:, : self.input_dim]
+        s = obs["jps_s"][:, : self.input_dim]
 
         # print("State:")
         # print(s[0])
@@ -243,11 +243,11 @@ class CommModel(torch.jit.ScriptModule):
         self, obs: Dict[str, torch.Tensor], act: bool
     ) -> Dict[str, torch.Tensor]:
         # print(obs.keys())
-        if "s" not in obs:
+        if "jps_s" not in obs:
             print(obs.keys())
             print(obs)
 
-        s = obs["s"][:, : self.input_dim]
+        s = obs["jps_s"][:, : self.input_dim]
 
         verbose = False
 
@@ -474,10 +474,10 @@ class BridgeA2CModel2(torch.jit.ScriptModule):
         contract = obs["contract"]
         doubled = obs["doubled"]
         declarer = obs["declarer"]
-        s = obs["s"]
+        s = obs["jps_s"]
         trick = obs["trick"]
         play = obs["play"]
-        legal_move = obs["legal_move"]
+        legal_move = obs["jps_legal_move"]
 
         stage = F.one_hot(stage, self.stage_dim).float().squeeze_(1)
         contract = self.bid_embed(contract).squeeze_(1)

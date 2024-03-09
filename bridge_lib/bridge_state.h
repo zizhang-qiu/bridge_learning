@@ -11,7 +11,7 @@
 // #include "third_party/dds/src/Memory.h"
 // #include "third_party/dds/src/SolverIF.h"
 // #include "third_party/dds/src/TransTableL.h"
-#include "dll.h"
+#include "third_party/dds/include/dll.h"
 
 #include "auction_tracker.h"
 #include "bridge_card.h"

@@ -6,6 +6,8 @@
 #define BRIDGE_LEARNING_RLCC_BRIDGE_ENV_H_
 #include <utility>
 
+#include "bridge_lib/jps_encoder.h"
+#include "bridge_lib/pbe_encoder.h"
 #include "rela/logging.h"
 #include "rela/tensor_dict.h"
 #include "bridge_lib/bridge_state.h"
@@ -18,7 +20,10 @@ namespace rlcc {
 struct BridgeEnvOptions {
   bool bidding_phase = true;
   bool playing_phase = false;
-
+  // Whether the feature contains pbe style.
+  bool pbe_feature = false;
+  // Whether the feature contains jps style.
+  bool jps_feature = false;
   bool verbose = false;
 };
 
@@ -86,6 +91,8 @@ class BridgeEnv {
   const BridgeEnvOptions options_;
   std::unique_ptr<ble::BridgeState> state_;
   const ble::CanonicalEncoder encoder_;
+  const ble::PBEEncoder pbe_encoder_;
+  const ble::JPSEncoder jps_encoder_;
 
   ble::Player last_active_player_;
   ble::BridgeMove last_move_;
