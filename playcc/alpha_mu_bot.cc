@@ -97,12 +97,12 @@ std::vector<int> EvaluateWorldsParallel(const Worlds& worlds,
       const int num_declarer_total_tricks =
           num_declarer_future_tricks + state.NumDeclarerTricks();
 
-      evaluation[i] = Result(rollout_result, true,
-                             target_tricks, num_declarer_future_tricks,
+      evaluation[i] = Result(rollout_result, true, target_tricks,
+                             num_declarer_future_tricks,
                              num_declarer_total_tricks, num_tricks_left);
       ++idx;
     } else {
-      evaluation[i] =-1;
+      evaluation[i] = -1;
     }
   }
   SPIEL_CHECK_EQ(idx, solved.noOfBoards);
@@ -135,7 +135,9 @@ ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
   if (best.move.MoveType() == bridge_learning_env::BridgeMove::kInvalid) {
     best.move = state.LegalMoves()[0];
   }
-   std::cout << front << std::endl;
+  if (cfg_.verbose) {
+    std::cout << front << std::endl;
+  }
   return best.move;
 }
 

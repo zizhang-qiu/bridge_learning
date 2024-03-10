@@ -9,7 +9,7 @@ import random
 from common_utils import MultiStats
 from set_path import append_sys_path
 from agent import BridgeA2CModel
-from other_models import PBEModel, A2CAgent
+from other_models import PBEModel, A2CAgent, DNNsModel, PIModel
 import net
 from utils import tensor_dict_to_device, tensor_dict_unsqueeze
 
@@ -36,18 +36,25 @@ def main(args):
     models = {}
 
     jps_agent: A2CAgent = hydra.utils.instantiate(args.jps_a2c)
-    jps_agent.cuda()
+    jps_agent.to(args.device)
 
     pbe_agent = PBEModel()
-    pbe_agent.cuda()
+    pbe_agent.to(args.device)
     policy_conf = dict(args.net)
-    del policy_conf["_target_"]
+    # del policy_conf["_target_"]
     value_conf = dict(args.value_net)
-    del value_conf["_target_"]
+    # del value_conf["_target_"]
     belief_conf = dict(args.belief_net)
-    del belief_conf["_target_"]
+    # del belief_conf["_target_"]
     rl_agent = BridgeA2CModel(policy_conf, value_conf, belief_conf)
-    rl_agent.cuda()
+    rl_agent.to(args.device)
+
+    dnns_agent = DNNsModel()
+    dnns_agent.to(args.device)
+
+    pi_agent = PIModel()
+    pi_agent.to(args.device)
+
     # net = hydra.utils.instantiate(args.net)
     # rl_agent.policy_net = hydra.utils.instantiate(args.net)
     # rl_agent.value_net = hydra.utils.instantiate(args.value_net)
@@ -57,6 +64,8 @@ def main(args):
     models["jps"] = jps_agent
     models["pbe"] = pbe_agent
     models["rl"] = rl_agent
+    models["dnns"] = dnns_agent
+    models["pi"] = pi_agent
 
     num_node = 0
     options = bridgelearn.BridgeEnvOptions()
@@ -76,7 +85,7 @@ def main(args):
         #     legal_moves = state.legal_moves()
         #     move = random.choice(legal_moves)
         #     state.apply_move(move)
-            
+
         # if state.is_terminal():
         #     state = bridge.BridgeState(bridge.default_game)
         #     while state.is_chance_node():
@@ -90,8 +99,11 @@ def main(args):
         # jps_feature = jps_encoder.encode(obs)
         # rl_feature = canonical_encoder.encode(obs)[:480]
         obs = env.feature()
+        obs["dnns_s"] = torch.rand(372, dtype=torch.float)
         obs = tensor_dict_unsqueeze(obs, 0)
+
         obs = tensor_dict_to_device(obs, args.device)
+
         # for k,v  in obs.items():
         #     print(k, v.shape)
         # input()
@@ -118,20 +130,35 @@ def main(args):
         #     "cuda",
         # )
 
-        st = time.perf_counter()
-        pbe_agent.act(obs)
-        ed = time.perf_counter()
-        stats.feed("pbe", ed - st)
+        # st = time.perf_counter()
+        # pbe_agent.act(obs)
+        # ed = time.perf_counter()
+        # stats.feed("pbe", ed - st)
 
-        st = time.perf_counter()
-        jps_agent.act(obs)
-        ed = time.perf_counter()
-        stats.feed("jps", ed - st)
+        # st = time.perf_counter()
+        # jps_agent.act(obs)
+        # ed = time.perf_counter()
+        # stats.feed("jps", ed - st)
 
-        st = time.perf_counter()
-        rl_agent.act(obs)
-        ed = time.perf_counter()
-        stats.feed("rl", ed - st)
+        # st = time.perf_counter()
+        # rl_agent.act(obs)
+        # ed = time.perf_counter()
+        # stats.feed("rl", ed - st)
+
+        # dnns_feature = tensor_dict_to_device(
+        #     {"dnns_s": torch.rand([1, 372], dtype=torch.float)},
+        #     args.device
+        # )
+        # st = time.perf_counter()
+        # dnns_agent.act(dnns_feature)
+        # ed = time.perf_counter()
+        # stats.feed("dnns", ed - st)
+
+        for k,v in models.items():
+            st = time.perf_counter()
+            v.act(obs)
+            ed = time.perf_counter()
+            stats.feed(k, ed - st)
 
         num_node += 1
         print(f"\r{num_node}/{args.num_nodes}", end="")
@@ -143,10 +170,9 @@ def main(args):
     print()
     print(f"{args.num_nodes} nodes have been played.")
     print("Result:")
-    print(f"PBE: {stats.get('pbe').mean()}")
-    print(f"JPS: {stats.get('jps').mean()}")
-    print(f"RL: {stats.get('rl').mean()}")
-    
+    for key in models.keys():
+        print(f"{key}: {stats.get(key).mean()}")
+
     stats.save_all(args.save_dir)
 
 

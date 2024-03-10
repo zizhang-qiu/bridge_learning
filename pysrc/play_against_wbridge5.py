@@ -41,10 +41,10 @@ def _bid_and_play(state: bridge.BridgeState, bots: List[BlueChipBridgeBot], agen
             obs = make_obs_tensor_dict(state)
             obs = tensor_dict_to_device(obs, device)
             action = agent.act(obs)
-            state.apply_move(state.parent_game().get_move(action))
+            state.apply_move(state.parent_game().get_move(int(action.item())))
         else:
             result = bots[state.current_player()].step(state)
-            state.apply_move(state.parent_game().get_move(result))
+            state.apply_move(result)
 
     while state.current_phase() == bridge.Phase.PLAY:
         # print(state)
@@ -57,7 +57,7 @@ def _bid_and_play(state: bridge.BridgeState, bots: List[BlueChipBridgeBot], agen
             state.apply_move(move)
         else:
             result = bots[state.current_player()].step(state)
-            state.apply_move(state.parent_game().get_move(result))
+            state.apply_move(result)
     return state
 
 

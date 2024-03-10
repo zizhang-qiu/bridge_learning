@@ -63,6 +63,11 @@ class BotFactory:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def get_attr_from_kwargs_if_exists(self, attr_name: str, kwargs:Dict):
+        if attr_name in kwargs.keys():
+            return kwargs[attr_name]
+        return getattr(self, attr_name)
+
     def create_bot(self, bot_type: str, **kwargs) -> bridgeplay.PlayBot:
         if bot_type == "dds":
             return bridgeplay.DDSBot()
@@ -70,7 +75,7 @@ class BotFactory:
         if bot_type.lower() == "pimc":
             resampler = bridgeplay.UniformResampler(self.seed)
             pimc_config = bridgeplay.PIMCConfig()
-            pimc_config.num_worlds = self.num_worlds
+            pimc_config.num_worlds = self.get_attr_from_kwargs_if_exists("num_worlds", kwargs)
             pimc_config.search_with_one_legal_move = False
             return bridgeplay.PIMCBot(resampler, pimc_config)
 
@@ -78,12 +83,22 @@ class BotFactory:
             assert "player_id" in kwargs.keys()
             resampler = bridgeplay.UniformResampler(self.seed)
             alpha_mu_config = bridgeplay.AlphaMuConfig()
-            alpha_mu_config.num_worlds = self.num_worlds
-            alpha_mu_config.num_max_moves = self.num_max_moves
-            alpha_mu_config.root_cut = self.root_cut
-            alpha_mu_config.early_cut = self.early_cut
+            alpha_mu_config.num_worlds = self.get_attr_from_kwargs_if_exists(
+                "num_worlds", kwargs
+            )
+            alpha_mu_config.num_max_moves = self.get_attr_from_kwargs_if_exists(
+                "num_max_moves", kwargs
+            )
+            alpha_mu_config.root_cut = self.get_attr_from_kwargs_if_exists(
+                "root_cut", kwargs
+            )
+            alpha_mu_config.early_cut = self.get_attr_from_kwargs_if_exists(
+                "early_cut", kwargs
+            )
             alpha_mu_config.search_with_one_legal_move = False
-            alpha_mu_config.rollout_result = bridgeplay.RolloutResult(self.rollout_result)
+            alpha_mu_config.rollout_result = bridgeplay.RolloutResult(
+                self.get_attr_from_kwargs_if_exists("rollout_result", kwargs)
+            )
             return bridgeplay.AlphaMuBot(resampler, alpha_mu_config, kwargs["player_id"])
 
         if "game" in kwargs.keys():
@@ -124,11 +139,17 @@ class BotFactory:
                 torch_actor = bridgeplay.TorchActor(batch_runner)
 
             cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
-            cfg.num_worlds = self.num_worlds
-            cfg.num_max_sample = self.num_max_sample
-            cfg.rollout_result = bridgeplay.RolloutResult(self.rollout_result)
-            cfg.fill_with_uniform_sample = self.fill_with_uniform_sample
-            cfg.verbose = self.verbose
+            cfg.num_worlds = self.get_attr_from_kwargs_if_exists("num_worlds", kwargs)
+            cfg.num_max_sample = self.get_attr_from_kwargs_if_exists(
+                "num_max_sample", kwargs
+            )
+            cfg.rollout_result = bridgeplay.RolloutResult(
+                self.self.get_attr_from_kwargs_if_exists("rollout_result")
+            )
+            cfg.fill_with_uniform_sample = self.get_attr_from_kwargs_if_exists(
+                "fill_with_uniform_sample", kwargs
+            )
+            cfg.verbose = self.get_attr_from_kwargs_if_exists("verbose", kwargs)
             nn_belief_opening_bot = bridgeplay.NNBeliefOpeningLeadBot(torch_actor, game, self.seed,
                                                                       dds_evaluator, cfg)
             return nn_belief_opening_bot
@@ -147,10 +168,12 @@ class BotFactory:
             from bba import load_conventions
             conventions = load_conventions(self.convention_file)
             cfg = bridgeplay.BeliefBasedOpeningLeadBotConfig()
-            cfg.num_worlds = self.num_worlds
-            cfg.num_max_sample = self.num_max_sample
-            cfg.rollout_result = bridgeplay.RolloutResult(self.rollout_result)
-            cfg.fill_with_uniform_sample = self.fill_with_uniform_sample
+            cfg.num_worlds = self.get_attr_from_kwargs_if_exists("num_worlds", kwargs)
+            cfg.num_max_sample = self.get_attr_from_kwargs_if_exists("num_max_sample", kwargs)
+            cfg.rollout_result = bridgeplay.RolloutResult(self.get_attr_from_kwargs_if_exists("rollout_result", kwargs))
+            cfg.fill_with_uniform_sample = self.get_attr_from_kwargs_if_exists(
+                "fill_with_uniform_sample", kwargs
+            )
             cfg.verbose = self.verbose
             return RuleBasedBot(game, self.bidding_systems, conventions, dds_evaluator, cfg)
 

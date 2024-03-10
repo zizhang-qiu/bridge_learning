@@ -9,8 +9,7 @@ import os
 import time
 import multiprocessing as mp
 import pickle
-from typing import List, NamedTuple, Tuple
-import socket
+from typing import List
 
 import hydra
 import numpy as np
@@ -80,12 +79,12 @@ class Worker(mp.Process):
         ]
 
         p1_bots = [
-            bot_factory.create_bot(self.args.p1, player_id=i)
+            bot_factory.create_bot(self.args.p1, player_id=i, **self.args.p1_args)
             for i in range(bridge.NUM_PLAYERS)
         ]
 
         p2_bots = [
-            bot_factory.create_bot(self.args.p2, player_id=i)
+            bot_factory.create_bot(self.args.p2, player_id=i, **self.args.p2_args)
             for i in range(bridge.NUM_PLAYERS)
         ]
 
@@ -176,7 +175,7 @@ def main(args: DictConfig):
         os.mkdir(args.save_dir)
     dataset = load_dataset(os.path.join(args.dataset_dir, args.dataset_name))
 
-    dataset = extract_not_passed_out_trajectories(dataset)[:20]
+    dataset = extract_not_passed_out_trajectories(dataset)[:args.num_deals]
 
     trajectories_per_process = common_utils.allocate_list_uniformly(
         dataset, args.num_processes

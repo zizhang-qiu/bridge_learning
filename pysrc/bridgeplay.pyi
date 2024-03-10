@@ -81,6 +81,7 @@ class AlphaMuConfig:
     root_cut: bool
     early_cut: bool
     rollout_result: RolloutResult
+    verbose: bool
 
 class BridgeStateWithoutHiddenInfo:
     def __init__(self, state: bridge.BridgeState): ...

@@ -264,11 +264,11 @@ def focal_loss(
     """
     if alpha is not None:
         if not isinstance(alpha, torch.Tensor):
-            alpha = torch.tensor(alpha)
-        alpha = alpha.to(device=device, dtype=dtype)
+            alpha = torch.tensor(alpha) # type: ignore
+        alpha = alpha.to(device=device, dtype=dtype) # type: ignore
 
     fl = FocalLoss(
-        alpha=alpha, gamma=gamma, reduction=reduction, ignore_index=ignore_index
+        alpha=alpha, gamma=gamma, reduction=reduction, ignore_index=ignore_index # type: ignore
     )
     return fl
 

@@ -23,6 +23,8 @@ struct AlphaMuConfig {
   bool root_cut = true;
   bool early_cut = true;
   RolloutResult rollout_result=kWinLose;
+
+  bool verbose = false;
 };
 
 class AlphaMuBot final : public PlayBot {

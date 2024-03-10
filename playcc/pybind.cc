@@ -209,7 +209,8 @@ PYBIND11_MODULE(bridgeplay, m) {
                      &AlphaMuConfig::search_with_one_legal_move)
       .def_readwrite("root_cut", &AlphaMuConfig::root_cut)
       .def_readwrite("early_cut", &AlphaMuConfig::early_cut)
-      .def_readwrite("rollout_result", &AlphaMuConfig::rollout_result);
+      .def_readwrite("rollout_result", &AlphaMuConfig::rollout_result)
+      .def_readwrite("verbose", &AlphaMuConfig::verbose);
 
   py::class_<TranspositionTable>(m, "TranspositionTable")
       .def(py::init<>())
