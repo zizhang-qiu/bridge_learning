@@ -85,3 +85,31 @@ class PBEModel(torch.jit.ScriptModule):
             count += 1
 
         return {"pi": result.detach().cpu()}
+
+    @torch.jit.script_method
+    def act_greedy(self, obs:Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        reply = self.act(obs)
+        pi = reply["pi"]
+
+        batch_size = pi.size(0)
+        a = torch.zeros(batch_size, dtype=torch.int32)
+        for i in range(batch_size):
+            min_cost = 1
+            best_a = 52
+            for j in range(pi[i].size(0) - 1, 0, -1):
+                if obs["jps_legal_move"][i][j-1].item() == 1.0:
+                    if pi[i][j] < min_cost:
+                        min_cost = pi[i][j]
+                        best_a = j - 1 + 3 + 52
+                else:
+                    break
+            
+            if min_cost <= 0.2:
+                a[i] = best_a
+            else:
+                a[i] = 52
+            
+            if pi[i][0] < min_cost:
+                a[i] = 52
+                
+        return {"a": a}

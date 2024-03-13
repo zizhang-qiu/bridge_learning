@@ -4,6 +4,7 @@ import torch
 from torch import nn
 
 from net import MLP
+import copy
 
 
 class BridgeA2CModel(torch.jit.ScriptModule):
@@ -13,6 +14,9 @@ class BridgeA2CModel(torch.jit.ScriptModule):
         self.policy_net = MLP.from_conf(policy_conf)
         self.value_net = MLP.from_conf(value_conf)
         self.belief_net = MLP.from_conf(belief_conf)
+        self.policy_net.eval()
+        self.value_net.eval()
+        self.belief_net.eval()
 
     @torch.jit.script_method
     def get_policy(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -23,7 +27,7 @@ class BridgeA2CModel(torch.jit.ScriptModule):
 
     @torch.jit.script_method
     def get_belief(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        digits = self.belief_net.forward(obs["s"])
+        digits = self.belief_net.forward(obs["s"][:, :480])
         reply = {"belief": torch.nn.functional.sigmoid(digits)}
         return reply
 
@@ -31,10 +35,18 @@ class BridgeA2CModel(torch.jit.ScriptModule):
     def act(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         policy = self.get_policy(obs)
         legal_policy = policy["pi"] * obs["legal_move"][:, -38:]
-        greedy_a = torch.argmax(legal_policy) + 52
-        stochastic_a = torch.multinomial(legal_policy, 1).squeeze() + 52
+        greedy_a = legal_policy.max(dim=1)[1].view(-1, 1) + 52
+        stochastic_a = torch.multinomial(legal_policy, 1, replacement=True) + 52
         reply = {"pi": policy["pi"], "greedy_a": greedy_a, "a": stochastic_a}
+        # print(reply)
         return reply
+
+    @torch.jit.script_method
+    def act_greedy(self, obs:Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        policy = self.get_policy(obs)
+        legal_policy = policy["pi"] * obs["legal_move"][:, -38:]
+        greedy_a = legal_policy.max(dim=1)[1].view(-1, 1) + 52
+        return {"a": greedy_a}
 
     @torch.jit.script_method
     def compute_priority(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -42,6 +54,17 @@ class BridgeA2CModel(torch.jit.ScriptModule):
         # print(f"Computing priority, batchsize: {batchsize}")
         priority = torch.ones(batchsize, 1)
         return {"priority": priority}
+
+    def clone(self, device: str):
+        policy_conf = self.policy_net.get_conf()
+        value_conf = self.value_net.get_conf()
+        belief_conf = self.belief_net.get_conf()
+        new_model = BridgeA2CModel(policy_conf, value_conf, belief_conf)
+        new_model.policy_net.load_state_dict(self.policy_net.state_dict())
+        new_model.value_net.load_state_dict(self.value_net.state_dict())
+        new_model.belief_net.load_state_dict(self.belief_net.state_dict())
+        new_model.to(device)
+        return new_model
 
 
 class BridgeAgent(torch.jit.ScriptModule):

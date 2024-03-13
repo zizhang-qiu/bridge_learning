@@ -4,14 +4,19 @@
 
 #ifndef BRIDGE_LEARNING_RLCC_BRIDGE_DATASET_H_
 #define BRIDGE_LEARNING_RLCC_BRIDGE_DATASET_H_
-#include <vector>
 #include <array>
-#include <optional>
 #include <mutex>
+#include <optional>
+#include <vector>
+
 
 #include "bridge_lib/bridge_utils.h"
 namespace ble = bridge_learning_env;
-inline constexpr int kDoubleDummyResultSize = ble::kNumPlayers * ble::kNumDenominations;
+
+namespace rlcc {
+inline constexpr int kDoubleDummyResultSize =
+    ble::kNumPlayers * ble::kNumDenominations;
+
 struct BridgeData {
   std::vector<int> deal{};
   std::optional<std::array<int, kDoubleDummyResultSize>> ddt;
@@ -19,11 +24,11 @@ struct BridgeData {
 
 class BridgeDataset {
  public:
+  explicit BridgeDataset(const std::vector<std::vector<int>>& deals);
 
-  explicit BridgeDataset(const std::vector<std::vector<int>> &deals);
-
-  BridgeDataset(const std::vector<std::vector<int>> &deals,
-                const std::vector<std::array<int, kDoubleDummyResultSize>> &ddts);
+  BridgeDataset(
+      const std::vector<std::vector<int>>& deals,
+      const std::vector<std::array<int, kDoubleDummyResultSize>>& ddts);
 
   int Size() const { return static_cast<int>(dataset_.size()); }
 
@@ -34,4 +39,5 @@ class BridgeDataset {
   std::mutex m_;
   int index_ = 0;
 };
-#endif //BRIDGE_LEARNING_RLCC_BRIDGE_DATASET_H_
+}  // namespace rlcc
+#endif  //BRIDGE_LEARNING_RLCC_BRIDGE_DATASET_H_

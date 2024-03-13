@@ -27,7 +27,7 @@ class A2CAgent(torch.jit.ScriptModule):
             for k, v in kwargs.items():
                 setattr(self, k, v)
 
-            self.init_args = kwargs # type: ignore
+            self.init_args = kwargs  # type: ignore
 
             if self.model_type == "resnet":
                 self.online_net = BridgeA2CModel(
@@ -64,7 +64,7 @@ class A2CAgent(torch.jit.ScriptModule):
 
             self.bce_loss = nn.BCELoss()
             self.nll_loss = nn.NLLLoss()
-            self.min_prob = 1e-6 # type: ignore
+            self.min_prob = 1e-6  # type: ignore
 
             return self
 
@@ -118,9 +118,22 @@ class A2CAgent(torch.jit.ScriptModule):
         # mask = (v == 1)
         # action = prob_eps.multinomial(1)
         # action[mask] = i[mask]
-        action = prob_eps.multinomial(1, replacement=True)
+        # action = prob_eps.multinomial(1, replacement=True)
 
+        action = prob_eps.max(dim=1)[1].view(-1, 1)
+        size = action.numel()
         reply["a"] = action
+        # We convert the action to pur implementation
+        for i in range(size):
+            if (
+                action[i].item() == 35
+                or action[i].item() == 36
+                or action[i].item() == 37
+            ):
+                reply["a"][i] += 17
+            else:
+                reply["a"][i] += 55
+        # print("reply['a']=", reply["a"])
         reply["behavior_pi"] = prob_eps
         return reply
 
@@ -128,8 +141,18 @@ class A2CAgent(torch.jit.ScriptModule):
     def act_greedy(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         _, prob, reply = self._act(obs)
         max_action = prob.max(dim=1)[1].view(-1, 1)
+        size = max_action.numel()
         # print("getting max_action", max_action.size(), max_action)
         reply["a"] = max_action
+        for i in range(size):
+            if (
+                max_action[i].item() == 35
+                or max_action[i].item() == 36
+                or max_action[i].item() == 37
+            ):
+                reply["a"][i] += 17
+            else:
+                reply["a"][i] += 55
         reply["behavior_pi"] = prob
         return reply
 

@@ -1,6 +1,7 @@
 //
 // Created by qzz on 2023/12/16.
 //
+#include <ios>
 #include <iostream>
 #include <memory>
 #include <random>
@@ -16,26 +17,19 @@
 #include "bridge_lib/example_cards_ddts.h"
 #include "bridge_lib/utils.h"
 // #include "dll.h"
-#include "dll.h"
 #include "playcc/alpha_mu_bot.h"
 #include "playcc/dds_evaluator.h"
 #include "playcc/pimc.h"
 #include "playcc/resampler.h"
 #include "playcc/utils.h"
+#include "rlcc/bridge_actor.h"
+#include "rlcc/bridge_dataset.h"
+#include "rlcc/bridge_env.h"
+#include "rlcc/bridge_env_actor.h"
+#include "rlcc/duplicate_env.h"
+#include "rlcc/env_actor.h"
 
 // #include "rlcc/belief_data_gen.h"
-
-static constexpr int _singleBidChannels = 35;
-
-  static constexpr int _kMyBidStart = 52;
-  static constexpr int _kPBidStart = _kMyBidStart + _singleBidChannels;
-  static constexpr int _kLeftBidStart = _kMyBidStart + 2 * _singleBidChannels;
-  static constexpr int _kRightBidStart = _kMyBidStart + 3 * _singleBidChannels;
-  static constexpr int _kDoubledStart = _kMyBidStart + 4 * _singleBidChannels;
-  static constexpr int _kVulStart = _kMyBidStart + 5 * _singleBidChannels;
-  static constexpr int _kVulChannels = 2;
-  static constexpr int _kAvailStart = _kVulStart + _kVulChannels;
-  static constexpr int _kFeatureDim = _kAvailStart + 39;
 
 const ble::GameParameters params = {};
 const auto game = std::make_shared<ble::BridgeGame>(params);
@@ -52,54 +46,33 @@ std::vector<size_t> FindNonZeroIndices(const std::vector<int>& vec) {
   return indices;
 }
 
-enum A { a };
-
-enum B { b };
-
 int main(int argc, char** argv) {
-  std::vector trajectory = {
-      27, 46, 36, 43, 18, 22, 0,  20, 24, 2,  40, 41, 28, 16, 21, 10, 42,
-      32, 48, 47, 13, 17, 3,  5,  12, 25, 34, 8,  29, 38, 23, 4,  30, 26,
-      35, 19, 9,  44, 7,  51, 14, 1,  45, 15, 49, 33, 11, 50, 39, 31, 6,
-      37, 52, 52, 58, 59, 52, 61, 52, 62, 52, 64, 52, 52, 52, 39, 31, 3,
-      47, 41, 13, 1,  45, 21, 5,  49, 17, 27, 16, 7,  51, 50, 18, 2,  6,
-      15, 12, 22, 23, 48, 4,  24, 32, 0,  20, 28, 44, 25, 34, 37, 9,  43,
-      14, 26, 11, 10, 30, 46, 36, 33, 40, 8,  29, 38, 35, 19, 42};
-  std::vector<std::vector<int>> trajectories = {trajectory};
+  rlcc::BridgeEnvOptions options{};
+  options.dnns_feature = true;
+  options.jps_feature = true;
+  options.dnns_feature = true;
+  // auto dataset = std::make_shared<rlcc::BridgeDataset>(ble::example_deals,
+  //                                                      ble::example_ddts);
+  // rlcc::DuplicateEnv env{{}, options, dataset};
+  // env.Reset();
+  // std::cout << env.ToString() << std::endl;
+  // for (const int action : {55, 52, 52, 52}) {
+  //   std::cout << env.CurrentPlayer() << std::endl;
+  //   std::cout << env.LegalActions() << std::endl;
+  //   env.Step(action);
+  // }
 
-  std::mt19937 rng(13);
-  const auto deal = ble::Permutation(ble::kNumCards, rng);
-
-  auto state = ConstructStateFromDeal(deal, ble::default_game);
-
-  while (state.IsInPhase(ble::Phase::kAuction)) {
-    ApplyRandomMove(state, rng);
-  }
-
-  std::cout << state << std::endl;
-
-  // Test(200);
-
-
+  // auto actor = std::make_shared<rlcc::AllPassActor>();
+  // const rlcc::EnvActorOptions env_actor_options{};
+  // rlcc::BridgeEnvActor env_actor(std::make_shared<rlcc::DuplicateEnv>(env),
+  //                                env_actor_options,
+  //                                {actor, actor, actor, actor});
   
+  // env_actor.ObserveAfterAct();
+  // env_actor.Act();
+  // env_actor.ObserveBeforeAct();
+  // env_actor.SendExperience();
+  // env_actor.PostSendExperience();
 
-  std::shared_ptr<Resampler> resampler = std::make_shared<UniformResampler>(22);
-  const AlphaMuConfig cfg{2, 40, false, true, true, true, kNumTotalTricks};
-  AlphaMuBot bot{resampler, cfg, state.GetContract().declarer};
-
-  const PIMCConfig pimc_cfg{40, false};
-  PIMCBot pimc_bot{resampler, pimc_cfg};
-
-  while (!state.IsTerminal()) {
-    ble::BridgeMove move;
-    if (state.CurrentPlayer() == state.GetContract().declarer) {
-      move = bot.Step(state);
-      std::cout << "Alpha mu move: " << move << std::endl;
-    }else{
-      move = pimc_bot.Step(state);
-      std::cout << "PIMC move: " << move << std::endl;
-    }
-    state.ApplyMove(move);
-  }
-  std::cout << state << std::endl;
+  // std::cout << env_actor.GetEnv()->ToString() << std::endl;
 }

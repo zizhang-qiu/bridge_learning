@@ -20,16 +20,24 @@ int EncodeHandRankMajorStyle(const BridgeObservation& obs, int start_offset,
 int EncodePBEBiddingHistory(const BridgeObservation& obs, int start_offset,
                             std::vector<int>* encoding) {
   int offset = start_offset;
-  for (int i = kPBEBiddingHistoryTensorSize - 6;
-       i < kPBEBiddingHistoryTensorSize; ++i) {
+  for (int i = kPBEBiddingHistoryTensorSize - 7;
+       i < kPBEBiddingHistoryTensorSize - 1; ++i) {
     (*encoding)[i] = 1;
   }
   const auto& bidding_history = obs.AuctionHistory();
   for (const auto& item : bidding_history) {
     if (item.player == 0 || item.player == 2) {
-      (*encoding)[kPBEBiddingHistoryTensorSize - 1] += 1;
+      (*encoding)[kPBEBiddingHistoryTensorSize - 2] += 1;
+      if ((*encoding)[kPBEBiddingHistoryTensorSize - 2] > 3) {
+        (*encoding)[kPBEBiddingHistoryTensorSize - 1] = 1;
+        break;
+      }
       if (item.other_call == OtherCalls::kPass) {
         (*encoding)[0] = 1;
+        if ((*encoding)[kPBEBiddingHistoryTensorSize - 2] > 1) {
+          (*encoding)[kPBEBiddingHistoryTensorSize - 1] = 1;
+          break;
+        }
       } else {
         (*encoding)[(item.level - 1) * kNumDenominations + item.denomination] =
             1;
@@ -43,16 +51,17 @@ int EncodePBEBiddingHistory(const BridgeObservation& obs, int start_offset,
 }
 
 std::vector<int> PBEEncoder::Encode(const BridgeObservation& obs) const {
-    REQUIRE(obs.CurrentPhase() == Phase::kAuction);
-    int offset = 0;
-    std::vector<int> encoding(kNumCards + kPBEBiddingHistoryTensorSize, 0);
-      // Encode player hand.
-      offset += EncodeHandRankMajorStyle(obs, offset, &encoding, /*relative_player=*/0);
+  REQUIRE(obs.CurrentPhase() == Phase::kAuction);
+  int offset = 0;
+  std::vector<int> encoding(kNumCards + kPBEBiddingHistoryTensorSize, 0);
+  // Encode player hand.
+  offset +=
+      EncodeHandRankMajorStyle(obs, offset, &encoding, /*relative_player=*/0);
 
-      // Encode bidding history.
-      offset += EncodePBEBiddingHistory(obs, offset, &encoding);
+  // Encode bidding history.
+  offset += EncodePBEBiddingHistory(obs, offset, &encoding);
 
-      REQUIRE_EQ(offset, kPBEBiddingHistoryTensorSize + kNumCards);
-      return encoding;
+  REQUIRE_EQ(offset, kPBEBiddingHistoryTensorSize + kNumCards);
+  return encoding;
 }
 }  // namespace bridge_learning_env

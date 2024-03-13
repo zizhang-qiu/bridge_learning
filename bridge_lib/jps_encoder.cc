@@ -4,6 +4,17 @@
 #include "canonical_encoder.h"
 
 namespace bridge_learning_env {
+
+// In JPS encoding, the bidding history of players are ordered
+// Own, partner, left opponent, right opponent.
+int RelativePlayerToJPSPlayer(int relative_player) {
+  if (relative_player == 0) {
+    return relative_player;
+  }
+  // Partner = 2->1, left opponent = 1->2.
+  return 3 - relative_player;
+}
+
 int EncodeJPSBiddingHistory(const BridgeObservation& obs, int start_offset,
                             std::vector<int>* encoding) {
   int offset = start_offset;
@@ -12,9 +23,10 @@ int EncodeJPSBiddingHistory(const BridgeObservation& obs, int start_offset,
 
   AuctionTracker auction_tracker_{};
   for (const auto& item : bidding_history) {
+    // std::cout << item << std::endl;
     auction_tracker_.ApplyAuction(item.move, item.player);
     if (item.move.IsBid()) {
-      const int index = (item.player * kNumBids) +
+      const int index = (RelativePlayerToJPSPlayer(item.player) * kNumBids) +
                         (item.level - 1) * kNumDenominations +
                         item.denomination;
       (*encoding)[offset + index] = 1;
@@ -56,9 +68,10 @@ int EncodeJPSLegalMoves(const BridgeObservation& obs, int start_offset,
 
   const auto& legal_moves = obs.LegalMoves();
   for (const auto& move : legal_moves) {
-    const int index = move.IsBid()
-                          ? BidIndex(move.BidLevel(), move.BidDenomination()) - 3
-                          : move.OtherCall() + 35;
+    const int index =
+        move.IsBid() ? BidIndex(move.BidLevel(), move.BidDenomination()) - 3
+                     : move.OtherCall() + 35;
+    // std::cout << "move: "<< move << ", index: " << index << std::endl;
     (*encoding)[offset + index] = 1;
   }
   // Padding.
@@ -70,21 +83,41 @@ int EncodeJPSLegalMoves(const BridgeObservation& obs, int start_offset,
   return offset - start_offset;
 }
 
+int EncodeJPSPlayerHand(const BridgeObservation& obs, int start_offset,
+                        std::vector<int>* encoding, const int relative_player) {
+  int offset = start_offset;
+  // In JPS, card rank is AKQJT98765432, suit is CDHS
+  for(const auto& card : obs.Hands()[relative_player].Cards()){
+    const int card_index = (12 - card.Rank()) + card.CardSuit() * kNumCardsPerSuit;
+    (*encoding)[offset + card_index] = 1;
+  }
+
+  offset += kNumCards;
+  REQUIRE_EQ(offset - start_offset, kNumCards);
+  return offset - start_offset;
+}
+
 std::vector<int> JPSEncoder::Encode(const BridgeObservation& obs) const {
   REQUIRE(obs.CurrentPhase() == Phase::kAuction);
   std::vector<int> encoding(kJPSTensorSize, 0);
   int offset = 0;
   // Hand.
-  offset += EncodePlayerHand(obs, offset, &encoding,
+  // std::cout << "Before encode hand." << std::endl;
+  offset += EncodeJPSPlayerHand(obs, offset, &encoding,
                              /*relative_player=*/0);
   // Bidding history.
+  // std::cout << "Before encode history." << std::endl;
   offset += EncodeJPSBiddingHistory(obs, offset, &encoding);
 
   // Vulnerability.
+  // std::cout << "Before encode vul." << std::endl;
   offset += EncodeJPSVulnerability(obs, offset, &encoding);
 
   // Legal moves.
+  // std::cout << "Before encode legal move." << std::endl;
   offset += EncodeJPSLegalMoves(obs, offset, &encoding);
+
+  // std::cout << "After encode legal move." << std::endl;
 
   REQUIRE_EQ(offset, encoding.size());
   return encoding;

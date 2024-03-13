@@ -5,7 +5,7 @@
 namespace bridge_learning_env {
 
 inline constexpr int kPBEBiddingHistoryTensorSize = kNumBids + 1  // Pass
-                                                    + 5 + 1;
+                                                    + 5 + 1 + 1;
 
 int EncodeHandRankMajorStyle(const BridgeObservation& obs, int start_offset,
                              std::vector<int>* encoding, int relative_player);

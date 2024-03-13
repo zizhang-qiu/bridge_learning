@@ -5,6 +5,7 @@
 #ifndef BRIDGE_LIB_BRIDGE_LIB_EXAMPLE_CARDS_DDTS_H_
 #define BRIDGE_LIB_BRIDGE_LIB_EXAMPLE_CARDS_DDTS_H_
 #include <vector>
+#include <array>
 
 #include "bridge_utils.h"
 namespace bridge_learning_env {
@@ -213,7 +214,7 @@ const std::vector<std::vector<Action>> example_deals = {
      17, 49, 33, 32, 5, 45, 29, 28, 1, 25, 13, 24, 48, 20, 9, 12, 40, 16, 8, 4, 36, 0}
 };
 
-const std::vector<std::vector<int>> example_ddts = {
+const std::vector<std::array<int, 20>> example_ddts = {
     {0, 12, 0, 12, 0, 12, 0, 12, 10, 3, 10, 3, 9, 4, 9, 4, 0, 8, 0, 8},
     {11, 2, 11, 2, 10, 2, 10, 2, 9, 4, 9, 4, 11, 1, 11, 1, 11, 2, 11, 2},
     {1, 12, 1, 11, 6, 7, 6, 6, 3, 10, 3, 10, 5, 7, 5, 6, 1, 12, 1, 12},

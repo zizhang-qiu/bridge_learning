@@ -4,6 +4,8 @@
 #include "bridge_dataset.h"
 
 #include "rela/logging.h"
+
+namespace rlcc{
 BridgeDataset::BridgeDataset(const std::vector<std::vector<int>> &deals) {
   size_t num_deals = deals.size();
   for (size_t i = 0; i < num_deals; ++i) {
@@ -28,4 +30,6 @@ BridgeData BridgeDataset::Next() {
   index_ = (index_ + 1) % Size();
   lk.unlock();
   return data;
+}
+
 }

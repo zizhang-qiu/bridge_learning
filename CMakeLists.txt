@@ -107,7 +107,6 @@ add_library(rela_lib
         rela/types.h
         rela/prioritized_replay2.cc
         rela/prioritized_replay2.h
-        rela/multistep_transition_buffer.h
         rela/batcher.cc
         rela/batcher.h
 
@@ -138,9 +137,11 @@ add_library(_bridgelearn OBJECT
         rlcc/belief_data_gen.cc
         rlcc/belief_data_gen.h
         rlcc/bridge_actor.h
+        rlcc/bridge_actor.cc
         rlcc/actor_based_belief_gen.cc
         rlcc/actor_based_belief_gen.h
-
+        rlcc/duplicate_env.cc
+        rlcc/duplicate_env.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

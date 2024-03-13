@@ -144,7 +144,7 @@ class BotFactory:
                 "num_max_sample", kwargs
             )
             cfg.rollout_result = bridgeplay.RolloutResult(
-                self.self.get_attr_from_kwargs_if_exists("rollout_result")
+                self.get_attr_from_kwargs_if_exists("rollout_result", kwargs)
             )
             cfg.fill_with_uniform_sample = self.get_attr_from_kwargs_if_exists(
                 "fill_with_uniform_sample", kwargs

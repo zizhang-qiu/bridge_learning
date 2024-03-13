@@ -12,6 +12,8 @@ from typing import List, Tuple, Dict, OrderedDict
 
 import torch
 import yaml
+import numpy as np
+import pickle
 
 
 def load_dataset(file_path: str) -> List[List[int]]:
@@ -77,3 +79,26 @@ def tensor_dict_unsqueeze(d: Dict[str, torch.Tensor], dim=0)-> Dict[str, torch.T
     for k, v in d.items():
         res[k] = torch.unsqueeze(v, dim)
     return res
+
+
+def load_rl_dataset(
+    usage: str, dataset_dir: str = "D:/Projects/bridge_research/dataset/rl_data"
+) -> Dict[str, np.ndarray]:
+    """
+    Load dataset.
+    Args:
+        usage (str): should be one of "train", "valid", "vs_wb5_fb" or "vs_wb5_open_spiel"
+        dataset_dir (str): the dir to dataset, the file names should be usage + _trajectories.npy / _ddts.npy
+
+    Returns:
+        RLDataset: The cards, ddts and par scores, combined as a dict
+    """
+    dataset_name = usage + ".pkl"
+    dataset_path = os.path.join(dataset_dir, dataset_name)
+    if not os.path.exists(dataset_path):
+        raise ValueError(f"No such path: {dataset_path}, please check path or name.")
+
+    with open(dataset_path, "rb") as fp:
+        dataset: Dict[str, np.ndarray] = pickle.load(fp)
+
+    return dataset

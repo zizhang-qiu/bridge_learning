@@ -3,10 +3,12 @@
 //
 
 #include "bridge_env.h"
+#include <torch/csrc/autograd/generated/variable_factories.h>
 #include <torch/types.h>
 #include <random>
 #include <vector>
 #include "bridge_lib/bridge_utils.h"
+#include "bridge_lib/dnns_encoder.h"
 #include "bridge_lib/jps_encoder.h"
 #include "rela/logging.h"
 #include "rela/utils.h"
@@ -51,6 +53,7 @@ BridgeEnv::BridgeEnv(const ble::GameParameters& params,
       encoder_(std::make_shared<ble::BridgeGame>(game_)),
       pbe_encoder_(std::make_shared<ble::BridgeGame>(game_)),
       jps_encoder_(std::make_shared<ble::BridgeGame>(game_)),
+      dnns_encoder_(),
       last_active_player_(ble::kChancePlayerId),
       last_move_() {
   if (!options.bidding_phase && !options.playing_phase) {
@@ -77,7 +80,7 @@ bool BridgeEnv::Terminated() const {
   return state_->CurrentPhase() > Phase::kAuction;
 }
 
-void BridgeEnv::Reset() {
+bool BridgeEnv::Reset() {
   RELA_CHECK(Terminated())
   if (bridge_dataset_ == nullptr) {
     state_ = std::make_unique<ble::BridgeState>(
@@ -98,6 +101,7 @@ void BridgeEnv::Reset() {
   } else {
     ResetWithDataSet();
   }
+  return true;
 }
 
 std::string BridgeEnv::ToString() const {
@@ -170,8 +174,14 @@ rela::TensorDict BridgeEnv::Feature() const {
       // Add jps feature with key "jps_s", "jps_legal_move"
       const std::vector<int> jps_feature = jps_encoder_.Encode({*state_});
       res["jps_s"] = torch::tensor(jps_feature, {torch::kFloat32});
-      const std::vector<int> jps_legal_move(jps_feature.end()-39, jps_feature.end());
+      const std::vector<int> jps_legal_move(jps_feature.end() - 39,
+                                            jps_feature.end());
       res["jps_legal_move"] = torch::tensor(jps_legal_move, {torch::kFloat32});
+    }
+    if (options_.dnns_feature) {
+      // Add jps feature with key "dnns_s"
+      const std::vector<int> dnns_feature = dnns_encoder_.Encode({*state_});
+      res["dnns_s"] = torch::tensor(dnns_feature, {torch::kFloat32});
     }
   }
   return res;

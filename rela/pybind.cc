@@ -119,6 +119,7 @@ PYBIND11_MODULE(rela, m) {
       .def("stop", &BatchRunner::stop)
       .def("update_model", &BatchRunner::updateModel)
       .def("block_call", &BatchRunner::blockCall)
+      .def("call", &BatchRunner::call)
       .def("set_log_freq", &BatchRunner::setLogFreq);
 
   py::class_<FutureReply, std::shared_ptr<FutureReply>>(m, "FutureReply")

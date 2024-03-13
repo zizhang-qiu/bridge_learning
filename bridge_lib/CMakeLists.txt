@@ -97,6 +97,8 @@ add_library(bridge_lib
         pbe_encoder.h
         jps_encoder.cc
         jps_encoder.h
+        dnns_encoder.cc
+        dnns_encoder.h
         utils.cc
         utils.h
 )

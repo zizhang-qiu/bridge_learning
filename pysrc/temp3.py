@@ -5,8 +5,10 @@
 @time: 2024/02/22 16:43
 """
 
+import sys
 import os
 import re
+import time
 from typing import List
 import hydra
 import numpy as np
@@ -14,12 +16,19 @@ import matplotlib.pyplot as plt
 import omegaconf
 import torch
 import pickle
+from agent import BridgeA2CModel
 import common_utils
 from evaluate_declarer_play_against_wbridge5 import DuplicateSaveItem
 import bridge
 import bridgeplay
 import rela
 import bridgelearn
+from utils import (
+    load_net_conf_and_state_dict,
+    tensor_dict_to_device,
+    tensor_dict_unsqueeze,
+    load_rl_dataset
+)
 
 # @hydra.main(config_path="conf/optimizer", config_name="adam", version_base="1.2")
 # def main(args):
@@ -139,64 +148,173 @@ if __name__ == "__main__":
 
     # plt.show()
 
-    # from other_models import A2CAgent, PBEModel
+    from other_models import A2CAgent, PBEModel
 
-    # conf = omegaconf.OmegaConf.load("conf/jps_a2c/a2c.yaml")
-    # print(conf)
+    conf = omegaconf.OmegaConf.load("conf/jps_a2c/a2c.yaml")
+    print(conf)
 
-    # agent  : A2CAgent= hydra.utils.instantiate(conf)
+    belief_model_dir = "../belief_sl/exp3"
+    belief_model_name = "model2.pthw"
+    policy_model_dir = "../policy_sl/exp6"
+    policy_model_name = "model0.pthw"
+    device = "cuda"
 
-    # print(agent)
+    policy_conf, policy_state_dict = load_net_conf_and_state_dict(
+        policy_model_dir, policy_model_name
+    )
+    belief_conf, belief_state_dict = load_net_conf_and_state_dict(
+        belief_model_dir, belief_model_name
+    )
 
-    # weight = torch.load("../external_models/jps/agent-1610-0.63.pth")
+    agent: A2CAgent = hydra.utils.instantiate(conf)
+    agent = agent.to("cuda")
+    agent2 = BridgeA2CModel(
+        policy_conf=policy_conf,
+        value_conf=dict(
+            hidden_size=2048,
+            num_hidden_layers=6,
+            use_layer_norm=True,
+            activation_function="gelu",
+            output_size=1,
+        ),
+        belief_conf=belief_conf,
+    )
+    agent2.policy_net.load_state_dict(policy_state_dict)
+    agent2.belief_net.load_state_dict(belief_state_dict)
+    agent2.to(device)
+    # agent2_clone = agent2.clone("cuda")
+    # sys.exit(1)
+    # print("Network loaded.")
 
-    # print(weight)
+    # runner = rela.BatchRunner(agent, device, 100, ["get_policy", "get_belief", "act"])
+    # runner.start()
 
-    # pbe_encoder = bridge.PBEEncoder(bridge.default_game)
+    # actor = bridgelearn.BridgeA2CActor(runner)
 
-    # pbe_model = PBEModel()
-
-    # state = bridge.BridgeState(bridge.default_game)
-
-    # while state.is_chance_node():
-    #     state.apply_random_chance()
-
-    # obs = bridge.BridgeObservation(state)
-
-    # pbe_feature = pbe_encoder.encode(obs)
-
-    # print(pbe_feature)
-
-    # jps_encoder = bridge.JPSEncoder(bridge.default_game)
-
-    # f = jps_encoder.encode(obs)
-
-    # print(f)
-
-    # reply = agent.act(
-    #     {
-    #         "s": torch.unsqueeze(torch.tensor(f, dtype=torch.float32), 0),
-    #         "legal_move": torch.unsqueeze(torch.tensor(f, dtype=torch.float32), 0)[:, -39:],
-    #     }
-    # )
-
-    # print(reply)
     options = bridgelearn.BridgeEnvOptions()
     options.bidding_phase = True
     options.playing_phase = False
     options.pbe_feature = True
     options.jps_feature = True
+    options.dnns_feature = True
+
+    # print(options.pbe_feature, options.jps_feature, options.dnns_feature)
+
+    # dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_ddts)
+    # env = bridgelearn.DuplicateEnv({}, options, dataset)
+    # env.reset()
+    # print(env)
+    # while not env.terminated():
+    #     f = env.feature()
+
+    # for i in range(74):
+    #     env.reset()
+    # print(env)
+
+    # uids = [58, 52, 62, 52, 52, 53, 52, 52, 54, 52, 52]
+    # for action in uids:
+    #     env.step(action)
+    # print(env)
+
+    # feature = env.feature()
+    # print(feature)
+
+    # # print(env)
+
+    # # print(feature)
+    rl_dataset = load_rl_dataset("valid")
+    cards = rl_dataset["cards"][:50000]
+    ddts = rl_dataset["ddts"][:50000]
+    dataset = bridgelearn.BridgeDataset(cards, ddts) # type: ignore
+    env_actor_options = bridgelearn.EnvActorOptions()
+    env_actor_options.eval = True
+    actors: List[bridgelearn.Actor] = []
+    runners = [
+        rela.BatchRunner(
+            agent2.clone("cuda") if i%2 == 0 else agent.clone("cuda"),
+            "cuda",
+            100000,
+            ["act", "act_greedy"],
+        )
+        for i in range(4)
+    ]
+    num_threads = 1
+    num_env_per_thread = 500
+    envs: List[bridgelearn.BridgeEnvActor] = []
+    num_game_per_env = len(cards) // (
+        num_threads * num_env_per_thread
+    )
+    print(num_game_per_env)
+    context = rela.Context()
+    for i_thread in range(num_threads):
+
+        for i_env in range(num_env_per_thread):
+            actors = []
+            env = bridgelearn.DuplicateEnv({}, options)
+            env.set_bridge_dataset(dataset)
+            env.reset()
+            for i in range(4):
+                actor = bridgelearn.BaselineActor(runners[i])
+                # actor = bridgelearn.AllPassActor()
+                actors.append(actor)
+            env_actor = bridgelearn.BridgeEnvActor(env, env_actor_options, actors)
+            envs.append(env_actor)
+        t = bridgelearn.EnvActorThreadLoop(envs, num_game_per_env)  # type: ignore
+        context.push_thread_loop(t)
+    for runner in runners:
+        runner.start()
+
+    st = time.perf_counter()
+    context.start()
+    context.join()
+    ed = time.perf_counter()
+    print(ed - st)
+
+    player1_rewards = []
+    for e in envs:
+        rewards = e.history_rewards()
+        for r in rewards:
+            player1_rewards.append(r[0])
+
+    print(player1_rewards)
+    print(len(player1_rewards))
+    print(common_utils.get_avg_and_sem(player1_rewards))
     
-    dataset = bridgelearn.BridgeDataset(bridge.example_deals, bridge.example_ddts)
-    env = bridgelearn.BridgeEnv({}, options)
-    env.set_bridge_dataset(dataset)
-    
-    env.reset()
-    
-    feature = env.feature()
-    
-    
-    print(env)
-    
-    print(feature)
-    
+    # for env in envs:
+    #     print(env.history_info()[0])
+
+    # for i, reward in enumerate(player1_rewards):
+
+    #     if reward != 0:
+    #         print(i)
+    #         print(envs[0].history_info()[i])
+
+    # for i in range(10):
+    #     env_actor.observe_before_act()
+    #     env_actor.act()
+    #     env_actor.observe_after_act()
+    #     env_actor.send_experience()
+    #     env_actor.post_send_experience()
+    #     print(env_actor.get_env())
+    # print(env_actor.history_rewards())
+    # print(env_actor)
+    # actors[0].observe_before_act(env)
+    # actors[0].act(env)
+    # print(env)
+    # f = env.feature()
+    # print(f.keys())
+    # f = env.feature()
+    # print(f.keys())
+    # f = env.feature()
+    # print(f.keys())
+    # reply = agent.act(
+    #     tensor_dict_to_device(tensor_dict_unsqueeze(env.feature(), 0), "cuda")
+    # )
+    # print(reply)
+
+    # future_reply : rela.FutureReply = runner.call("act", env.feature())
+    # print(future_reply.is_null())
+    # reply = future_reply.get()
+    # print(reply)
+    # reply = runners[0].block_call("act", tensor_dict_unsqueeze(env.feature(), 0))
+    # print(reply)

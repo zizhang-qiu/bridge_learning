@@ -2,8 +2,8 @@
 // Created by qzz on 2023/9/21.
 //
 
-#ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_CARD_H_
-#define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_CARD_H_
+#ifndef BRIDGE_LIB_BRIDGE_CARD_H
+#define BRIDGE_LIB_BRIDGE_CARD_H
 #include <iostream>
 
 #include "bridge_utils.h"
@@ -34,4 +34,4 @@ std::ostream &operator<<(std::ostream &stream, const std::vector<BridgeCard> &ca
 
 } // namespace bridge
 
-#endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_CARD_H_
+#endif /* BRIDGE_LIB_BRIDGE_CARD_H */
