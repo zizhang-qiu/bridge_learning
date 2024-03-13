@@ -2,6 +2,7 @@
 // Created by qzz on 2023/10/9.
 //
 #include "bridge_dataset.h"
+#include <mutex>
 
 #include "rela/logging.h"
 
@@ -24,11 +25,10 @@ BridgeDataset::BridgeDataset(const std::vector<std::vector<int>> &deals,
 }
 
 BridgeData BridgeDataset::Next() {
-  std::unique_lock<std::mutex> lk(m_);
-  RELA_CHECK_GE(Size(), 0);
+  std::lock_guard<std::mutex> lk(m_);
+  // RELA_CHECK_GE(Size(), 0);
   const BridgeData data = dataset_[index_];
   index_ = (index_ + 1) % Size();
-  lk.unlock();
   return data;
 }
 

@@ -18,16 +18,19 @@ import torch
 import pickle
 from agent import BridgeA2CModel
 import common_utils
+from common_utils.assert_utils import assert_eq
 from evaluate_declarer_play_against_wbridge5 import DuplicateSaveItem
 import bridge
 import bridgeplay
+from other_models import pbe_model
+from other_models.legacy_model import legacy_agent
 import rela
 import bridgelearn
 from utils import (
     load_net_conf_and_state_dict,
     tensor_dict_to_device,
     tensor_dict_unsqueeze,
-    load_rl_dataset
+    load_rl_dataset,
 )
 
 # @hydra.main(config_path="conf/optimizer", config_name="adam", version_base="1.2")
@@ -148,7 +151,7 @@ if __name__ == "__main__":
 
     # plt.show()
 
-    from other_models import A2CAgent, PBEModel
+    from other_models import A2CAgent, PBEModel, legacy_model
 
     conf = omegaconf.OmegaConf.load("conf/jps_a2c/a2c.yaml")
     print(conf)
@@ -182,6 +185,12 @@ if __name__ == "__main__":
     agent2.policy_net.load_state_dict(policy_state_dict)
     agent2.belief_net.load_state_dict(belief_state_dict)
     agent2.to(device)
+
+    agent3 = PBEModel()
+
+    l_agent = legacy_agent("cuda")
+    # print(l_agent)
+
     # agent2_clone = agent2.clone("cuda")
     # sys.exit(1)
     # print("Network loaded.")
@@ -223,35 +232,71 @@ if __name__ == "__main__":
 
     # # print(feature)
     rl_dataset = load_rl_dataset("valid")
-    cards = rl_dataset["cards"][:50000]
-    ddts = rl_dataset["ddts"][:50000]
-    dataset = bridgelearn.BridgeDataset(cards, ddts) # type: ignore
+    num_deals = 50000
+    cards = rl_dataset["cards"][:num_deals]
+    ddts = rl_dataset["ddts"][:num_deals]
+    dataset = bridgelearn.BridgeDataset(cards, ddts)  # type: ignore
     env_actor_options = bridgelearn.EnvActorOptions()
     env_actor_options.eval = True
-    actors: List[bridgelearn.Actor] = []
+
+    # env = bridgelearn.DuplicateEnv({}, options, dataset)
+    # env.reset()
+    # print(env)
+    # features = []
+    # torch.set_printoptions(threshold=1000000)
+    # while not env.terminated():
+    #     f = env.feature()
+    #     print(f["pbe_s"][:52])
+    #     print(f["pbe_s"][52:])
+    #     print(f["pbe_convert"])
+    #     a = torch.zeros(10)
+    #     reply = agent3.act_greedy(
+    #         tensor_dict_to_device(tensor_dict_unsqueeze(f, 0), "cuda")
+    #     )
+    #     print(reply)
+    #     env.step(reply["a"].item()) # type: ignore
+    # print(env)
+
+    # f = rela.tensor_dict_stack(features, 0)
+    # print(f["pbe_s"])
+    # print(f["pbe_convert"])
+
+    # reply = l_agent.act_greedy(tensor_dict_to_device(tensor_dict_unsqueeze(f, 0), "cuda"))
+    # print(reply)
+
+    # runner = rela.BatchRunner(l_agent, "cuda", 10000, ["act_greedy"])
+    # runner.start()
+    # reply = runner.block_call(
+    #     "act_greedy", tensor_dict_to_device(tensor_dict_unsqueeze(f, 0), "cuda")
+    # )
+    # print(reply)
+
+    # fut = runner.call("act_greedy", env.feature())
+    # print(fut.is_null())
+    # print(fut.get())
+
     runners = [
         rela.BatchRunner(
-            agent2.clone("cuda") if i%2 == 0 else agent.clone("cuda"),
+            legacy_agent("cuda") if i % 2 == 0 else agent,
             "cuda",
             100000,
-            ["act", "act_greedy"],
+            ["act_greedy"],
         )
         for i in range(4)
     ]
-    num_threads = 1
-    num_env_per_thread = 500
-    envs: List[bridgelearn.BridgeEnvActor] = []
-    num_game_per_env = len(cards) // (
-        num_threads * num_env_per_thread
-    )
+    num_threads = 8
+    num_env_per_thread = 625
+    # envs: List[bridgelearn.BridgeEnvActor] = []
+    total_envs = []
+    num_game_per_env = len(cards) // (num_threads * num_env_per_thread)
+    assert_eq(num_game_per_env * num_threads * num_env_per_thread, len(cards))
     print(num_game_per_env)
     context = rela.Context()
     for i_thread in range(num_threads):
-
+        envs = []
         for i_env in range(num_env_per_thread):
             actors = []
-            env = bridgelearn.DuplicateEnv({}, options)
-            env.set_bridge_dataset(dataset)
+            env = bridgelearn.DuplicateEnv({}, options, dataset)
             env.reset()
             for i in range(4):
                 actor = bridgelearn.BaselineActor(runners[i])
@@ -259,6 +304,7 @@ if __name__ == "__main__":
                 actors.append(actor)
             env_actor = bridgelearn.BridgeEnvActor(env, env_actor_options, actors)
             envs.append(env_actor)
+            total_envs.append(env_actor)
         t = bridgelearn.EnvActorThreadLoop(envs, num_game_per_env)  # type: ignore
         context.push_thread_loop(t)
     for runner in runners:
@@ -271,16 +317,16 @@ if __name__ == "__main__":
     print(ed - st)
 
     player1_rewards = []
-    for e in envs:
+    for e in total_envs:
         rewards = e.history_rewards()
         for r in rewards:
             player1_rewards.append(r[0])
 
     print(player1_rewards)
     print(len(player1_rewards))
-    print(common_utils.get_avg_and_sem(player1_rewards))
-    
-    # for env in envs:
+    print(common_utils.get_avg_and_sem(np.array(player1_rewards) * 24))
+
+    # for env in envs[:10]:
     #     print(env.history_info()[0])
 
     # for i, reward in enumerate(player1_rewards):

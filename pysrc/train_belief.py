@@ -11,7 +11,7 @@ import os
 import pickle
 from pprint import pformat
 from typing import Optional
-
+import sys
 import numpy as np
 import omegaconf
 import torch
@@ -83,7 +83,8 @@ def compute_hand_acc(pred: torch.Tensor, hand_label: torch.Tensor):
 
 @hydra.main(config_path="conf", config_name="train_belief", version_base="1.2")
 def main(args: omegaconf.DictConfig):
-    belief_net: MLP = hydra.utils.instantiate(args.belief_net)
+    # belief_net: MLP = hydra.utils.instantiate(args.belief_net)
+    belief_net = MLP.from_conf(args.belief_net)
     belief_net.to(args.device)
     print(belief_net)
     common_utils.mkdir_if_not_exist(args.save_dir)
@@ -109,6 +110,8 @@ def main(args: omegaconf.DictConfig):
     print(
         f"Load dataset successfully, train set has {len(train_dataset)} samples, "
         f"valid set has {len(valid_dataset)} samples.")
+
+    # sys.exit(0)
 
     train_generator = bridgelearn.BeliefDataGen(train_dataset, args["batch_size"], game)
     valid_generator = bridgelearn.BeliefDataGen(valid_dataset, args["valid_batch_size"], game)

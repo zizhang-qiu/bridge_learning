@@ -168,7 +168,11 @@ rela::TensorDict BridgeEnv::Feature() const {
     if (options_.pbe_feature) {
       // Add pbe feature with key "pbe_s"
       const std::vector<int> pbe_feature = pbe_encoder_.Encode({*state_});
-      res["pbe_s"] = torch::tensor(pbe_feature, {torch::kFloat32});
+      res["pbe_s"] = torch::tensor(
+          std::vector<int>(pbe_feature.begin(), pbe_feature.begin() + 94),
+          {torch::kFloat32});
+      int convert = pbe_feature.back();
+      res["pbe_convert"] = torch::tensor({convert});
     }
     if (options_.jps_feature) {
       // Add jps feature with key "jps_s", "jps_legal_move"

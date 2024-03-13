@@ -7,6 +7,7 @@ import scipy.io as sio
 
 
 class PBEModel(torch.jit.ScriptModule):
+# class PBEModel(nn.Module):
     __constants__ = ["num_action", "hidden_dim", "input_dim", "hand_dim", "bid_index"]
 
     def __init__(self):
@@ -93,23 +94,31 @@ class PBEModel(torch.jit.ScriptModule):
 
         batch_size = pi.size(0)
         a = torch.zeros(batch_size, dtype=torch.int32)
+        # print(obs["jps_legal_move"])
         for i in range(batch_size):
-            min_cost = 1
-            best_a = 52
+            min_cost = 1.0
+            best_a = 52  
             for j in range(pi[i].size(0) - 1, 0, -1):
+                # print(j)
                 if obs["jps_legal_move"][i][j-1].item() == 1.0:
-                    if pi[i][j] < min_cost:
-                        min_cost = pi[i][j]
+                    if pi[i][j].item() < min_cost:
+                        # print(pi[i][j])
+                        min_cost = pi[i][j].item()
                         best_a = j - 1 + 3 + 52
                 else:
                     break
-            
+
+            # print("min cost: ", min_cost)
+
             if min_cost <= 0.2:
                 a[i] = best_a
             else:
                 a[i] = 52
-            
-            if pi[i][0] < min_cost:
+
+            if pi[i][0].item() < min_cost:
                 a[i] = 52
-                
-        return {"a": a}
+
+            if int(obs["pbe_convert"][i].item()) == 1:
+                a[i] = 52
+
+        return {"a": a, "pi":pi}

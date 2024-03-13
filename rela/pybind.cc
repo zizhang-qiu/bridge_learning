@@ -3,6 +3,7 @@
 //
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+#include "rela/tensor_dict.h"
 #include "torch/extension.h"
 
 #include "batch_runner.h"
@@ -129,4 +130,7 @@ PYBIND11_MODULE(rela, m) {
       .def(py::init<int>()) // batchsize
       .def("send", &Batcher::send)
       .def("get", &Batcher::get);
+
+
+    m.def("tensor_dict_stack", &tensor_dict::stack);
 }

@@ -7,3 +7,5 @@ from .pbe_model import PBEModel
 from .dnns import DNNsModel
 
 from .pi_model import PIModel
+
+from .legacy_model import *

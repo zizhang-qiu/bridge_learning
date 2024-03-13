@@ -9,7 +9,8 @@
 import argparse
 import os
 from typing import List
-
+import time
+import numpy as np
 import multiprocessing as mp
 
 
@@ -136,7 +137,8 @@ class Worker(mp.Process):
             verbose=False,
             auto_line_feed=True,
         )
-
+        execution_times = []
+        
         for j, trajectory in enumerate(self.trajectories):
             for bot in opening_lead_bots:
                 bot.restart()
@@ -147,8 +149,10 @@ class Worker(mp.Process):
             dds_moves = dds_evaluator.dds_moves(state)
 
             # Get bot's move
+            st =time.perf_counter()
             bot_move = opening_lead_bots[state.current_player()].step(state)
-            
+            ed = time.perf_counter()
+            execution_times.append(ed - st)
             msg = f"Deal {j}, DDS moves:\n{dds_moves}\nBot move:{bot_move}"
             logger.write(msg)
 
@@ -164,6 +168,8 @@ class Worker(mp.Process):
             print(
                 f"Process {self.process_idx}, num match: {num_match}/{j + 1}, total: {len(self.trajectories)}"
             )
+            
+            np.save(os.path.join(self.args.save_dir, f"execution_times_{self.process_idx}.npy"), np.array(execution_times))
 
 
 @hydra.main("conf", "opening_lead", version_base="1.2")
@@ -177,7 +183,7 @@ def main(args: DictConfig):
         line = lines[i].split(" ")
         test_dataset.append([int(x) for x in line])
 
-    test_dataset = extract_not_passed_out_trajectories(test_dataset)[:1000]
+    test_dataset = extract_not_passed_out_trajectories(test_dataset)[:args.num_deals]
     datasets = common_utils.allocate_list_uniformly(test_dataset, args.num_processes)
 
     queue = mp.SimpleQueue()
@@ -206,6 +212,13 @@ def main(args: DictConfig):
 
     print(f"DDOLAR: {sum(results)}/{len(results)}")
     print(f"ADDOLAR: {sum(results2)}/{len(results2)}")
+    
+    exec_times = []
+    for i in range(args.num_processes):
+        exec_times.append(np.load(os.path.join(args.save_dir, f"execution_times_{i}.npy")))
+    exec_times = np.concatenate(exec_times)
+
+    print(f"{args.bot_name} exec time: {common_utils.get_avg_and_sem(exec_times)}")
 
 
 if __name__ == "__main__":

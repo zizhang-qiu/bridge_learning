@@ -9,7 +9,7 @@ int EncodeHandRankMajorStyle(const BridgeObservation& obs, int start_offset,
   for (const auto& card : obs.Hands()[relative_player].Cards()) {
     const int rank_major_card_index =
         (3 - card.CardSuit()) * kNumCardsPerSuit + card.Rank();
-    (*encoding)[rank_major_card_index] = 1;
+    (*encoding)[offset + rank_major_card_index] = 1;
   }
   offset += kNumCards;
   REQUIRE_EQ(offset - start_offset, kNumCards);
@@ -21,26 +21,26 @@ int EncodePBEBiddingHistory(const BridgeObservation& obs, int start_offset,
                             std::vector<int>* encoding) {
   int offset = start_offset;
   for (int i = kPBEBiddingHistoryTensorSize - 7;
-       i < kPBEBiddingHistoryTensorSize - 1; ++i) {
-    (*encoding)[i] = 1;
+       i < kPBEBiddingHistoryTensorSize - 2; ++i) {
+    (*encoding)[offset + i] = 1;
   }
   const auto& bidding_history = obs.AuctionHistory();
   for (const auto& item : bidding_history) {
     if (item.player == 0 || item.player == 2) {
-      (*encoding)[kPBEBiddingHistoryTensorSize - 2] += 1;
-      if ((*encoding)[kPBEBiddingHistoryTensorSize - 2] > 3) {
-        (*encoding)[kPBEBiddingHistoryTensorSize - 1] = 1;
+      (*encoding)[offset + kPBEBiddingHistoryTensorSize - 2] += 1;
+      if ((*encoding)[offset + kPBEBiddingHistoryTensorSize - 2] > 3) {
+        (*encoding)[offset + kPBEBiddingHistoryTensorSize - 1] = 1;
         break;
       }
       if (item.other_call == OtherCalls::kPass) {
-        (*encoding)[0] = 1;
-        if ((*encoding)[kPBEBiddingHistoryTensorSize - 2] > 1) {
-          (*encoding)[kPBEBiddingHistoryTensorSize - 1] = 1;
+        (*encoding)[offset + 0] = 1;
+        if ((*encoding)[offset + kPBEBiddingHistoryTensorSize - 2] > 1) {
+          (*encoding)[offset + kPBEBiddingHistoryTensorSize - 1] = 1;
           break;
         }
       } else {
-        (*encoding)[(item.level - 1) * kNumDenominations + item.denomination] =
-            1;
+        (*encoding)[offset + (item.level - 1) * kNumDenominations +
+                    item.denomination] = 1;
       }
     }
   }
