@@ -217,4 +217,19 @@ inline void Test(int n = 100) {
                    .count()
             << std::endl;
 }
+
+// Custom hash function for std::vector<int>
+struct VectorHash {
+  std::size_t operator()(const std::vector<int>& vec) const {
+    std::hash<int> hasher;
+    std::size_t hash_value = 0;
+
+    for (const int& element : vec) {
+      hash_value ^=
+          hasher(element) + 0x9e3779b9 + (hash_value << 6) + (hash_value >> 2);
+    }
+
+    return hash_value;
+  }
+};
 #endif /* PLAYCC_UTILS_H */

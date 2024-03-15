@@ -215,6 +215,7 @@ add_library(_bridgeplay
         playcc/wbridge5_trajectory_bot.h
         playcc/rule_based_defender.cc
         playcc/rule_based_defender.h
+        playcc/trajectory_bidding_bot.cc
 )
 # target_link_directories(_bridgeplay PUBLIC bridge_lib/third_party/dds/src)
 # target_link_libraries(_bridgeplay PUBLIC dds)

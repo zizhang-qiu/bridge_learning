@@ -28,3 +28,11 @@ class PIModel(torch.jit.ScriptModule):
         stochastic_a = torch.multinomial(legal_pi, 1).squeeze() + 52
 
         return {"pi": pi, "greedy_a": greedy_a, "a": stochastic_a}
+
+    @torch.jit.script_method
+    def act_greedy(self, obs:Dict[str, torch.Tensor])->Dict[str, torch.Tensor]:
+        pi = self.net(obs["s"][:, :480])
+        legal_pi = pi * obs["legal_move"][:, -38:]
+
+        greedy_a = torch.argmax(legal_pi) + 52
+        return {"pi":pi, "a":greedy_a}

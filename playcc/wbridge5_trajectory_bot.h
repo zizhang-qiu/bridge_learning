@@ -8,24 +8,11 @@
 #include <unordered_map>
 
 #include "bridge_lib/bridge_state.h"
-
+#include "utils.h"
 #include "play_bot.h"
 namespace ble = bridge_learning_env;
 
-// Custom hash function for std::vector<int>
-struct VectorHash {
-  std::size_t operator()(const std::vector<int>& vec) const {
-    std::hash<int> hasher;
-    std::size_t hash_value = 0;
 
-    for (const int& element : vec) {
-      hash_value ^= hasher(element) + 0x9e3779b9 + (hash_value << 6) + (
-        hash_value >> 2);
-    }
-
-    return hash_value;
-  }
-};
 
 class WBridge5TrajectoryBot : public PlayBot {
   public:

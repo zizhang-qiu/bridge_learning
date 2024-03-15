@@ -30,8 +30,5 @@ import bridgeplay
 #     game = create_bridge.create_bridge_game(dict(conf))
 #     print(game)
 if __name__ == "__main__":
-    a = torch.arange(12).reshape(3, 4)
-    print(a)
-    m = torch.argmax(a, dim=1, keepdim=True)
-    print(m)
-    print(m[0])
+    times = np.load("../opening_lead_eval/exp6/execution_times_0.npy")
+    print(np.mean(times))

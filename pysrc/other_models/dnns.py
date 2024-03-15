@@ -56,3 +56,10 @@ class DNNsModel(torch.jit.ScriptModule):
         pi = self.softmax(self.pnn(pnn_s))
 
         return {"pi": pi.detach(), "p_hand": hand_estimation.detach()}
+    
+    @torch.jit.script_method
+    def act_greedy(self, obs:Dict[str, torch.Tensor])->Dict[str, torch.Tensor]:
+        reply = self.act(obs)
+        a = reply["pi"].multinomial(1, replacement=True)
+        reply["a"] = a
+        return reply

@@ -15,6 +15,7 @@ from utils import tensor_dict_to_device, tensor_dict_unsqueeze
 
 append_sys_path()
 import bridge
+import rela
 import bridgelearn
 
 
@@ -73,6 +74,7 @@ def main(args):
     options.playing_phase = False
     options.pbe_feature = True
     options.jps_feature = True
+    options.dnns_feature = True
     env = bridgelearn.BridgeEnv({}, options)
     # canonical_encoder = bridge.CanonicalEncoder(bridge.default_game)
     # pbe_encoder = bridge.PBEEncoder(bridge.default_game)
@@ -99,7 +101,7 @@ def main(args):
         # jps_feature = jps_encoder.encode(obs)
         # rl_feature = canonical_encoder.encode(obs)[:480]
         obs = env.feature()
-        obs["dnns_s"] = torch.rand(372, dtype=torch.float)
+        # obs["dnns_s"] = torch.rand(372, dtype=torch.float)
         obs = tensor_dict_unsqueeze(obs, 0)
 
         obs = tensor_dict_to_device(obs, args.device)
@@ -156,7 +158,7 @@ def main(args):
 
         for k,v in models.items():
             st = time.perf_counter()
-            v.act(obs)
+            v.act_greedy(obs)
             ed = time.perf_counter()
             stats.feed(k, ed - st)
 

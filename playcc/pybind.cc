@@ -2,112 +2,79 @@
 // Created by qzz on 2024/1/6.
 //
 #include "bridge_lib/bridge_utils.h"
+#include "playcc/trajectory_bidding_bot.h"
 #include "playcc/utils.h"
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
 #include "pybind11/cast.h"
 #include "pybind11/detail/common.h"
 #include "pybind11/detail/descr.h"
 #include "pybind11/operators.h"
+#include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
 
-#include "playcc/play_bot.h"
-#include "playcc/pimc.h"
 #include "dds_bot.h"
+#include "playcc/pimc.h"
+#include "playcc/play_bot.h"
+
 // #include "torch_actor.h"
 // #include "torch_actor_resampler.h"
-#include "deal_analyzer.h"
-#include "opening_lead_evaluation_thread_loop.h"
-#include "torch_actor.h"
-#include "nn_belief_resampler.h"
 #include "belief_based_opening_lead_bot.h"
-#include "wbridge5_trajectory_bot.h"
+#include "deal_analyzer.h"
+#include "nn_belief_resampler.h"
+#include "opening_lead_evaluation_thread_loop.h"
 #include "playcc/alpha_mu_bot.h"
+#include "torch_actor.h"
+#include "wbridge5_trajectory_bot.h"
 
 namespace py = pybind11;
 
-template<class BotBase=PlayBot>
+template <class BotBase = PlayBot>
 class PyBot : public BotBase {
  public:
   using BotBase::BotBase;
 
   ~PyBot() override = default;
 
-  ble::BridgeMove Step(const ble::BridgeState &state) override {
-    PYBIND11_OVERLOAD_PURE_NAME(
-        ble::BridgeMove,
-        BotBase,
-        "step",
-        Step,
-        state);
+  ble::BridgeMove Step(const ble::BridgeState& state) override {
+    PYBIND11_OVERLOAD_PURE_NAME(ble::BridgeMove, BotBase, "step", Step, state);
   }
 
   void Restart() override {
-    PYBIND11_OVERLOAD_NAME(
-        void,
-        BotBase,
-        "restart",
-        Restart);
+    PYBIND11_OVERLOAD_NAME(void, BotBase, "restart", Restart);
   }
 
-  void RestartAt(const ble::BridgeState &state) override {
-    PYBIND11_OVERLOAD_NAME(
-        void,
-        BotBase,
-        "restart_at",
-        RestartAt,
-        state);
+  void RestartAt(const ble::BridgeState& state) override {
+    PYBIND11_OVERLOAD_NAME(void, BotBase, "restart_at", RestartAt, state);
   }
 
   bool IsClonable() const override {
-    PYBIND11_OVERLOAD_NAME(
-        bool,
-        BotBase,
-        "is_clonable",
-        IsClonable);
+    PYBIND11_OVERLOAD_NAME(bool, BotBase, "is_clonable", IsClonable);
   }
 
   std::shared_ptr<PlayBot> Clone() override {
 
-    PYBIND11_OVERLOAD_NAME(
-        std::shared_ptr<PlayBot>,
-        BotBase,
-        "clone",
-        Clone);
+    PYBIND11_OVERLOAD_NAME(std::shared_ptr<PlayBot>, BotBase, "clone", Clone);
   }
 
   std::string Name() const override {
-    PYBIND11_OVERLOAD_NAME(
-        std::string,
-        BotBase,
-        "name",
-        Name);
+    PYBIND11_OVERLOAD_NAME(std::string, BotBase, "name", Name);
   }
 };
 
-template<class ResamplerBase=Resampler>
+template <class ResamplerBase = Resampler>
 class PyResampler : public ResamplerBase {
   using ResamplerBase::ResamplerBase;
 
   ~PyResampler() override = default;
 
-  ResampleResult Resample(const ble::BridgeState &state) override {
-    PYBIND11_OVERLOAD_PURE_NAME(
-        ResampleResult,
-        ResamplerBase,
-        "resample",
-        Resample,
-        state
-    );
+  ResampleResult Resample(const ble::BridgeState& state) override {
+    PYBIND11_OVERLOAD_PURE_NAME(ResampleResult, ResamplerBase, "resample",
+                                Resample, state);
   }
 
-  void ResetWithParams(const std::unordered_map<std::string, std::string> &params) override {
-    PYBIND11_OVERLOAD_NAME(
-        void,
-        ResamplerBase,
-        "reset_with_params",
-        ResetWithParams,
-        params
-    );
+  void ResetWithParams(
+      const std::unordered_map<std::string, std::string>& params) override {
+    PYBIND11_OVERLOAD_NAME(void, ResamplerBase, "reset_with_params",
+                           ResetWithParams, params);
   }
 };
 
@@ -117,7 +84,8 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def_readwrite("success", &ResampleResult::success)
       .def_readwrite("result", &ResampleResult::result);
 
-  py::class_<Resampler, std::shared_ptr<Resampler>, PyResampler<Resampler>>(m, "Resampler")
+  py::class_<Resampler, std::shared_ptr<Resampler>, PyResampler<Resampler>>(
+      m, "Resampler")
       .def(py::init<>())
       .def("resample", &Resampler::Resample)
       .def("reset_with_params", &Resampler::ResetWithParams);
@@ -184,8 +152,8 @@ PYBIND11_MODULE(bridgeplay, m) {
   m.def("pareto_front_max", &ParetoFrontMax);
   m.def("pareto_front_dominate", &ParetoFrontDominate);
 
-  py::class_<ble::BridgeStateWithoutHiddenInfo>(
-      m, "BridgeStateWithoutHiddenInfo")
+  py::class_<ble::BridgeStateWithoutHiddenInfo>(m,
+                                                "BridgeStateWithoutHiddenInfo")
       .def(py::init<ble::BridgeState>())
       .def("__repr__", &ble::BridgeStateWithoutHiddenInfo::ToString)
       .def("uid_history", &ble::BridgeStateWithoutHiddenInfo::UidHistory)
@@ -229,10 +197,10 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def("get_tt", &AlphaMuBot::GetTT)
       .def("set_tt", &AlphaMuBot::SetTT);
 
-  m.def("construct_state_from_deal",
-        &ConstructStateFromDeal<std::vector<int>>);
+  m.def("construct_state_from_deal", &ConstructStateFromDeal<std::vector<int>>);
 
-  m.def("construct_state_from_deal_and_original_state", &ConstructStateFromDealAndOriginalState<std::vector<int>>);
+  m.def("construct_state_from_deal_and_original_state",
+        &ConstructStateFromDealAndOriginalState<std::vector<int>>);
 
   m.def("construct_state_from_trajectory", &ConstructStateFromTrajectory);
 
@@ -243,14 +211,13 @@ PYBIND11_MODULE(bridgeplay, m) {
   m.def("is_bot_registered", &IsBotRegistered);
 
   m.def("load_bot",
-        py::overload_cast<const std::string &,
-                          const std::shared_ptr<const ble::BridgeGame> &,
+        py::overload_cast<const std::string&,
+                          const std::shared_ptr<const ble::BridgeGame>&,
                           ble::Player>(&LoadBot));
   m.def("load_bot",
-        py::overload_cast<const std::string &,
-                          const std::shared_ptr<const ble::BridgeGame> &,
-                          ble::Player,
-                          const ble::GameParameters &>(&LoadBot));
+        py::overload_cast<const std::string&,
+                          const std::shared_ptr<const ble::BridgeGame>&,
+                          ble::Player, const ble::GameParameters&>(&LoadBot));
 
   py::enum_<RolloutResult>(m, "RolloutResult")
       .value("WIN_LOSE", RolloutResult::kWinLose)
@@ -271,14 +238,15 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def("get_policy", &TorchActor::GetPolicy)
       .def("get_belief", &TorchActor::GetBelief);
   //
-  py::class_<NNBeliefResampler, Resampler, std::shared_ptr<
-      NNBeliefResampler>>(m, "NNBeliefResampler")
-      .def(py::init<const std::shared_ptr<TorchActor> &, // torch actor
-                    const std::shared_ptr<ble::BridgeGame> &, // game
-                    const int>()) // seed
+  py::class_<NNBeliefResampler, Resampler, std::shared_ptr<NNBeliefResampler>>(
+      m, "NNBeliefResampler")
+      .def(py::init<const std::shared_ptr<TorchActor>&,       // torch actor
+                    const std::shared_ptr<ble::BridgeGame>&,  // game
+                    const int>())                             // seed
       .def("resample", &NNBeliefResampler::Resample);
 
-  py::class_<BeliefBasedOpeningLeadBotConfig>(m, "BeliefBasedOpeningLeadBotConfig")
+  py::class_<BeliefBasedOpeningLeadBotConfig>(m,
+                                              "BeliefBasedOpeningLeadBotConfig")
       .def(py::init())
       .def_readwrite("num_worlds", &BeliefBasedOpeningLeadBotConfig::num_worlds)
       .def_readwrite("num_max_sample",
@@ -289,18 +257,16 @@ PYBIND11_MODULE(bridgeplay, m) {
                      &BeliefBasedOpeningLeadBotConfig::rollout_result)
       .def_readwrite("verbose", &BeliefBasedOpeningLeadBotConfig::verbose);
 
-  py::class_<NNBeliefOpeningLeadBot, PlayBot, std::shared_ptr<
-      NNBeliefOpeningLeadBot>>(m, "NNBeliefOpeningLeadBot")
-      .def(py::init<const std::shared_ptr<TorchActor> &,
-                    const std::shared_ptr<ble::BridgeGame> &,
-                    const int, // seed
-                    const std::shared_ptr<DDSEvaluator> &,
-                    const BeliefBasedOpeningLeadBotConfig &>(),
-           py::arg("torch_actor"),
-           py::arg("game"),
-           py::arg("seed"),
-           py::arg("evaluator"),
-           py::arg("cfg"))
+  py::class_<NNBeliefOpeningLeadBot, PlayBot,
+             std::shared_ptr<NNBeliefOpeningLeadBot>>(m,
+                                                      "NNBeliefOpeningLeadBot")
+      .def(py::init<const std::shared_ptr<TorchActor>&,
+                    const std::shared_ptr<ble::BridgeGame>&,
+                    const int,  // seed
+                    const std::shared_ptr<DDSEvaluator>&,
+                    const BeliefBasedOpeningLeadBotConfig&>(),
+           py::arg("torch_actor"), py::arg("game"), py::arg("seed"),
+           py::arg("evaluator"), py::arg("cfg"))
       .def("step", &NNBeliefOpeningLeadBot::Step);
 
   m.def("dds_moves", &DDSMoves);
@@ -312,26 +278,33 @@ PYBIND11_MODULE(bridgeplay, m) {
       .def("empty", &ThreadedQueue<int>::Empty)
       .def("size", &ThreadedQueue<int>::Size);
 
-  py::class_<OpeningLeadEvaluationThreadLoop, rela::ThreadLoop, std::shared_ptr<
-      OpeningLeadEvaluationThreadLoop>>(
+  py::class_<OpeningLeadEvaluationThreadLoop, rela::ThreadLoop,
+             std::shared_ptr<OpeningLeadEvaluationThreadLoop>>(
       m, "OpeningLeadEvaluationThreadLoop")
-      .def(py::init<const std::shared_ptr<DDSEvaluator> &,
-                    const std::shared_ptr<PlayBot> &, //bot
-                    const std::shared_ptr<ble::BridgeGame> &, //game
-                    const std::vector<std::vector<int>> &, //trajectories
-                    ThreadedQueue<int> *, //queue
-                    const int, //thread_idx
-                    const bool>(), //verbose
+      .def(py::init<const std::shared_ptr<DDSEvaluator>&,
+                    const std::shared_ptr<PlayBot>&,          //bot
+                    const std::shared_ptr<ble::BridgeGame>&,  //game
+                    const std::vector<std::vector<int>>&,     //trajectories
+                    ThreadedQueue<int>*,                      //queue
+                    const int,                                //thread_idx
+                    const bool>(),                            //verbose
            py::arg("dds_evaluator"), py::arg("bot"), py::arg("game"),
            py::arg("trajectories"), py::arg("bot_evaluation"),
-           py::arg("thread_idx") = 0,
-           py::arg("verbose") = false);
+           py::arg("thread_idx") = 0, py::arg("verbose") = false);
 
-  py::class_<WBridge5TrajectoryBot, PlayBot, std::shared_ptr<
-      WBridge5TrajectoryBot>>(m, "WBridge5TrajectoryBot")
-      .def(py::init<const std::vector<std::vector<int>> &,
-                    const std::shared_ptr<ble::BridgeGame> &>())
+  py::class_<WBridge5TrajectoryBot, PlayBot,
+             std::shared_ptr<WBridge5TrajectoryBot>>(m, "WBridge5TrajectoryBot")
+      .def(py::init<const std::vector<std::vector<int>>&,
+                    const std::shared_ptr<ble::BridgeGame>&>())
       .def("step", &WBridge5TrajectoryBot::Step);
 
-    m.def("test", &Test);
+  m.def("test", &Test);
+
+  py::class_<TrajectoryBiddingBot, std::shared_ptr<TrajectoryBiddingBot>>(
+      m, "TrajectoryBiddingBot")
+      .def(py::init<const std::vector<std::vector<int>>&,
+                    const std::shared_ptr<ble::BridgeGame>&>(),
+           py::arg("trajectories"), py::arg("game"))
+      .def("step", &TrajectoryBiddingBot::Step)
+      .def("add_trajectory", &TrajectoryBiddingBot::AddTrajectory);
 }
