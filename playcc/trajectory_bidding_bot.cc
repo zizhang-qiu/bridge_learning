@@ -1,4 +1,5 @@
 #include "trajectory_bidding_bot.h"
+#include <mutex>
 #include "bridge_lib/bridge_state.h"
 #include "bridge_lib/bridge_utils.h"
 #include "playcc/common_utils/log_utils.h"
@@ -29,6 +30,7 @@ ble::BridgeMove TrajectoryBiddingBot::Step(const ble::BridgeState& state) {
 
 void TrajectoryBiddingBot::AddFromTrajectory(
     const std::vector<int>& trajectory) {
+  std::lock_guard<std::mutex> lk(m_);
   // Check if the game is complete.
   SPIEL_CHECK_GE(trajectory.size(), game_->MinGameLength());
   ble::BridgeState state{game_};
@@ -49,4 +51,5 @@ void TrajectoryBiddingBot::AddFromTrajectory(
     state.ApplyMove(move);
     ++idx;
   }
+  
 }

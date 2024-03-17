@@ -112,7 +112,8 @@ PYBIND11_MODULE(bridgeplay, m) {
 
   py::class_<DDSBot, PlayBot, std::shared_ptr<DDSBot>>(m, "DDSBot")
       .def(py::init<>())
-      .def("step", &DDSBot::Step);
+      .def("step", &DDSBot::Step)
+      .def("set_bidding_bot", &DDSBot::SetBiddingBot);
   //
   py::class_<PIMCConfig>(m, "PIMCConfig")
       .def(py::init<>())
@@ -123,7 +124,8 @@ PYBIND11_MODULE(bridgeplay, m) {
   py::class_<PIMCBot, PlayBot, std::shared_ptr<PIMCBot>>(m, "PIMCBot")
       .def(py::init<std::shared_ptr<Resampler>, PIMCConfig>())
       .def("step", &PIMCBot::Step)
-      .def("search", &PIMCBot::Search);
+      .def("search", &PIMCBot::Search)
+      .def("set_bidding_bot", &PIMCBot::SetBiddingBot);
 
   py::class_<OutcomeVector>(m, "OutcomeVector")
       .def_readwrite("game_status", &OutcomeVector::game_status)
@@ -191,6 +193,7 @@ PYBIND11_MODULE(bridgeplay, m) {
   py::class_<AlphaMuBot, PlayBot, std::shared_ptr<AlphaMuBot>>(m, "AlphaMuBot")
       .def(py::init<std::shared_ptr<Resampler>, AlphaMuConfig>())
       .def(py::init<std::shared_ptr<Resampler>, AlphaMuConfig, ble::Player>())
+      .def("set_bidding_bot", &AlphaMuBot::SetBiddingBot)
       .def("step", &AlphaMuBot::Step)
       .def("restart", &AlphaMuBot::Restart)
       .def("search", &AlphaMuBot::Search)

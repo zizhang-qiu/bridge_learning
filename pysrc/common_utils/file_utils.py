@@ -40,3 +40,18 @@ def mkdir_if_not_exist(directory: str):
     """
     if not os.path.exists(directory):
         os.mkdir(directory)
+
+
+def mkdir_with_increment(directory: str, prefix="exp") -> str:
+    """Make a directory with prefix and increment numbers, e.g. exp1"""
+    max_index = 0
+    for root, dirs, files in os.walk(directory):
+        for dir in dirs:
+            if dir.startswith(prefix):
+                if dir[len(prefix):].isdigit():
+                    max_index = max(max_index, int(dir[len(prefix):]))
+
+    dir_name = os.path.join(directory, prefix + str(max_index + 1))
+    assert not os.path.exists(dir_name)
+    os.mkdir(dir_name)
+    return dir_name

@@ -4,6 +4,7 @@
 
 #ifndef BRIDGE_LEARNING_PLAYCC_PIMC_H_
 #define BRIDGE_LEARNING_PLAYCC_PIMC_H_
+#include <memory>
 #include <utility>
 
 #include "absl/strings/str_format.h"
@@ -12,6 +13,7 @@
 
 #include "play_bot.h"
 #include "resampler.h"
+#include "trajectory_bidding_bot.h"
 
 namespace ble = bridge_learning_env;
 
@@ -31,31 +33,37 @@ struct PIMCConfig {
 };
 
 class PIMCBot final : public PlayBot {
-  public:
-    PIMCBot(std::shared_ptr<Resampler> resampler, const PIMCConfig cfg) : resampler_(std::move(resampler)), cfg_(cfg),
-                                                                          player_id_(0) {
-      SetMaxThreads(0);
-    }
+ public:
+  PIMCBot(std::shared_ptr<Resampler> resampler, const PIMCConfig cfg)
+      : resampler_(std::move(resampler)), cfg_(cfg), player_id_(0) {
+    SetMaxThreads(0);
+  }
 
-    PIMCBot(std::shared_ptr<Resampler> resampler,
-            const ble::Player player_id,
-            const PIMCConfig cfg) : resampler_(std::move(resampler)), cfg_(cfg),
-                                    player_id_(player_id) {
-      SetMaxThreads(0);
-    }
+  PIMCBot(std::shared_ptr<Resampler> resampler, const ble::Player player_id,
+          const PIMCConfig cfg)
+      : resampler_(std::move(resampler)), cfg_(cfg), player_id_(player_id) {
+    SetMaxThreads(0);
+  }
 
-    ble::BridgeMove Step(const ble::BridgeState& state) override;
+  void SetBiddingBot(const std::shared_ptr<TrajectoryBiddingBot>& bot){
+    bidding_bot_ = bot;
+  }
+
+  ble::BridgeMove Step(const ble::BridgeState& state) override;
 
   [[nodiscard]] SearchResult Search(const ble::BridgeState& state) const;
 
-    std::string Name() const override { return absl::StrFormat("PIMC, %d worlds", cfg_.num_worlds); }
+  std::string Name() const override {
+    return absl::StrFormat("PIMC, %d worlds", cfg_.num_worlds);
+  }
 
-  private:
-    std::shared_ptr<Resampler> resampler_;
-    const PIMCConfig cfg_;
-    const ble::Player player_id_;
+ private:
+  std::shared_ptr<Resampler> resampler_;
+  const PIMCConfig cfg_;
+  const ble::Player player_id_;
+  std::shared_ptr<TrajectoryBiddingBot> bidding_bot_ = nullptr;
 };
 
 void PrintSearchResult(const SearchResult& res);
 
-#endif // BRIDGE_LEARNING_PLAYCC_PIMC_H_
+#endif  // BRIDGE_LEARNING_PLAYCC_PIMC_H_

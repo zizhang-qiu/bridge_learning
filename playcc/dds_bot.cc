@@ -4,6 +4,12 @@
 #include "dds_bot.h"
 
 ble::BridgeMove DDSBot::Step(const ble::BridgeState& state) {
+  if (state.IsInPhase(ble::Phase::kAuction)) {
+    if (bidding_bot_ == nullptr) {
+      SpielFatalError("Can't step in auction phase without a bidding bot.");
+    }
+    return bidding_bot_->Step(state);
+  }
   const auto legal_moves = state.LegalMoves();
   const int num_legal_moves = static_cast<int>(legal_moves.size());
   if (num_legal_moves == 1) {

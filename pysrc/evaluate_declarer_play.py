@@ -47,6 +47,19 @@ def construct_play_state_from_trajectory(
     assert state.current_phase() == bridge.Phase.PLAY
     return state
 
+def construct_bidding_state(trajectory: List[int], game: bridge.BridgeGame = bridge.default_game) -> bridge.BridgeState:
+    state = bridge.BridgeState(game)
+    for i in range(bridge.NUM_CARDS):
+        uid = trajectory[i]
+        chance = game.get_chance_outcome(uid)
+        state.apply_move(chance)
+    
+    return state
+
+def get_declarer_from_trajectory(trajectory: List[int], game: bridge.BridgeGame = bridge.default_game):
+    state = construct_play_state_from_trajectory(trajectory, game)
+    return state.get_contract().declarer
+    
 
 class Worker(mp.Process):
     def __init__(
@@ -104,6 +117,7 @@ class Worker(mp.Process):
             cur_trajectory = self._trajectories[i_deal]
 
             state0 = construct_play_state_from_trajectory(cur_trajectory)
+            # state0 = construct_bidding_state(trajectory=cur_trajectory)
 
             # Play the game
             declarer = state0.get_contract().declarer

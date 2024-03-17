@@ -3,6 +3,7 @@
 //
 #include "pimc.h"
 #include "absl/strings/str_cat.h"
+#include "playcc/common_utils/log_utils.h"
 
 int Rollout(const ble::BridgeState& state, const ble::BridgeMove& move) {
   SetMaxThreads(0);
@@ -116,6 +117,12 @@ SearchResult PIMCBot::Search(const ble::BridgeState& state) const {
 }
 
 ble::BridgeMove PIMCBot::Step(const ble::BridgeState& state) {
+  if (state.IsInPhase(ble::Phase::kAuction)) {
+    if (bidding_bot_ == nullptr) {
+     SpielFatalError("Can't step in auction phase without a bidding bot.");
+    }
+    return bidding_bot_->Step(state);
+  }
   SPIEL_CHECK_EQ(static_cast<int>(state.CurrentPhase()),
                  static_cast<int>(ble::Phase::kPlay));
   //  const auto legal_moves = state.LegalMoves();

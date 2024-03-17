@@ -11,6 +11,7 @@
 #include "pareto_front.h"
 #include "play_bot.h"
 #include "playcc/dds_evaluator.h"
+#include "playcc/trajectory_bidding_bot.h"
 #include "playcc/worlds.h"
 #include "resampler.h"
 #include "transposition_table.h"
@@ -64,6 +65,10 @@ class AlphaMuBot final : public PlayBot {
       return absl::StrFormat("AlphaMu, %d worlds, %d max moves", cfg_.num_worlds, cfg_.num_max_moves);
     }
 
+    void SetBiddingBot(const std::shared_ptr<TrajectoryBiddingBot>& bot) {
+      bidding_bot_ = bot;
+    }
+
   private:
     TranspositionTable tt_;
     std::shared_ptr<Resampler> resampler_;
@@ -71,6 +76,7 @@ class AlphaMuBot final : public PlayBot {
     DDSEvaluator dds_evaluator_{};
     const ble::Player player_id_{};
     std::optional<ParetoFront> last_iteration_front_{};
+    std::shared_ptr<TrajectoryBiddingBot> bidding_bot_ = nullptr;
 };
 
 std::unique_ptr<PlayBot> MakeAlphaMuBot(ble::Player player_id, AlphaMuConfig cfg);

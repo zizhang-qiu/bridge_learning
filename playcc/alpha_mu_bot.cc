@@ -110,6 +110,12 @@ std::vector<int> EvaluateWorldsParallel(const Worlds& worlds,
 }
 
 ble::BridgeMove AlphaMuBot::Step(const ble::BridgeState& state) {
+  if (state.IsInPhase(ble::Phase::kAuction)) {
+    if (bidding_bot_ == nullptr) {
+      SpielFatalError("Can't step in auction phase without a bidding bot.");
+    }
+    return bidding_bot_->Step(state);
+  }
   SPIEL_CHECK_FALSE(state.IsTerminal());
   SPIEL_CHECK_EQ(ble::Partnership(state.GetContract().declarer),
                  ble::Partnership(player_id_));
