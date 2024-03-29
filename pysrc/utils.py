@@ -50,13 +50,29 @@ def load_net_conf_and_state_dict(
     return conf, state_dict
 
 
-def is_trajectory_not_passed_out(trajectory: List[int]):
+def is_trajectory_not_passed_out(trajectory: List[int])->bool:
+    """Check if a trajectory is a game which is passed out, i.e., four players make a call of pass.
+
+    Args:
+        trajectory (List[int]): The trajectory of a game.
+
+    Returns:
+        bool: Whether the trajectory is passed out.
+    """
     return trajectory[-4:] != [52 for _ in range(4)]
 
 
 def extract_not_passed_out_trajectories(
     trajectories: List[List[int]],
 ) -> List[List[int]]:
+    """Extract trajectories which are not passed out from a list of trajectories.
+
+    Args:
+        trajectories (List[List[int]]): The trajectories.
+
+    Returns:
+        List[List[int]]: The extracted trajectories.
+    """
     res = []
     for trajectory in trajectories:
         if is_trajectory_not_passed_out(trajectory):
@@ -67,6 +83,15 @@ def extract_not_passed_out_trajectories(
 def tensor_dict_to_device(
     d: Dict[str, torch.Tensor], device: str
 ) -> Dict[str, torch.Tensor]:
+    """Move a TensorDict to device.
+
+    Args:
+        d (Dict[str, torch.Tensor]): The TensorDict to be moved.
+        device (str): The device to move.
+
+    Returns:
+        Dict[str, torch.Tensor]: The moved dict.
+    """
     res = {}
     for k, v in d.items():
         res[k] = v.to(device)
@@ -75,6 +100,15 @@ def tensor_dict_to_device(
 
 
 def tensor_dict_unsqueeze(d: Dict[str, torch.Tensor], dim=0)-> Dict[str, torch.Tensor]:
+    """Do torch.unsqueeze() for all tensors in a tensor dict.
+
+    Args:
+        d (Dict[str, torch.Tensor]): The tensor dict.
+        dim (int, optional): The dimension for unsqueeze. Defaults to 0.
+
+    Returns:
+        Dict[str, torch.Tensor]: The unsqueezed tensor_dict.
+    """
     res = {}
     for k, v in d.items():
         res[k] = torch.unsqueeze(v, dim)

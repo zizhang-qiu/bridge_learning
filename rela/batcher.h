@@ -12,7 +12,7 @@ namespace rela {
 inline TensorDict allocateBatchStorage(const TensorDict& data, int size) {
   TensorDict storage;
   for (const auto& kv : data) {
-    auto t = kv.second.sizes();
+    const auto t = kv.second.sizes();
     std::vector<int64_t> sizes;
     sizes.push_back(size);
     for (size_t i = 0; i < t.size(); ++i) {

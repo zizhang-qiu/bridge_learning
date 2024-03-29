@@ -16,11 +16,10 @@ class FullyConnectedSkipNN(torch.jit.ScriptModule):
         x = self.net(x)
         out = self.linear2(x)
         return out
-        
 
 
 class DNNsModel(torch.jit.ScriptModule):
-
+    """Model in 'Competitive Bridge Bidding with Deep Neural Networks'."""
     def __init__(
         self,
         num_enn_in_dim: int = 372,
@@ -56,7 +55,7 @@ class DNNsModel(torch.jit.ScriptModule):
         pi = self.softmax(self.pnn(pnn_s))
 
         return {"pi": pi.detach(), "p_hand": hand_estimation.detach()}
-    
+
     @torch.jit.script_method
     def act_greedy(self, obs:Dict[str, torch.Tensor])->Dict[str, torch.Tensor]:
         reply = self.act(obs)

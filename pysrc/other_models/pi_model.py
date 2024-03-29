@@ -4,6 +4,7 @@ import torch.jit
 from torch import nn
 
 class PIModel(torch.jit.ScriptModule):
+    """Model used in 'Human-Agent Cooperation in Bridge Bidding'."""
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(

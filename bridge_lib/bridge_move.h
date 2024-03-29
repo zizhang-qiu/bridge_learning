@@ -32,6 +32,7 @@ class BridgeMove {
                                               other_call_(other_call),
                                               move_type_(move_type) {}
 
+    // Constructor for a bid.
     BridgeMove(const int level,
                const Denomination denomination): suit_(kInvalidSuit),
                                                  rank_(-1),
@@ -39,7 +40,8 @@ class BridgeMove {
                                                  level_(level),
                                                  other_call_(kNotOtherCall),
                                                  move_type_(kAuction) {}
-
+    
+    // Constructor for a card, could be a deal or play move.
     BridgeMove(const Type move_type,
                const Suit suit,
                const int rank): suit_(suit),
@@ -49,6 +51,7 @@ class BridgeMove {
                                 other_call_(kNotOtherCall),
                                 move_type_(move_type) {}
 
+    // Constructor for an other call, i.e., pass, double redouble.
     BridgeMove(const OtherCalls other_call): suit_(kInvalidSuit),
                                              rank_(-1),
                                              denomination_(

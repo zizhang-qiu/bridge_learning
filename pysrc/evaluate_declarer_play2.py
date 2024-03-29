@@ -1,3 +1,10 @@
+"""
+@author: qzz
+@contact:q873264077@gmail.com
+@file: evaluate_declarer_play2.py
+@time: 2024/03/17 15:24
+"""
+
 import pickle
 from typing import List, Tuple
 import hydra
@@ -64,7 +71,11 @@ def restart_all_bots(bots: List[bridgeplay.PlayBot]):
 
 class Worker(mp.Process):
     def __init__(
-        self, args: omegaconf.OmegaConf, trajectories: List[List[int]], save_dir : str, process_id: int
+        self,
+        args: omegaconf.OmegaConf,
+        trajectories: List[List[int]],
+        save_dir: str,
+        process_id: int,
     ):
         super().__init__()
         self.args = args
@@ -187,8 +198,7 @@ class Worker(mp.Process):
             )
             p1_times.append(np.array(p1_time))
             defender_times.append(np.array(defender_time))
-            
-            
+
             restart_all_bots(defender_bots)
             # Close table.
             state1, available = self.run_bidding(cur_trajectory, p2_bots, defender_bots)
@@ -201,9 +211,9 @@ class Worker(mp.Process):
             )
             p2_times.append(np.array(p2_time))
             defender_times.append(np.array(defender_time))
-            
+
             deal_idx += 1
-            
+
             logger.write(
                 f"Deal {deal_idx},State0:\n{state0}\nstate1:\n{state1}\ntricks: {state0.num_declarer_tricks()} : {state1.num_declarer_tricks()}\nscores: {state0.scores()[declarer]}: {state1.scores()[declarer]}"
             )
@@ -252,9 +262,14 @@ def main(args: omegaconf.OmegaConf):
         dataset, args.num_processes
     )
 
-    workers:List[Worker] = []
+    workers: List[Worker] = []
     for i in range(args.num_processes):
-        w = Worker(args, trajectories=trajectories_per_process[0], process_id=i, save_dir=save_dir)
+        w = Worker(
+            args,
+            trajectories=trajectories_per_process[i],
+            process_id=i,
+            save_dir=save_dir,
+        )
         workers.append(w)
 
     for w in workers:
@@ -262,8 +277,7 @@ def main(args: omegaconf.OmegaConf):
 
     for w in workers:
         w.join()
-    
-    
+
 
 if __name__ == "__main__":
     main()

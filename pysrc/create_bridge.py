@@ -191,5 +191,9 @@ class BotFactory:
                 return client
 
             return BlueChipBridgeBot(game, player_id, controller_factory)
+        
+        if bot_type == "wbridge5_trajectory":
+            assert "trajectories" in kwargs.keys()
+            return bridgeplay.WBridge5TrajectoryBot(kwargs["trajectories"], game)
 
         raise ValueError(f"bot_type {bot_type} is not supported.")

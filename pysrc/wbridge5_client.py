@@ -34,7 +34,7 @@ class WBridge5Client(Controller):
         self.sock.bind(("", 0))
         self.port = self.sock.getsockname()[1]
         self.sock.listen(1)
-        self.process:Optional[subprocess.Popen] = None
+        self.process: Optional[subprocess.Popen] = None
         self.command = command.format(port=self.port)
         self.timeout_secs = timeout_secs
 
@@ -56,7 +56,7 @@ class WBridge5Client(Controller):
             if line.endswith("\n"):
                 return re.sub(r"\s+", " ", line).strip()
 
-    def send_line(self, line):
+    def send_line(self, line: str):
         assert self.conn is not None
         self.conn.send((line + "\r\n").encode("ascii"))
 

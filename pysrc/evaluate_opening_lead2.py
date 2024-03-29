@@ -130,8 +130,10 @@ class Worker(mp.Process):
         #                    [1, 1], conventions_list,
         #                    dds_evaluator, cfg)  # 779 798 798 804
         bot_factory: BotFactory = hydra.utils.instantiate(self.args.bot_factory)
-        opening_lead_bots = [bot_factory.create_bot(self.args.bot_name) for i in range(bridge.NUM_PLAYERS)]
+        opening_lead_bots = [bot_factory.create_bot(self.args.bot_name, trajectories=self.trajectories) for i in range(bridge.NUM_PLAYERS)]
         num_match = 0
+        num_actual_match = 0
+        num_actual_deals = 0
         logger = common_utils.Logger(
             os.path.join(self.args.save_dir, f"logs_{self.process_idx}.txt"),
             verbose=False,
@@ -155,18 +157,22 @@ class Worker(mp.Process):
             execution_times.append(ed - st)
             msg = f"Deal {j}, DDS moves:\n{dds_moves}\nBot move:{bot_move}"
             logger.write(msg)
+            
+            if not len(dds_moves) == bridge.NUM_CARDS_PER_HAND:
+                num_actual_deals += 1
 
             if bot_move in dds_moves:
                 num_match += 1
-                self.q.put(1)
+                # self.q.put(1)
                 if not len(dds_moves) == bridge.NUM_CARDS_PER_HAND:
-                    self.aq.put(1)
-            else:
-                self.q.put(0)
-                self.aq.put(0)
+                    # self.aq.put(1)
+                    num_actual_match += 1
+            # else:
+            #     self.q.put(0)
+            #     self.aq.put(0)
 
             print(
-                f"Process {self.process_idx}, num match: {num_match}/{j + 1}, total: {len(self.trajectories)}"
+                f"Process {self.process_idx}, ddolar: {num_match}/{j + 1}, addolar: {num_actual_match}/{num_actual_deals}, total: {len(self.trajectories)}"
             )
             
             np.save(os.path.join(self.args.save_dir, f"execution_times_{self.process_idx}.npy"), np.array(execution_times))
