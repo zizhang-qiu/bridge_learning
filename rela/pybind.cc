@@ -1,6 +1,7 @@
 //
 // Created by qzz on 2023/9/19.
 //
+#include <pybind11/cast.h>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "rela/tensor_dict.h"
@@ -29,14 +30,13 @@ PYBIND11_MODULE(rela, m) {
       .def_readwrite("seq_len", &RNNTransition::seqLen);
 
   py::class_<RNNPrioritizedReplay, std::shared_ptr<RNNPrioritizedReplay>>(
-          m,
-          "RNNPrioritizedReplay")
-      .def(py::init<
-        int,   // capacity,
-        int,   // seed,
-        float, // alpha, priority exponent
-        float, // beta, importance sampling exponent
-        int>())
+      m,
+      "RNNPrioritizedReplay")
+      .def(py::init<int,    // capacity,
+                    int,    // seed,
+                    float,  // alpha, priority exponent
+                    float,  // beta, importance sampling exponent
+                    int>())
       .def("clear", &RNNPrioritizedReplay::clear)
       .def("terminate", &RNNPrioritizedReplay::terminate)
       .def("size", &RNNPrioritizedReplay::size)
@@ -46,13 +46,12 @@ PYBIND11_MODULE(rela, m) {
       .def("get", &RNNPrioritizedReplay::get);
 
   py::class_<TensorDictReplay, std::shared_ptr<TensorDictReplay>>(
-          m, "TensorDictReplay")
-      .def(py::init<
-        int,   // capacity,
-        int,   // seed,
-        float, // alpha, priority exponent
-        float, // beta, importance sampling exponent
-        int>())
+      m, "TensorDictReplay")
+      .def(py::init<int,    // capacity,
+                    int,    // seed,
+                    float,  // alpha, priority exponent
+                    float,  // beta, importance sampling exponent
+                    int>())
       .def("size", &TensorDictReplay::size)
       .def("num_add", &TensorDictReplay::numAdd)
       .def("sample", &TensorDictReplay::sample)
@@ -85,13 +84,13 @@ PYBIND11_MODULE(rela, m) {
   //     .def("add", &Models::add, py::keep_alive<1, 2>());
 
   py::class_<PrioritizedReplay2, std::shared_ptr<PrioritizedReplay2>>(
-          m,
-          "PrioritizedReplay2")
-      .def(py::init<int,   // capacity,
-                    int,   // seed,
-                    float, // alpha, priority exponent
-                    float, // beta, importance sampling exponent
-                    bool,  // whther we do prefetch
+      m,
+      "PrioritizedReplay2")
+      .def(py::init<int,    // capacity,
+                    int,    // seed,
+                    float,  // alpha, priority exponent
+                    float,  // beta, importance sampling exponent
+                    bool,   // whther we do prefetch
                     int>())
       //batchdim axis (usually it is 0, if we use LSTM then this can be 1)
       .def("size", &PrioritizedReplay2::size)
@@ -109,11 +108,8 @@ PYBIND11_MODULE(rela, m) {
   //                   const std::shared_ptr<PrioritizedReplay2> &>());
 
   py::class_<BatchRunner, std::shared_ptr<BatchRunner>>(m, "BatchRunner")
-      .def(py::init<
-        py::object,
-        const std::string&,
-        int,
-        const std::vector<std::string>&>())
+      .def(py::init<py::object, const std::string&, int,
+                    const std::vector<std::string>&>())
       .def(py::init<py::object, const std::string&>())
       .def("add_method", &BatchRunner::addMethod)
       .def("start", &BatchRunner::start)
@@ -127,10 +123,18 @@ PYBIND11_MODULE(rela, m) {
       .def("get", &FutureReply::get)
       .def("is_null", &FutureReply::isNull);
   py::class_<Batcher, std::shared_ptr<Batcher>>(m, "Batcher")
-      .def(py::init<int>()) // batchsize
+      .def(py::init<int>())  // batchsize
       .def("send", &Batcher::send)
       .def("get", &Batcher::get);
 
-
-    m.def("tensor_dict_stack", &tensor_dict::stack);
+  // Some tensor dict utils.
+  m.def("tensor_dict_stack", &tensor_dict::stack, py::arg("vec"),
+        py::arg("stack_dim"));
+  m.def("tensor_dict_eq", &tensor_dict::eq, py::arg("d0"), py::arg("d1"));
+  m.def("tensor_dict_index", &tensor_dict::index, py::arg("batch"),
+        py::arg("i"));
+  m.def("tensor_dict_narrow", &tensor_dict::narrow, py::arg("batch"),
+        py::arg("dim"), py::arg("i"), py::arg("len"), py::arg("squeeze"));
+  m.def("tensor_dict_clone", &tensor_dict::clone, py::arg("d"));
+  m.def("tensor_dict_zeros_like", &tensor_dict::zerosLike, py::arg("d"));
 }

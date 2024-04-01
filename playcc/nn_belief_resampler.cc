@@ -39,7 +39,6 @@ ResampleResult NNBeliefResampler::Resample(const ble::BridgeState& state) {
   }
   // std::cout <<"finish sample." << std::endl;
 
-
   const auto game = state.ParentGame();
   auto sample_state = ConstructStateFromDeal(deal, state.ParentGame());
 
@@ -53,8 +52,8 @@ ResampleResult NNBeliefResampler::Resample(const ble::BridgeState& state) {
     const auto policy = torch_actor_->GetPolicy(this_obs);
     const auto action_uid = game->GetMoveUid(item.move);
     // std::cout << "action uid: " << action_uid << std::endl;
-    const auto action_prob = policy.at("pi")[
-      action_uid - ble::kBiddingActionBase].item<float>();
+    const auto action_prob =
+        policy.at("pi")[action_uid - ble::kBiddingActionBase].item<float>();
     std::uniform_real_distribution<float> distribution(0.0, 1.0);
 
     // Generate a random value.
@@ -91,8 +90,7 @@ rela::TensorDict NNBeliefResampler::MakeTensorDictObs(
   if (state.CurrentPhase() == ble::Phase::kPlay) {
     rela::TensorDict obs = {
         {"s", torch::tensor(encoding, {torch::kFloat32})},
-        {"legal_move", torch::ones(ble::kNumCalls, {torch::kFloat32})}
-    };
+        {"legal_move", torch::ones(ble::kNumCalls, {torch::kFloat32})}};
     return obs;
   }
   std::vector<float> legal_move_mask(ble::kNumCalls, 0);
@@ -102,29 +100,27 @@ rela::TensorDict NNBeliefResampler::MakeTensorDictObs(
   }
   rela::TensorDict obs = {
       {"s", torch::tensor(encoding, {torch::kFloat32})},
-      {"legal_move", torch::tensor(legal_move_mask, {torch::kFloat32})}
-  };
+      {"legal_move", torch::tensor(legal_move_mask, {torch::kFloat32})}};
   return obs;
 }
 
 std::array<int, ble::kNumCards> NNBeliefResampler::SampleFromBelief(
-    const rela::TensorDict& belief,
-    const ble::BridgeState& state) const {
+    const rela::TensorDict& belief, const ble::BridgeState& state) const {
   const auto belief_probs = belief.at("belief");
   const torch::Tensor basic_indices =
       torch::arange(0, ble::kNumCardsPerHand) * ble::kNumPlayers;
   // std::cout <<"basic_indices:\n" << basic_indices << std::endl;
   const int observation_tensor_size = encoder_.GetAuctionTensorSize();
 
-  const auto player_cards_feature = torch::tensor(
-      encoder_.EncodeMyHand({state}));
+  const auto player_cards_feature =
+      torch::tensor(encoder_.EncodeMyHand({state}));
   // std::cout << "player_cards_feature:\n" << player_cards_feature << std::endl;
-  const auto player_cards = torch::nonzero(player_cards_feature).squeeze().to(
-      torch::kInt32);
+  const auto player_cards =
+      torch::nonzero(player_cards_feature).squeeze().to(torch::kInt32);
   // std::cout << "player_cards:\n" << player_cards << std::endl;
   // Cards have been selected
-  torch::Tensor deal_cards = torch::ones(ble::kNumCards, {torch::kInt32}).
-      fill_(-1);
+  torch::Tensor deal_cards =
+      torch::ones(ble::kNumCards, {torch::kInt32}).fill_(-1);
   // std::cout <<"deal cards:\n" << deal_cards << std::endl;
   // std::cout << "current player: " << state.CurrentPlayer() <<std::endl;
   deal_cards = deal_cards.scatter_(0, basic_indices + state.CurrentPlayer(),
@@ -135,31 +131,29 @@ std::array<int, ble::kNumCards> NNBeliefResampler::SampleFromBelief(
   for (const int sample_relative_player : {2, 1, 3}) {
     const int start_index = (sample_relative_player - 1) * ble::kNumCards;
     const int end_index = sample_relative_player * ble::kNumCards;
-    torch::Tensor relative_player_pred = belief_probs.slice(
-        0, start_index, end_index).clone();
-  // std::cout << "relative player: " << sample_relative_player << ":\n" <<
-  //     relative_player_pred << std::endl;
+    torch::Tensor relative_player_pred =
+        belief_probs.slice(0, start_index, end_index).clone();
+    // std::cout << "relative player: " << sample_relative_player << ":\n" <<
+    //     relative_player_pred << std::endl;
     relative_player_pred *= 1 - selected_cards;
     if (torch::count_nonzero(relative_player_pred).item<int>() <
         ble::kNumCardsPerHand) {
-      return {-1}; // sentinel
+      return {-1};  // sentinel
     }
     // Sample 13 cards
-    torch::Tensor sample_cards = torch::multinomial(
-        relative_player_pred, ble::kNumCardsPerHand, false);
+    torch::Tensor sample_cards =
+        torch::multinomial(relative_player_pred, ble::kNumCardsPerHand, false);
     selected_cards = selected_cards.scatter_(0, sample_cards, 1);
     // std::cout << selected_cards << std::endl;
-    deal_cards = deal_cards.scatter_(0,
-                                     basic_indices + (
-                                       state.CurrentPlayer() +
-                                       sample_relative_player) %
-                                     ble::kNumPlayers,
-                                     sample_cards.to(torch::kInt32));
+    deal_cards = deal_cards.scatter_(
+        0,
+        basic_indices +
+            (state.CurrentPlayer() + sample_relative_player) % ble::kNumPlayers,
+        sample_cards.to(torch::kInt32));
     // std::cout << "deal cards:\n" << deal_cards << std::endl;
   }
   std::array<int, ble::kNumCards> ret{};
-  std::copy_n(deal_cards.data_ptr<int>(),
-              ble::kNumCards, ret.begin());
+  std::copy_n(deal_cards.data_ptr<int>(), ble::kNumCards, ret.begin());
   // for(int i=0; i< ble::kNumCards; ++i) {
   //   std::cout << ret[i] << std::endl;
   // }
