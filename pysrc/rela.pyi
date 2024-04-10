@@ -1,6 +1,6 @@
 """A stub file for rela module."""
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, overload
 import torch
 
 TensorDict = Dict[str, torch.Tensor]
@@ -16,13 +16,16 @@ class Batcher:
     def set(self, t: TensorDict): ...
 
 class BatchRunner:
+    @overload
     def __init__(
         self,
         py_model: torch.jit.ScriptModule,
         device: str,
-        max_batch_size: Optional[int],
-        methods: Optional[List[str]],
+        max_batch_size: int,
+        methods: List[str],
     ): ...
+    @overload
+    def __init__(self, py_model: torch.jit.ScriptModule, device: str): ...
     def add_method(self, method: str, batch_size: int): ...
     def start(self): ...
     def stop(self): ...
