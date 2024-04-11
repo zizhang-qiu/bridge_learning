@@ -1,7 +1,0 @@
-{
-    "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.diagnosticSeverityOverrides": {
-        "reportPrivateImportUsage": "none",
-        "reportAttributeAccessIssue" : "none"
-    }
-}
