@@ -53,7 +53,7 @@ You should use `GetMove()` to get bidding moves and `ApplyMove()` to apply a mov
 
 A full example:
 
-```
+```C++
 auto game = std::make_shared<BridgeGame>({});
 auto state = BridgeState(game);
 while state.IsChanceNode(){

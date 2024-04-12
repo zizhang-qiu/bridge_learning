@@ -109,3 +109,6 @@ target_link_libraries(bridge_lib PUBLIC double_dummy_solver)
 add_executable(bridge_test bridge_test.cc)
 target_link_libraries(bridge_test PRIVATE bridge_lib)
 add_test(bridge_test bridge_test)
+
+add_executable(game_example game_example.cc)
+target_link_libraries(game_example PRIVATE bridge_lib)
