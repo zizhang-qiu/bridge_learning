@@ -1,0 +1,2 @@
+_target_: torch.optim.Adam
+lr: !!float 3e-4

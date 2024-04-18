@@ -1,0 +1,4 @@
+is_dealer_vulnerable: "false"
+is_non_dealer_vulnerable: "false"
+dealer: "0"
+seed: "42"

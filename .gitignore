@@ -1,7 +1,6 @@
 /build/
 /sl/
 /policy_sl/
-/pysrc/conf
 /pysrc/__pycache__
 /pysrc/outputs
 /.cache

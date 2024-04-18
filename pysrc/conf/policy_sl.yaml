@@ -1,0 +1,14 @@
+lr : !!float 3e-5
+batch_size : 256
+valid_batch_size : 10000
+num_iterations : 1000000
+eval_freq : 1000
+device : "cuda"
+dataset_dir : "D:\\Projects\\bridge_research\\expert"
+save_dir : "../policy_sl/exp8"
+topk : 10
+
+defaults:
+  - _self_
+  - optimizer: adam
+  - net : net

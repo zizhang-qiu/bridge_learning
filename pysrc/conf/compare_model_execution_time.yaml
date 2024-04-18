@@ -1,0 +1,11 @@
+num_nodes : 20000
+save_dir : "../model_exec_times/exp2"
+device : "cuda"
+
+
+defaults:
+  - _self_
+  - jps_a2c : a2c
+  - net: net
+  - value_net : net
+  - belief_net : belief

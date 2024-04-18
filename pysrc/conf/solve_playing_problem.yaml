@@ -1,0 +1,25 @@
+bot_factory:
+  _target_ : create_bridge.BotFactory
+  belief_model_dir : "../belief_sl/exp3"
+  belief_model_name : "model2.pthw"
+  policy_model_dir : "../sl/exp6"
+  policy_model_name : "model0.pthw"
+  device : "cuda"
+
+  seed : 1234
+  num_worlds : 20
+
+  num_max_moves : 2
+  early_cut : true
+  root_cut : true
+  rollout_result : 2
+
+  convention_file : "conf/bidding_system/WBridge5-Sayc.bbsa"
+  bidding_systems :
+    - 1
+    - 1
+
+  fill_with_uniform_sample : true
+  num_max_sample : 1000
+
+  verbose : false

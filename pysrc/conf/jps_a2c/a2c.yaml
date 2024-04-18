@@ -1,0 +1,17 @@
+_target_ : other_models.A2CAgent
+model_type: "resnet"
+hid_dim: 200
+num_blocks: 2
+entropy_ratio: 0.01
+p_hand_loss_ratio: 0
+p_hand_loss_only_on_terminal: false
+max_importance_ratio: 2.0
+opp_hand_ratio : 0.0
+use_goal: False
+explore_ratio : 0.0
+num_action: 38
+input_dim: 268 # accorfing to JPS paper.
+use_old_feature: false
+use_search_train: false
+use_value_based: false
+load_model : "../external_models/jps/agent-1610-0.63.pth"

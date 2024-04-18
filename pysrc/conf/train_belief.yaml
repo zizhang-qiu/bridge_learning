@@ -1,0 +1,12 @@
+dataset_dir : "D:\\Projects\\bridge_research\\expert"
+save_dir : "../belief_sl/exp1"
+batch_size : 512
+valid_batch_size : 10000
+num_iterations : 1000000
+eval_freq : 1000
+device : "cuda"
+top_k : 10
+defaults:
+  - _self_
+  - optimizer: adam
+  - belief_net : belief

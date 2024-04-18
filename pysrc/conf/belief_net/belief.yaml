@@ -1,0 +1,10 @@
+input_size: 480
+output_size: 156
+num_hidden_layers: 6
+hidden_size: 2048
+activation_function: gelu
+activation_args :
+  {}
+use_dropout : false
+dropout_prob : 0
+use_layer_norm : false

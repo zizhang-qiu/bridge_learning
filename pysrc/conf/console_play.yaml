@@ -1,0 +1,8 @@
+policy_weight : "../sl/exp6/model0.pthw"
+belief_weight : "../belief_sl/"
+device: "cuda"
+
+defaults:
+  - _self_
+  - belief_net : belief
+  - net : net

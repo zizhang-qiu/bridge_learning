@@ -1,0 +1,11 @@
+num_pairs : 100000
+max_bidding_length : 20
+save_dir: "../belief_eval/exp1"
+policy_weight : "../sl/exp6/model0.pthw"
+belief_weight : "../belief_sl/"
+
+
+defaults:
+  - _self_
+  - belief_net : belief
+  - net : net

@@ -1,0 +1,2 @@
+_target_: net.MLP
+input_size: 480
