@@ -146,3 +146,94 @@ class MLP(torch.jit.ScriptModule):
             state_dict = file["state_dict"] # type: ignore
             net.load_state_dict(state_dict) # type: ignore
         return net
+
+# class PublicLSTMNet(torch.jit.ScriptModule):
+class PublicLSTMNet(nn.Module):
+    def __init__(self, device:str,
+                 in_dim:int,
+                 hid_dim:int,
+                 out_dim:int,
+                 num_mlp_layer:int,
+                 num_lstm_layer:int):
+        super().__init__()
+        self.device = device
+        self.in_dim = in_dim
+        self.priv_in_dim = 52
+        self.publ_in_dim = in_dim - 52
+        
+        self.hid_dim = hid_dim
+        self.num_mlp_layer = num_mlp_layer
+        self.num_lstm_layer = num_lstm_layer
+        
+        self.priv_net = nn.Sequential(
+            nn.Linear(self.priv_in_dim, self.hid_dim),
+            nn.ReLU(),
+            nn.Linear(self.hid_dim, self.hid_dim),
+            nn.ReLU(),
+            nn.Linear(self.hid_dim, self.hid_dim),
+            nn.ReLU(),
+        )
+        ff_layers = [nn.Linear(self.publ_in_dim, self.hid_dim), nn.ReLU()]
+        for i in range(1, self.num_mlp_layer):
+            ff_layers.append(nn.Linear(self.hid_dim, self.hid_dim))
+            ff_layers.append(nn.ReLU())
+        self.publ_net = nn.Sequential(*ff_layers)
+        
+        self.lstm = nn.LSTM(
+            self.hid_dim,
+            self.hid_dim,
+            num_layers=self.num_lstm_layer,
+        ).to(device)
+        self.lstm.flatten_parameters()
+        
+        self.policy_head = nn.Linear(self.hid_dim, out_dim)
+        self.value_head = nn.Linear(self.hid_dim, 1)
+        
+        
+    # @torch.jit.script_method
+    def get_h0(self)->Dict[str, torch.Tensor]:
+        shape = (self.num_lstm_layer, self.hid_dim)
+        hid = {"h0": torch.zeros(*shape), "c0": torch.zeros(*shape)}
+        return hid
+    
+    # @torch.jit.script_method
+    def act(self, 
+            priv_s:torch.Tensor, 
+            publ_s:torch.Tensor, 
+            hid:Dict[str, torch.Tensor])->Dict[str, torch.Tensor]:
+        assert priv_s.dim() == 2
+        
+        
+        batch_size = hid["h0"].size(0)
+        assert hid["h0"].dim() == 3
+        # hid size: [batch, num_layer, dim]
+        # -> [num_layer, batch, dim]
+        hid = {
+            "h0": hid["h0"].transpose(0, 1).contiguous(),
+            "c0": hid["c0"].transpose(0, 1).contiguous(),
+        }
+        
+        priv_s = priv_s.unsqueeze(0)
+        publ_s = publ_s.unsqueeze(0)
+        
+        priv_o = self.priv_net(priv_s)
+        x = self.publ_net(publ_s)
+        publ_o, (h, c) = self.lstm(x, (hid["h0"], hid["c0"]))
+        print(h, h.size(), c, c.size())
+        
+        o = priv_o * publ_o
+        o = o.squeeze(0)
+        pi = torch.nn.functional.softmax(self.policy_head(o), dim=-1)
+        v = self.value_head(o)
+        
+        interim_hid_shape = (
+            self.num_lstm_layer,
+            batch_size,
+            self.hid_dim,
+        )
+        h = h.view(*interim_hid_shape)
+        c = c.view(*interim_hid_shape)
+        
+        return {"pi": pi, "v": v, "h0": h, "c0": c}
+        
+        

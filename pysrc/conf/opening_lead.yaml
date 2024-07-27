@@ -7,7 +7,7 @@ bot_factory:
   device : "cuda"
 
   seed : 1234
-  num_worlds : 20
+  num_worlds : 1000
 
   num_max_moves : 2
   early_cut : true
@@ -29,8 +29,8 @@ dataset_name : "test.txt"
 
 cmd_line : "d:/wbridge5/Wbridge5.exe Autoconnect {port}"
 
-num_processes : 1
-save_dir : "../opening_lead_eval/exp8"
+num_processes : 2
+save_dir : "../opening_lead_eval/exp9"
 
-num_deals : 10000
-bot_name: "wbridge5_trajectory"
+num_deals : 20
+bot_name: "pimc"
