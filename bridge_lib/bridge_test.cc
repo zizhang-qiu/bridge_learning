@@ -2,6 +2,7 @@
 // Created by qzz on 2023/11/13.
 //
 #include <algorithm>
+#include <chrono>
 
 #include "bridge_scoring.h"
 #include "bridge_state.h"
@@ -380,6 +381,56 @@ void DoubleDummyTest() {
     // std::cout << (flattened_ddt == expected_ddt) << std::endl;
   }
 }
+
+template <typename T>
+T UniformSample(const std::vector<T>& vec, std::mt19937& rng) {
+  // Check if the vector is not empty
+  if (vec.empty()) {
+    throw std::out_of_range("Vector is empty");
+  }
+
+  if (vec.size() == 1) {
+    return vec[0];
+  }
+
+  // Use the provided RNG to generate an index uniformly
+  std::uniform_int_distribution<std::size_t> dist(0, vec.size() - 1);
+
+  // Return the sampled element
+  return vec[dist(rng)];
+}
+
+void RandomSimTest(int num_games, int game_seed, int sample_seed){
+  std::cout << "Starting random sim test." << std::endl;
+  std::mt19937 rng(sample_seed);
+  const GameParameters params = {{"seed", std::to_string(game_seed)}};
+  const auto game = std::make_shared<BridgeGame>(params);
+  auto st = std::chrono::high_resolution_clock::now();
+  for(int i_sim=0; i_sim<num_games; ++i_sim){
+
+    auto state = BridgeState(game);
+    while(!state.IsTerminal()){
+      if (state.IsChanceNode()){
+        state.ApplyRandomChance();
+        continue;
+      }
+      const auto legal_moves = state.LegalMoves();
+      const auto move = UniformSample(legal_moves, rng);
+      state.ApplyMove(move);
+    }
+  }
+  auto ed = std::chrono::high_resolution_clock::now();
+  auto elapsed = ed - st;
+  std::cout << "Passed random sim test." << std::endl;
+  std::cout << num_games << " games have been simulated, "
+            << "Avg time for a game: "
+            << double(std::chrono::duration_cast<std::chrono::milliseconds>(
+                          elapsed)
+                          .count()) /
+                   (num_games * 1000)
+            << " seconds." << std::endl;
+}
+
 }  // namespace bridge_learning_env
 
 int main() {
@@ -390,4 +441,6 @@ int main() {
   std::cout << "Score test passed." << std::endl;
   bridge_learning_env::DoubleDummyTest();
   std::cout << "DD test passed." << std::endl;
+  bridge_learning_env::RandomSimTest(10000, 42, 1);
+  return 0;
 }

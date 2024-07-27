@@ -22,6 +22,7 @@ if (WIN32)
     add_definitions(-DNOMINMAX)  # Define NOMINMAX for Windows builds
 endif ()
 
+set(Python3_ROOT_DIR D:/Anaconda/envs/bridge_research)
 set(Python3_FIND_VIRTUALENV ONLY)
 if (WIN32)
     set(CUDA_HOME D:\\cuda-12.3)

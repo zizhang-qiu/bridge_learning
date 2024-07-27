@@ -2,8 +2,8 @@
 // Created by qzz on 2023/10/22.
 //
 
-#ifndef BRIDGE_LEARNING_PLAYCC_RESAMPLER_H_
-#define BRIDGE_LEARNING_PLAYCC_RESAMPLER_H_
+#ifndef PLAYCC_RESAMPLER_H
+#define PLAYCC_RESAMPLER_H
 #include <algorithm>
 #include <array>
 
@@ -59,4 +59,4 @@ class UniformResampler final : public Resampler {
     std::mt19937 rng_;
     DeckSampler deck_sampler_;
 };
-#endif // BRIDGE_LEARNING_PLAYCC_RESAMPLER_H_
+#endif /* PLAYCC_RESAMPLER_H */

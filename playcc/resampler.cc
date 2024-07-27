@@ -4,16 +4,17 @@
 #include "resampler.h"
 
 #include "bridge_lib/utils.h"
-std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndConstraintsFromState(
-    const ble::BridgeState &state) {
+
+std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>>
+GetKnownCardsAndConstraintsFromState(const ble::BridgeState& state) {
   ResampleConstraints constraints{};
-  std::fill(constraints.begin(), constraints.end(), std::array<int, ble::kNumSuits>{-1, -1, -1, -1});
+  std::fill(constraints.begin(), constraints.end(),
+            std::array<int, ble::kNumSuits>{-1, -1, -1, -1});
   const std::vector<ble::BridgeHand> hands = state.OriginalDeal();
-  const auto &history = state.History();
-  const auto &play_history = GetPlayHistory(history);
+  const auto& history = state.History();
+  const auto& play_history = GetPlayHistory(history);
   const ble::Contract contract = state.GetContract();
   const ble::Player current_player = state.CurrentPlayer();
-
 
   ble::Player player = (1 + contract.declarer) % ble::kNumPlayers;
   ble::Trick trick{ble::kInvalidPlayer, ble::kNoTrump, 0};
@@ -37,7 +38,8 @@ std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndCo
       trick.Play(player, card);
       // This only happen when this player has run out of led suit.
       if (item.suit != trick.LedSuit()) {
-        constraints[player][trick.LedSuit()] = known_cards[player].SuitLength()[trick.LedSuit()];
+        constraints[player][trick.LedSuit()] =
+            known_cards[player].SuitLength()[trick.LedSuit()];
       }
     }
   }
@@ -50,9 +52,10 @@ std::tuple<ResampleConstraints, std::vector<ble::BridgeHand>> GetKnownCardsAndCo
   //  std::cout << "Get current player's hand" << std::endl;
   return std::make_tuple(constraints, known_cards);
 }
-std::vector<std::array<int, ble::kNumCards>> ResampleMultipleDeals(const std::shared_ptr<Resampler> &resampler,
-                                                                   const ble::BridgeState &state,
-                                                                   int num_deals) {
+
+std::vector<std::array<int, ble::kNumCards>> ResampleMultipleDeals(
+    const std::shared_ptr<Resampler>& resampler, const ble::BridgeState& state,
+    int num_deals) {
   std::vector<std::array<int, ble::kNumCards>> deals;
   int num_sampled_deals = 0;
   while (num_sampled_deals < num_deals) {
@@ -65,7 +68,8 @@ std::vector<std::array<int, ble::kNumCards>> ResampleMultipleDeals(const std::sh
   SPIEL_CHECK_EQ(num_sampled_deals, num_deals);
   return deals;
 }
-ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
+
+ResampleResult UniformResampler::Resample(const ble::BridgeState& state) {
   deck_sampler_.Reset();
 
   const ble::Player current_player = state.CurrentPlayer();
@@ -73,7 +77,8 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
   //    std::cout << "contract: " << contract.ToString() << std::endl;
   ResampleConstraints constraints{};
   std::vector<ble::BridgeHand> known_cards;
-  std::tie(constraints, known_cards) = GetKnownCardsAndConstraintsFromState(state);
+  std::tie(constraints, known_cards) =
+      GetKnownCardsAndConstraintsFromState(state);
   //    std::cout << "constraints:\n";
   //    for (int i = 0; i < ble::kNumPlayers; ++i) {
   //      for (int j = 0; j < ble::kNumSuits; ++j) {
@@ -113,7 +118,8 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
       continue;
     }
 
-    const int num_cards_need = ble::kNumCardsPerHand - static_cast<int>(known_cards[pl].Cards().size());
+    const int num_cards_need = ble::kNumCardsPerHand -
+                               static_cast<int>(known_cards[pl].Cards().size());
     for (int i = 0; i < num_cards_need; ++i) {
       ble::BridgeCard sampled_card;
       sampled_card = deck_sampler_.SampleNotSuits(suit_filters[pl], rng_);
@@ -131,7 +137,8 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
       continue;
     }
 
-    const int num_cards_need = ble::kNumCardsPerHand - static_cast<int>(known_cards[pl].Cards().size());
+    const int num_cards_need = ble::kNumCardsPerHand -
+                               static_cast<int>(known_cards[pl].Cards().size());
     //      std::cout << "num cards need: " << num_cards_need << std::endl;
     for (int i = 0; i < num_cards_need; ++i) {
       ble::BridgeCard sampled_card = deck_sampler_.Sample(rng_);
@@ -151,7 +158,9 @@ ResampleResult UniformResampler::Resample(const ble::BridgeState &state) {
   //    }
   return {true, HandsToCardIndices(sampled_hands)};
 }
-void UniformResampler::ResetWithParams(const std::unordered_map<std::string, std::string> &params) {
+
+void UniformResampler::ResetWithParams(
+    const std::unordered_map<std::string, std::string>& params) {
   const auto seed = ble::ParameterValue<int>(params, "seed", 42);
   rng_.seed(seed);
 }

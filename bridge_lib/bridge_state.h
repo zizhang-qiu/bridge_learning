@@ -2,8 +2,8 @@
 // Created by qzz on 2023/9/23.
 //
 
-#ifndef BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
-#define BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
+#ifndef BRIDGE_LIB_BRIDGE_STATE_H
+#define BRIDGE_LIB_BRIDGE_STATE_H
 #include <random>
 #include <iostream>
 #include <set>
@@ -207,4 +207,4 @@ class BridgeState {
 std::ostream& operator<<(std::ostream& stream, const BridgeState& state);
 } // namespace bridge_learning_env
 
-#endif // BRIDGE_LEARNING_BRIDGE_LIB_BRIDGE_STATE_H_
+#endif /* BRIDGE_LIB_BRIDGE_STATE_H */
