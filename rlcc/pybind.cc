@@ -129,24 +129,35 @@ PYBIND11_MODULE(bridgelearn, m) {
 
   py::class_<BridgeA2CActor, Actor, std::shared_ptr<BridgeA2CActor>>(
       m, "BridgeA2CActor")
-      .def(py::init<const std::shared_ptr<rela::BatchRunner>&>())
+      .def(py::init<const std::shared_ptr<rela::BatchRunner>&, int>())
       .def("observe_before_act", &BridgeA2CActor::ObserveBeforeAct)
       .def("act", &BridgeA2CActor::Act)
       .def("observe_after_act", &BridgeA2CActor::ObserveAfterAct);
 
   py::class_<AllPassActor, Actor, std::shared_ptr<AllPassActor>>(m,
                                                                  "AllPassActor")
-      .def(py::init<>())
+      .def(py::init<int>())
       .def("observe_before_act", &AllPassActor::ObserveBeforeAct)
       .def("act", &AllPassActor::Act)
       .def("observe_after_act", &AllPassActor::ObserveAfterAct);
 
-  py::class_<JPSActor, Actor, std::shared_ptr<JPSActor>>(
-      m, "BaselineActor")
-      .def(py::init<const std::shared_ptr<rela::BatchRunner>&>())
+  py::class_<JPSActor, Actor, std::shared_ptr<JPSActor>>(m, "BaselineActor")
+      .def(py::init<const std::shared_ptr<rela::BatchRunner>&, int>())
       .def("observe_before_act", &JPSActor::ObserveBeforeAct)
       .def("act", &JPSActor::Act)
       .def("observe_after_act", &JPSActor::ObserveAfterAct);
+
+  py::class_<RandomActor, Actor, std::shared_ptr<RandomActor>>(m, "RandomActor")
+      .def(py::init<int>());
+
+  py::class_<BridgePublicLSTMActor, Actor,
+             std::shared_ptr<BridgePublicLSTMActor>>(m, "BridgePublicLSTMActor")
+      .def(py::init<const std::shared_ptr<rela::BatchRunner>&, int>())
+      .def(py::init<const std::shared_ptr<rela::BatchRunner>&, int, float,
+                    std::shared_ptr<rela::RNNPrioritizedReplay>&, int>())
+      .def("reset", &BridgePublicLSTMActor::Reset)
+      .def("observe_before_act", &BridgePublicLSTMActor::ObserveBeforeAct)
+      .def("act", &BridgePublicLSTMActor::Act);
 
   py::class_<EnvActorOptions>(m, "EnvActorOptions")
       .def(py::init<>())
@@ -157,7 +168,8 @@ PYBIND11_MODULE(bridgelearn, m) {
   py::class_<BridgeEnvActor, EnvActor, std::shared_ptr<BridgeEnvActor>>(
       m, "BridgeEnvActor")
       .def(py::init<const std::shared_ptr<GameEnv>&, const EnvActorOptions&,
-                    std::vector<std::shared_ptr<Actor>>>(), py::keep_alive<1, 2>(), py::keep_alive<1, 4>())
+                    std::vector<std::shared_ptr<Actor>>>(),
+           py::keep_alive<1, 2>(), py::keep_alive<1, 4>())
       .def("observe_before_act", &BridgeEnvActor::ObserveBeforeAct)
       .def("act", &BridgeEnvActor::Act)
       .def("observe_after_act", &BridgeEnvActor::ObserveAfterAct)
@@ -173,5 +185,5 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def(py::init<std::vector<std::shared_ptr<EnvActor>>, int, int, bool>(),
            py::arg("env_actors"), py::arg("num_game_per_env") = -1,
            py::arg("thread_idx") = -1, py::arg("verbose") = false)
-        .def("main_loop", &EnvActorThreadLoop::mainLoop);
+      .def("main_loop", &EnvActorThreadLoop::mainLoop);
 }

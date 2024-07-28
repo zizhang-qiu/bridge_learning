@@ -147,8 +147,8 @@ class MLP(torch.jit.ScriptModule):
             net.load_state_dict(state_dict) # type: ignore
         return net
 
-# class PublicLSTMNet(torch.jit.ScriptModule):
-class PublicLSTMNet(nn.Module):
+class PublicLSTMNet(torch.jit.ScriptModule):
+# class PublicLSTMNet(nn.Module):
     def __init__(self, device:str,
                  in_dim:int,
                  hid_dim:int,
@@ -190,17 +190,18 @@ class PublicLSTMNet(nn.Module):
         self.value_head = nn.Linear(self.hid_dim, 1)
         
         
-    # @torch.jit.script_method
+    @torch.jit.script_method
     def get_h0(self)->Dict[str, torch.Tensor]:
         shape = (self.num_lstm_layer, self.hid_dim)
         hid = {"h0": torch.zeros(*shape), "c0": torch.zeros(*shape)}
         return hid
     
-    # @torch.jit.script_method
+    @torch.jit.script_method
     def act(self, 
             priv_s:torch.Tensor, 
             publ_s:torch.Tensor, 
             hid:Dict[str, torch.Tensor])->Dict[str, torch.Tensor]:
+        
         assert priv_s.dim() == 2
         
         
@@ -219,7 +220,7 @@ class PublicLSTMNet(nn.Module):
         priv_o = self.priv_net(priv_s)
         x = self.publ_net(publ_s)
         publ_o, (h, c) = self.lstm(x, (hid["h0"], hid["c0"]))
-        print(h, h.size(), c, c.size())
+        # print(h, h.size(), c, c.size())
         
         o = priv_o * publ_o
         o = o.squeeze(0)
@@ -231,8 +232,8 @@ class PublicLSTMNet(nn.Module):
             batch_size,
             self.hid_dim,
         )
-        h = h.view(*interim_hid_shape)
-        c = c.view(*interim_hid_shape)
+        h = h.view(*interim_hid_shape).transpose(0, 1)
+        c = c.view(*interim_hid_shape).transpose(0, 1)
         
         return {"pi": pi, "v": v, "h0": h, "c0": c}
         

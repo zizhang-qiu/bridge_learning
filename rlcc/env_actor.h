@@ -18,6 +18,8 @@ class EnvActor {
            const EnvActorOptions& options)
       : actors_(actors), options_(options) {}
 
+  virtual void Reset() {}
+
   virtual void ObserveBeforeAct() {}
 
   virtual void Act() {}

@@ -113,7 +113,7 @@ class DuplicateEnv : public GameEnv {
     return {ble::kNumPlayers, ble::kNumPartnerships};
   }
 
-  rela::TensorDict Feature() const override;
+  rela::TensorDict Feature(int player=-1) const override;
 
  private:
   bool ResetWithoutDataset();

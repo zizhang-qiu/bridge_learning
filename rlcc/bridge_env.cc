@@ -147,12 +147,15 @@ ble::Player BridgeEnv::CurrentPlayer() const {
   return state_->CurrentPlayer();
 }
 
-rela::TensorDict BridgeEnv::Feature() const {
+rela::TensorDict BridgeEnv::Feature(int player) const {
+  if(player == -1){
+    player = CurrentPlayer();
+  }
   RELA_CHECK_NOTNULL(state_);
   if (Terminated()) {
     return TerminalFeature();
   }
-  const auto observation = ble::BridgeObservation(*state_);
+  const auto observation = ble::BridgeObservation(*state_, player);
   const auto encoding = encoder_.Encode(observation);
   const auto& legal_moves = observation.LegalMoves();
   std::vector<float> legal_move_mask(game_.NumDistinctActions(), 0);

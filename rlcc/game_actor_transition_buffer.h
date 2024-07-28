@@ -1,6 +1,5 @@
 #ifndef RLCC_GAME_ACTOR_TRANSITION_BUFFER_H
 #define RLCC_GAME_ACTOR_TRANSITION_BUFFER_H
-#include <ATen/core/TensorBody.h>
 #include <vector>
 #include "rela/tensor_dict.h"
 #include "rela/transition.h"

@@ -110,7 +110,7 @@ add_library(rela_lib
         rela/prioritized_replay2.h
         rela/batcher.cc
         rela/batcher.h
-
+        rela/r2d2.h
 )
 
 target_include_directories(rela_lib PUBLIC ${TORCH_INCLUDE_DIRS})
@@ -143,6 +143,10 @@ add_library(_bridgelearn OBJECT
         rlcc/actor_based_belief_gen.h
         rlcc/duplicate_env.cc
         rlcc/duplicate_env.h
+        rlcc/utils.h
+        rlcc/rnn_buffer.h
+        rlcc/clone_data_generator.cc
+        rlcc/clone_data_generator.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

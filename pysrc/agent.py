@@ -3,7 +3,7 @@ from typing import Dict, Optional, Tuple
 import torch
 from torch import nn
 
-from net import MLP
+from net import MLP, PublicLSTMNet
 import copy
 
 
@@ -42,7 +42,7 @@ class BridgeA2CModel(torch.jit.ScriptModule):
         return reply
 
     @torch.jit.script_method
-    def act_greedy(self, obs:Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def act_greedy(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         policy = self.get_policy(obs)
         legal_policy = policy["pi"] * obs["legal_move"][:, -38:]
         greedy_a = legal_policy.max(dim=1)[1].view(-1, 1) + 52
@@ -139,3 +139,49 @@ class BridgeBeliefModel(torch.jit.ScriptModule):
     def accuracy(self, batch: Dict[str, torch.Tensor]):
         pred1, pred2, pred3 = self.forward(batch)
         ground_truth = batch[self.target_key]
+
+
+class BridgePublicLSTMagent(torch.jit.ScriptModule):
+    def __init__(
+        self,
+        device: str,
+        in_dim: int,
+        hid_dim: int,
+        out_dim: int,
+        num_mlp_layer: int,
+        num_lstm_layer: int,
+        greedy=False,
+    ):
+        super().__init__()
+        self.net = PublicLSTMNet(
+            device, in_dim, hid_dim, out_dim, num_mlp_layer, num_lstm_layer
+        ).to(device)
+        self.greedy = greedy
+
+    @torch.jit.script_method
+    def get_h0(self) -> Dict[str, torch.Tensor]:
+        return self.net.get_h0()
+
+    @torch.jit.script_method
+    def act(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        priv_s = obs["priv_s"]
+        publ_s = obs["publ_s"]
+        legal_move = obs["legal_move"]
+        hid = {"h0": obs["h0"], "c0": obs["c0"]}
+        reply = self.net.act(priv_s, publ_s, hid)
+
+        # print("get_reply")
+        legal_pi = reply["pi"] * legal_move[:, -38:]
+        if self.greedy:
+            action = legal_pi.max(dim=1)[1].view(-1, 1) + 52
+        else:
+            action = torch.multinomial(legal_pi, 1).squeeze() + 52
+
+        ret = {
+            "a": action,
+            "pi": reply["pi"],
+            "v": reply["v"],
+            "h0": reply["h0"],
+            "c0": reply["c0"],
+        }
+        return ret

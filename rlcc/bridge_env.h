@@ -106,7 +106,7 @@ class BridgeEnv : public GameEnv {
 
   ble::BridgeMove LastMove() const { return last_move_; }
 
-  rela::TensorDict Feature() const override;
+  rela::TensorDict Feature(int player = -1) const override;
 
   const ble::GameParameters& Parameters() const;
 

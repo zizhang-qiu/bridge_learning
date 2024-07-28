@@ -6,8 +6,8 @@
 #define BRIDGE_LEARNING_RELA_LOGGING_H_
 #include <cassert>
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace rela {
 namespace logging {
@@ -33,6 +33,11 @@ void assertWithMessage(bool condition, Args&&... args) {
   rela::logging::assertWithMessage(condition, #condition, " check failed at ", \
                                    __FILE__, ":", __LINE__, ". ",              \
                                    ##__VA_ARGS__);
+
+#define RELA_CHECK_FALSE(condition, ...)                               \
+  rela::logging::assertWithMessage(!condition, #condition,             \
+                                   " check failed at ", __FILE__, ":", \
+                                   __LINE__, ". ", ##__VA_ARGS__);
 
 #define RELA_CHECK_NOTNULL(x, ...)                                          \
   rela::logging::assertWithMessage(                                         \
@@ -71,4 +76,4 @@ void assertWithMessage(bool condition, Args&&... args) {
 
 }  // namespace logging
 }  // namespace rela
-#endif //BRIDGE_LEARNING_RELA_LOGGING_H_
+#endif  //BRIDGE_LEARNING_RELA_LOGGING_H_

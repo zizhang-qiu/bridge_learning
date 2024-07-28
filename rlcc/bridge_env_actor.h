@@ -15,23 +15,39 @@ class BridgeEnvActor : public EnvActor {
                  std::vector<std::shared_ptr<Actor>> actors)
       : EnvActor(actors, options), env_(env) {
     CheckValid(*env);
+    if (env_->Terminated()) {
+      env_->Reset();
+    }
+    Reset();
+  }
+
+  void Reset() override{
+    for (int i = 0; i < actors_.size(); ++i){
+      actors_[i] -> Reset(*env_);
+    }
   }
 
   void ObserveBeforeAct() override {
-    // std::cout << "Enter observe before act" << std::endl;
-    const int current_player = env_->CurrentPlayer();
 
-    // const rela::TensorDict obs = env_->Feature();
+    // const int current_player = env_->CurrentPlayer();
 
-    actors_[current_player]->ObserveBeforeAct(*env_);
-    // std::cout << "Leave observe before act" << std::endl;
+    // actors_[current_player]->ObserveBeforeAct(*env_);
+    for(size_t i=0; i<actors_.size(); ++i){
+      actors_[i]->ObserveBeforeAct(*env_);
+    }
+
   }
 
   void Act() override {
-    // std::cout << "Enter act" << std::endl;
+    // // std::cout << "Enter act" << std::endl;
     const int current_player = env_->CurrentPlayer();
-    // std::cout << "current player: " << current_player << std::endl;
-    actors_[current_player]->Act(*env_);
+    // // std::cout << "current player: " << current_player << std::endl;
+    // actors_[current_player]->Act(*env_);
+    // // std::cout << "After actors_[current_player]->Act(*env_)\n";
+
+    for(size_t i=0; i<actors_.size(); ++i){
+      actors_[i]->Act(*env_, current_player);
+    }
 
     bool terminated = env_->Terminated();
     if (terminated) {
@@ -54,7 +70,7 @@ class BridgeEnvActor : public EnvActor {
     const auto rewards = env_->Rewards();
 
     for (int i = 0; i < actors_.size(); ++i) {
-      rela::TensorDict d = {{"reward", torch::tensor(last_rewards_[i])}};
+      rela::TensorDict d = {{"r", torch::tensor(last_rewards_[i])}};
       actors_[i]->SendExperience(d);
     }
   }
@@ -64,11 +80,10 @@ class BridgeEnvActor : public EnvActor {
       return;
     }
     env_->Reset();
+    Reset();
   }
 
-  const std::shared_ptr<GameEnv>& GetEnv() const override{
-    return env_;
-  }
+  const std::shared_ptr<GameEnv>& GetEnv() const override { return env_; }
 
  private:
   std::vector<float> last_rewards_;

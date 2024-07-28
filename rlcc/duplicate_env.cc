@@ -126,9 +126,17 @@ std::vector<int> DuplicateEnv::LegalActions() const {
   return legal_actions;
 }
 
-rela::TensorDict DuplicateEnv::Feature() const {
-  rela::TensorDict feature = {};
+rela::TensorDict DuplicateEnv::Feature(int player) const {
   auto state = states_.at(game_index_).get();
+  if (player == -1) {
+    player = state->CurrentPlayer();
+  } else {
+    if (game_index_ == 1) {
+      player = (player - 1 + ble::kNumPlayers) % ble::kNumPlayers;
+    }
+  }
+  rela::TensorDict feature = {};
+
   const auto observation = ble::BridgeObservation(*state);
   const auto encoding = encoder_.Encode(observation);
   const auto& legal_moves = observation.LegalMoves();

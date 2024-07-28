@@ -62,7 +62,8 @@ class GameEnv {
 
   virtual EnvSpec Spec() const = 0;
 
-  virtual rela::TensorDict Feature() const = 0;
+  // Get the feature for a player, default: current player.
+  virtual rela::TensorDict Feature(int player = -1) const = 0;
 
  private:
   torch::Tensor LegalActionMask() const {
