@@ -13,6 +13,7 @@
 #include "bridge_actor.h"
 #include "bridge_dataset.h"
 #include "bridge_env.h"
+#include "clone_data_generator.h"
 #include "env.h"
 #include "rlcc/bridge_env_actor.h"
 #include "rlcc/duplicate_env.h"
@@ -20,6 +21,7 @@
 #include "rlcc/env_actor.h"
 #include "rlcc/env_actor_thread_loop.h"
 #include "supervise_data_generator.h"
+
 
 namespace py = pybind11;
 using namespace rlcc;
@@ -39,6 +41,7 @@ PYBIND11_MODULE(bridgelearn, m) {
 
   py::class_<BridgeEnvOptions>(m, "BridgeEnvOptions")
       .def(py::init<>())
+      .def_readwrite("max_len", &BridgeEnvOptions::max_len)
       .def_readwrite("bidding_phase", &BridgeEnvOptions::bidding_phase)
       .def_readwrite("playing_phase", &BridgeEnvOptions::playing_phase)
       .def_readwrite("pbe_feature", &BridgeEnvOptions::pbe_feature)
@@ -186,4 +189,13 @@ PYBIND11_MODULE(bridgelearn, m) {
            py::arg("env_actors"), py::arg("num_game_per_env") = -1,
            py::arg("thread_idx") = -1, py::arg("verbose") = false)
       .def("main_loop", &EnvActorThreadLoop::mainLoop);
+
+  py::class_<CloneDataGenerator, std::shared_ptr<CloneDataGenerator>>(
+      m, "CloneDataGenerator")
+      .def(py::init<std::shared_ptr<rela::RNNPrioritizedReplay>, int, int>())
+      .def("set_game_params", &CloneDataGenerator::SetGameParams)
+      .def("add_game", &CloneDataGenerator::AddGame)
+      .def("start_data_generation", &CloneDataGenerator::StartDataGeneration)
+      .def("terminate", &CloneDataGenerator::Terminate)
+      .def("generate_eval_data", &CloneDataGenerator::GenerateEvalData);
 }

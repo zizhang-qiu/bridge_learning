@@ -34,6 +34,7 @@ struct BridgeEnvOptions {
   // Whether the feature contains dnns style.
   bool dnns_feature = false;
   bool verbose = false;
+  int max_len = 50;
 };
 
 class BridgeEnv : public GameEnv {
@@ -44,7 +45,7 @@ class BridgeEnv : public GameEnv {
     bridge_dataset_ = std::move(bridge_dataset);
   }
 
-  int MaxNumAction() const override { return game_.NumDistinctActions(); }
+  int MaxNumAction() const override { return game_.NumDistinctActions() + 1; }
 
   int FeatureSize() const { return encoder_.Shape()[0]; }
 
@@ -116,6 +117,8 @@ class BridgeEnv : public GameEnv {
 
  private:
   rela::TensorDict TerminalFeature() const;
+  const int max_len_;
+  int num_step_ = 0;
   const ble::GameParameters params_;
   const ble::BridgeGame game_;
   const BridgeEnvOptions options_;

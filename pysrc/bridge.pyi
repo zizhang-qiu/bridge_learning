@@ -78,6 +78,7 @@ NUM_CARDS_PER_HAND: int
 NUM_CONTRACTS: int
 NUM_VULNERABILITIES: int
 NUM_TRICKS: int
+BIDDING_ACTION_BASE: int
 
 class BridgeCard:
     def __init__(self, suit: int, rank: int): ...

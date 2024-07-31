@@ -142,6 +142,8 @@ class BridgeBeliefModel(torch.jit.ScriptModule):
 
 
 class BridgePublicLSTMagent(torch.jit.ScriptModule):
+    __constants__ = ["in_dim", "hid_dim", "out_dim", "num_mlp_layer", "num_lstm_layer"]
+
     def __init__(
         self,
         device: str,
@@ -157,6 +159,11 @@ class BridgePublicLSTMagent(torch.jit.ScriptModule):
             device, in_dim, hid_dim, out_dim, num_mlp_layer, num_lstm_layer
         ).to(device)
         self.greedy = greedy
+        self.in_dim = in_dim
+        self.hid_dim = hid_dim
+        self.out_dim = out_dim
+        self.num_mlp_layer = num_mlp_layer
+        self.num_lstm_layer = num_lstm_layer
 
     @torch.jit.script_method
     def get_h0(self) -> Dict[str, torch.Tensor]:
@@ -171,7 +178,7 @@ class BridgePublicLSTMagent(torch.jit.ScriptModule):
         reply = self.net.act(priv_s, publ_s, hid)
 
         # print("get_reply")
-        legal_pi = reply["pi"] * legal_move[:, -38:]
+        legal_pi = reply["pi"] * legal_move[:, -self.out_dim :]
         if self.greedy:
             action = legal_pi.max(dim=1)[1].view(-1, 1) + 52
         else:
@@ -185,3 +192,11 @@ class BridgePublicLSTMagent(torch.jit.ScriptModule):
             "c0": reply["c0"],
         }
         return ret
+
+    @torch.jit.script_method
+    def forward(self, obs: Dict[str, torch.Tensor]):
+        if "h0" in obs.keys():
+            hid = {"h0": obs["h0"], "c0": obs["c0"]}
+        else:
+            hid = {}
+        return self.net.forward(obs["priv_s"], obs["publ_s"], obs["legal_move"], hid)

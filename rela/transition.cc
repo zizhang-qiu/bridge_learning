@@ -155,6 +155,20 @@ TensorDict RNNTransition::toDict() {
   return dict;
 }
 
+void RNNTransition::toDevice(const std::string& device) {
+  if (device != "cpu") {
+    auto d = torch::Device(device);
+    auto toDevice = [&](const torch::Tensor& t) { return t.to(d); };
+    obs = tensor_dict::apply(obs, toDevice);
+    h0 = tensor_dict::apply(h0, toDevice);
+    action = tensor_dict::apply(action, toDevice);
+    reward = reward.to(d);
+    terminal = terminal.to(d);
+    bootstrap = bootstrap.to(d);
+    seqLen = seqLen.to(d);
+  }
+}
+
 RNNTransition makeBatch(
     const std::vector<RNNTransition>& transitions, const std::string& device) {
   std::vector<TensorDict> obsVec;

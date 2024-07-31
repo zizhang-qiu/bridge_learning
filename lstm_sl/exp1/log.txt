@@ -1,0 +1,139 @@
+{'batch_size': 128,
+ 'capacity': 100000,
+ 'dataset_path': 'D:\\Projects\\bridge_research\\expert\\train.txt',
+ 'device': 'cuda',
+ 'epoch_len': 1000,
+ 'eps': 1e-08,
+ 'hid_dim': 1024,
+ 'inf_loop': 1,
+ 'lr': 0.0001,
+ 'max_len': 60,
+ 'num_epoch': 1000,
+ 'num_lstm_layer': 2,
+ 'num_mlp_layer': 4,
+ 'num_threads': 8,
+ 'prefetch': 2,
+ 'save_dir': 'lstm_sl\\exp1',
+ 'seed': 42}
+Epoch 0, loss: 4.334957497596741, accuracy: 0.9011095717232674, accuracy_without_no_op: 0.6231611432135105, model_saved: True
+Epoch 1, loss: 2.752587008476257, accuracy: 0.9216061487197876, accuracy_without_no_op: 0.6863968868851662, model_saved: True
+Epoch 2, loss: 2.5055830433368684, accuracy: 0.9269346821308136, accuracy_without_no_op: 0.7076573967933655, model_saved: True
+Epoch 3, loss: 2.2895446195602416, accuracy: 0.9317291494607925, accuracy_without_no_op: 0.7268183817863464, model_saved: True
+Epoch 4, loss: 2.0483561251163485, accuracy: 0.9376376595497131, accuracy_without_no_op: 0.7505236011743546, model_saved: True
+Epoch 5, loss: 1.8655018346309662, accuracy: 0.9433371574878693, accuracy_without_no_op: 0.7731910572052002, model_saved: True
+Epoch 6, loss: 1.7294199458360673, accuracy: 0.9475132423639298, accuracy_without_no_op: 0.7900857090353965, model_saved: True
+Epoch 7, loss: 1.6046383786201477, accuracy: 0.9514200302362442, accuracy_without_no_op: 0.8056235955953598, model_saved: True
+Epoch 8, loss: 1.4952849670648576, accuracy: 0.9543260034918785, accuracy_without_no_op: 0.8171467871069908, model_saved: True
+Epoch 9, loss: 1.4058658084869384, accuracy: 0.9570730152726173, accuracy_without_no_op: 0.8282564766407013, model_saved: True
+Epoch 10, loss: 1.3231445897221565, accuracy: 0.95934862190485, accuracy_without_no_op: 0.8371971859335899, model_saved: True
+Epoch 11, loss: 1.2377127781510353, accuracy: 0.9618129330873489, accuracy_without_no_op: 0.847145613193512, model_saved: True
+Epoch 12, loss: 1.1660526314973831, accuracy: 0.9639890449643135, accuracy_without_no_op: 0.8560114676952362, model_saved: True
+Epoch 13, loss: 1.1110291612148284, accuracy: 0.965835855960846, accuracy_without_no_op: 0.863343786239624, model_saved: True
+Epoch 14, loss: 1.044468101143837, accuracy: 0.9677766738533974, accuracy_without_no_op: 0.8711077044010163, model_saved: True
+Epoch 15, loss: 0.9956707971692085, accuracy: 0.9692751321792602, accuracy_without_no_op: 0.8770418921113015, model_saved: True
+Epoch 16, loss: 0.935500742316246, accuracy: 0.9710138522982598, accuracy_without_no_op: 0.8840842254161835, model_saved: True
+Epoch 17, loss: 0.899049900829792, accuracy: 0.9722357670068741, accuracy_without_no_op: 0.8889035297036171, model_saved: True
+Epoch 18, loss: 0.8629053981304169, accuracy: 0.9733028998374939, accuracy_without_no_op: 0.8931473507285118, model_saved: True
+Epoch 19, loss: 0.8156992126107215, accuracy: 0.9747368226051331, accuracy_without_no_op: 0.8989206507205963, model_saved: True
+Epoch 20, loss: 0.7864756453931332, accuracy: 0.9755206421017647, accuracy_without_no_op: 0.9020907925963402, model_saved: True
+Epoch 21, loss: 0.7517680601477623, accuracy: 0.9766865372061729, accuracy_without_no_op: 0.9067766890525818, model_saved: True
+Epoch 22, loss: 0.7176591701805591, accuracy: 0.9777447694540023, accuracy_without_no_op: 0.9109919994473458, model_saved: True
+Epoch 23, loss: 0.6991742936372757, accuracy: 0.978291164457798, accuracy_without_no_op: 0.9131584945917129, model_saved: True
+Epoch 24, loss: 0.6638246809244156, accuracy: 0.9793370096087456, accuracy_without_no_op: 0.9173408613204956, model_saved: True
+Epoch 25, loss: 0.64067088291049, accuracy: 0.979977887570858, accuracy_without_no_op: 0.9198578907847405, model_saved: True
+Epoch 26, loss: 0.621238510131836, accuracy: 0.9806852558851242, accuracy_without_no_op: 0.9227600502967834, model_saved: True
+Epoch 27, loss: 0.5968562215268612, accuracy: 0.9814141134619713, accuracy_without_no_op: 0.9256291038393974, model_saved: True
+Epoch 28, loss: 0.5646883972883224, accuracy: 0.9824495292305946, accuracy_without_no_op: 0.9298079346418381, model_saved: True
+Epoch 29, loss: 0.5460354011058808, accuracy: 0.9829425975680351, accuracy_without_no_op: 0.9317773414254189, model_saved: True
+Epoch 30, loss: 0.5275825216174126, accuracy: 0.9835597825050354, accuracy_without_no_op: 0.9342655193209648, model_saved: True
+Epoch 31, loss: 0.5092541283220052, accuracy: 0.9840210052728653, accuracy_without_no_op: 0.9360809505581856, model_saved: True
+Epoch 32, loss: 0.48916487595438957, accuracy: 0.9847320584654808, accuracy_without_no_op: 0.938876002728939, model_saved: True
+Epoch 33, loss: 0.4694466100335121, accuracy: 0.9854430963993073, accuracy_without_no_op: 0.9417445652484894, model_saved: True
+Epoch 34, loss: 0.45358022111654284, accuracy: 0.9858136254549027, accuracy_without_no_op: 0.9432364076375961, model_saved: True
+Epoch 35, loss: 0.4384975020736456, accuracy: 0.9864847340583801, accuracy_without_no_op: 0.9459060821533203, model_saved: True
+Epoch 36, loss: 0.4229618660211563, accuracy: 0.9868185384869576, accuracy_without_no_op: 0.9472635113596917, model_saved: True
+Epoch 37, loss: 0.40973422037065027, accuracy: 0.9873058083057403, accuracy_without_no_op: 0.949192031443119, model_saved: True
+Epoch 38, loss: 0.3880029435157776, accuracy: 0.9879730154871941, accuracy_without_no_op: 0.9518934147953987, model_saved: True
+Epoch 39, loss: 0.3745720653384924, accuracy: 0.9883357052206994, accuracy_without_no_op: 0.9533091853260994, model_saved: True
+Epoch 40, loss: 0.36508461232483386, accuracy: 0.9887350876331329, accuracy_without_no_op: 0.9549188665747642, model_saved: True
+Epoch 41, loss: 0.3499547183811665, accuracy: 0.9891865965127945, accuracy_without_no_op: 0.9567087866067886, model_saved: True
+Epoch 42, loss: 0.33530024291574956, accuracy: 0.9896094500422478, accuracy_without_no_op: 0.9584499351978302, model_saved: True
+Epoch 43, loss: 0.3215998382717371, accuracy: 0.9901671746969223, accuracy_without_no_op: 0.9606845542192459, model_saved: True
+Epoch 44, loss: 0.31394957019388675, accuracy: 0.9904248980879784, accuracy_without_no_op: 0.9616928486227989, model_saved: True
+Epoch 45, loss: 0.2949302887171507, accuracy: 0.9909607649445534, accuracy_without_no_op: 0.9638113653659821, model_saved: True
+Epoch 46, loss: 0.28927404002845286, accuracy: 0.9910911983251571, accuracy_without_no_op: 0.9643761857151986, model_saved: True
+Epoch 47, loss: 0.2775344657897949, accuracy: 0.99151032102108, accuracy_without_no_op: 0.9660495096445083, model_saved: True
+Epoch 48, loss: 0.2620693245977163, accuracy: 0.9919921048283576, accuracy_without_no_op: 0.9679697905182838, model_saved: True
+Epoch 49, loss: 0.2597484864220023, accuracy: 0.992124195098877, accuracy_without_no_op: 0.9685070517659188, model_saved: True
+Epoch 50, loss: 0.24324405943602323, accuracy: 0.9926476871371269, accuracy_without_no_op: 0.9705994718074799, model_saved: True
+Epoch 51, loss: 0.23695451033115386, accuracy: 0.9929103443622589, accuracy_without_no_op: 0.9716302604675293, model_saved: True
+Epoch 52, loss: 0.23002863695472478, accuracy: 0.9930145857334137, accuracy_without_no_op: 0.9720250223875045, model_saved: True
+Epoch 53, loss: 0.2231784600764513, accuracy: 0.9932710356116294, accuracy_without_no_op: 0.9730840452313423, model_saved: True
+Epoch 54, loss: 0.20526830227673054, accuracy: 0.9938794895410538, accuracy_without_no_op: 0.9755205731987954, model_saved: True
+Epoch 55, loss: 0.2018121120259166, accuracy: 0.9939437212944031, accuracy_without_no_op: 0.9757744877934456, model_saved: True
+Epoch 56, loss: 0.18790579510480165, accuracy: 0.9945085588693618, accuracy_without_no_op: 0.9780275600552559, model_saved: True
+Epoch 57, loss: 0.19034991912543775, accuracy: 0.9943443059325218, accuracy_without_no_op: 0.9773811767697335, model_saved: True
+Epoch 58, loss: 0.17755935522168875, accuracy: 0.9947428632974624, accuracy_without_no_op: 0.9789614499807358, model_saved: True
+Epoch 59, loss: 0.1721802307292819, accuracy: 0.9949687239527703, accuracy_without_no_op: 0.9798791574835777, model_saved: True
+Epoch 60, loss: 0.16819779820367695, accuracy: 0.9949471277594566, accuracy_without_no_op: 0.979777556180954, model_saved: True
+Epoch 61, loss: 0.15725668750703334, accuracy: 0.9954594107866287, accuracy_without_no_op: 0.9818340820074082, model_saved: True
+Epoch 62, loss: 0.15361093473434448, accuracy: 0.9956103532910346, accuracy_without_no_op: 0.9824223390817642, model_saved: True
+Epoch 63, loss: 0.14504391933977603, accuracy: 0.9957852757573128, accuracy_without_no_op: 0.9831391805410385, model_saved: True
+Epoch 64, loss: 0.14556710432097317, accuracy: 0.9958135243654251, accuracy_without_no_op: 0.9832384064793587, model_saved: True
+Epoch 65, loss: 0.13621046590805053, accuracy: 0.9960845001339912, accuracy_without_no_op: 0.9843237118124962, model_saved: True
+Epoch 66, loss: 0.1336682508252561, accuracy: 0.9961158490777016, accuracy_without_no_op: 0.9844557842612267, model_saved: True
+Epoch 67, loss: 0.12519126937165856, accuracy: 0.9964472313523293, accuracy_without_no_op: 0.9857723137140274, model_saved: True
+Epoch 68, loss: 0.12347471026331186, accuracy: 0.9965652433037758, accuracy_without_no_op: 0.9862649356126785, model_saved: True
+Epoch 69, loss: 0.12076312841475009, accuracy: 0.9965878449678421, accuracy_without_no_op: 0.9863472204208374, model_saved: True
+Epoch 70, loss: 0.11003919279389084, accuracy: 0.997002727985382, accuracy_without_no_op: 0.9880096725225449, model_saved: True
+Epoch 71, loss: 0.1102752740457654, accuracy: 0.9969497036933899, accuracy_without_no_op: 0.9877851505279541, model_saved: True
+Epoch 72, loss: 0.10732339219376445, accuracy: 0.9969560843706131, accuracy_without_no_op: 0.9878165210485459, model_saved: True
+Epoch 73, loss: 0.10164454567059875, accuracy: 0.997161523938179, accuracy_without_no_op: 0.9886430963873863, model_saved: True
+Epoch 74, loss: 0.10140809678286314, accuracy: 0.9971568343043328, accuracy_without_no_op: 0.9886212601065636, model_saved: True
+Epoch 75, loss: 0.09934948379546404, accuracy: 0.9972666155099869, accuracy_without_no_op: 0.9890667202472687, model_saved: True
+Epoch 76, loss: 0.09181920966133475, accuracy: 0.9974947570562362, accuracy_without_no_op: 0.9899829360246658, model_saved: True
+Epoch 77, loss: 0.09213871899433435, accuracy: 0.9974940294623375, accuracy_without_no_op: 0.9899695172905922, model_saved: True
+Epoch 78, loss: 0.08598008093051612, accuracy: 0.997655106306076, accuracy_without_no_op: 0.990610436975956, model_saved: True
+Epoch 79, loss: 0.08834560963511467, accuracy: 0.9975446419715881, accuracy_without_no_op: 0.9901746621131897, model_saved: True
+Epoch 80, loss: 0.08389968972839415, accuracy: 0.9976880473494529, accuracy_without_no_op: 0.9907477456927299, model_saved: True
+Epoch 81, loss: 0.08136607579514385, accuracy: 0.9977814438939094, accuracy_without_no_op: 0.991120411992073, model_saved: True
+Epoch 82, loss: 0.08019259349629283, accuracy: 0.9978412697911263, accuracy_without_no_op: 0.9913612920045852, model_saved: True
+Epoch 83, loss: 0.0767737400457263, accuracy: 0.9979541442394256, accuracy_without_no_op: 0.9918120720386505, model_saved: True
+Epoch 84, loss: 0.07752130556758494, accuracy: 0.9978981222510338, accuracy_without_no_op: 0.9915891785621643, model_saved: True
+Epoch 85, loss: 0.06789375347271562, accuracy: 0.998251926124096, accuracy_without_no_op: 0.9930098031163216, model_saved: True
+Epoch 86, loss: 0.07536656880751252, accuracy: 0.998021426975727, accuracy_without_no_op: 0.992081944167614, model_saved: True
+Epoch 87, loss: 0.07147144622448832, accuracy: 0.9981071233153344, accuracy_without_no_op: 0.9924260900616646, model_saved: True
+Epoch 88, loss: 0.06471131390146911, accuracy: 0.9982287195920945, accuracy_without_no_op: 0.9929060957431793, model_saved: True
+Epoch 89, loss: 0.06896912959218025, accuracy: 0.9981371793150902, accuracy_without_no_op: 0.9925411444306373, model_saved: True
+Epoch 90, loss: 0.06303818052820861, accuracy: 0.9984013627171516, accuracy_without_no_op: 0.9936038184165955, model_saved: True
+Epoch 91, loss: 0.06562604268267751, accuracy: 0.9982860172986985, accuracy_without_no_op: 0.9931398220658302, model_saved: True
+Epoch 92, loss: 0.06334078019671142, accuracy: 0.9982839755415917, accuracy_without_no_op: 0.9931342864632606, model_saved: True
+Epoch 93, loss: 0.06122129515185952, accuracy: 0.998369225203991, accuracy_without_no_op: 0.993475483238697, model_saved: True
+Epoch 94, loss: 0.05855715606175363, accuracy: 0.998463742017746, accuracy_without_no_op: 0.9938530843853951, model_saved: True
+Epoch 95, loss: 0.06349037574417889, accuracy: 0.9983131009936332, accuracy_without_no_op: 0.9932495756745339, model_saved: True
+Epoch 96, loss: 0.06055839264113456, accuracy: 0.9983730306625366, accuracy_without_no_op: 0.9934890736341476, model_saved: True
+Epoch 97, loss: 0.05444788795989007, accuracy: 0.9985866677165032, accuracy_without_no_op: 0.9943425654172897, model_saved: True
+Epoch 98, loss: 0.05518245192943141, accuracy: 0.9985494483113289, accuracy_without_no_op: 0.994193701505661, model_saved: True
+Epoch 99, loss: 0.052984697467647494, accuracy: 0.9986157487034798, accuracy_without_no_op: 0.9944619764089584, model_saved: True
+Epoch 100, loss: 0.05742384034115821, accuracy: 0.9984508888721466, accuracy_without_no_op: 0.9938019704818726, model_saved: True
+Epoch 101, loss: 0.05081068630237132, accuracy: 0.998701882660389, accuracy_without_no_op: 0.9948063681125641, model_saved: True
+Epoch 102, loss: 0.055379353223368524, accuracy: 0.9985411883592605, accuracy_without_no_op: 0.9941694932579994, model_saved: True
+Epoch 103, loss: 0.053215479905717074, accuracy: 0.9985815525650978, accuracy_without_no_op: 0.994328464448452, model_saved: True
+Epoch 104, loss: 0.04817989480216056, accuracy: 0.9987697672247887, accuracy_without_no_op: 0.9950785479545593, model_saved: True
+Epoch 105, loss: 0.05260865585040301, accuracy: 0.9985737597346306, accuracy_without_no_op: 0.9942897450327873, model_saved: False
+Epoch 106, loss: 0.04821610320266336, accuracy: 0.998731826364994, accuracy_without_no_op: 0.9949275671243668, model_saved: True
+Epoch 107, loss: 0.05385321467695758, accuracy: 0.998561474621296, accuracy_without_no_op: 0.9942471058368683, model_saved: False
+Epoch 108, loss: 0.04638152350764722, accuracy: 0.9988100906014442, accuracy_without_no_op: 0.9952380396723747, model_saved: True
+Epoch 109, loss: 0.046760555336251855, accuracy: 0.9987861455082894, accuracy_without_no_op: 0.9951425244808197, model_saved: True
+Epoch 110, loss: 0.0484904038887471, accuracy: 0.99873929977417, accuracy_without_no_op: 0.9949524658918381, model_saved: True
+Epoch 111, loss: 0.04413320466550067, accuracy: 0.9988509615659714, accuracy_without_no_op: 0.9954025221467018, model_saved: True
+Epoch 112, loss: 0.052010168596170844, accuracy: 0.9986253799796104, accuracy_without_no_op: 0.9944961771965027, model_saved: False
+Epoch 113, loss: 0.03992676069168374, accuracy: 0.9990030895471573, accuracy_without_no_op: 0.9960131016373635, model_saved: True
+Epoch 114, loss: 0.04540441483166069, accuracy: 0.9988054641485214, accuracy_without_no_op: 0.9952189869880677, model_saved: True
+Epoch 115, loss: 0.04482716253772378, accuracy: 0.9988114440441132, accuracy_without_no_op: 0.9952424796819687, model_saved: True
+Epoch 116, loss: 0.04327224975521676, accuracy: 0.9988899672627449, accuracy_without_no_op: 0.995558710873127, model_saved: True
+Epoch 117, loss: 0.043405452765524384, accuracy: 0.9988678296804429, accuracy_without_no_op: 0.9954725764989852, model_saved: True
+Epoch 118, loss: 0.047241596952080724, accuracy: 0.9987762916088104, accuracy_without_no_op: 0.9950995362401008, model_saved: False
+Epoch 119, loss: 0.03901043522544205, accuracy: 0.998998603105545, accuracy_without_no_op: 0.9959965071678162, model_saved: True
+Epoch 120, loss: 0.0446693966537714, accuracy: 0.998840263068676, accuracy_without_no_op: 0.9953586087822914, model_saved: False
+Epoch 121, loss: 0.039144071467220785, accuracy: 0.9990054646730423, accuracy_without_no_op: 0.9960235760211945, model_saved: True

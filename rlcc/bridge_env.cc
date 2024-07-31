@@ -3,8 +3,6 @@
 //
 
 #include "bridge_env.h"
-#include <torch/csrc/autograd/generated/variable_factories.h>
-#include <torch/types.h>
 #include <random>
 #include <vector>
 #include "bridge_lib/bridge_utils.h"
@@ -55,7 +53,8 @@ BridgeEnv::BridgeEnv(const ble::GameParameters& params,
       jps_encoder_(std::make_shared<ble::BridgeGame>(game_)),
       dnns_encoder_(),
       last_active_player_(ble::kChancePlayerId),
-      last_move_() {
+      last_move_(),
+      max_len_(options.max_len) {
   if (!options.bidding_phase && !options.playing_phase) {
     rela::utils::RelaFatalError(
         "Both bidding and playing phase are off. At least one phase should be "
@@ -77,7 +76,7 @@ bool BridgeEnv::Terminated() const {
     return state_->IsTerminal();
   }
 
-  return state_->CurrentPhase() > Phase::kAuction;
+  return state_->CurrentPhase() > Phase::kAuction || (max_len_ > 0 && num_step_ == max_len_);
 }
 
 bool BridgeEnv::Reset() {
@@ -101,6 +100,7 @@ bool BridgeEnv::Reset() {
   } else {
     ResetWithDataSet();
   }
+  num_step_ = 0;
   return true;
 }
 
@@ -135,6 +135,7 @@ void BridgeEnv::Step(const ble::BridgeMove& move) {
   last_active_player_ = state_->CurrentPlayer();
   last_move_ = move;
   state_->ApplyMove(move);
+  ++num_step_;
 }
 
 void BridgeEnv::Step(const int uid) {
@@ -153,15 +154,19 @@ rela::TensorDict BridgeEnv::Feature(int player) const {
   }
   RELA_CHECK_NOTNULL(state_);
   if (Terminated()) {
+    std::cout << "Get feature at terminal\n";
     return TerminalFeature();
   }
   const auto observation = ble::BridgeObservation(*state_, player);
   const auto encoding = encoder_.Encode(observation);
   const auto& legal_moves = observation.LegalMoves();
-  std::vector<float> legal_move_mask(game_.NumDistinctActions(), 0);
+  std::vector<float> legal_move_mask(MaxNumAction(), 0);
   for (const auto& move : legal_moves) {
     const int uid = game_.GetMoveUid(move);
     legal_move_mask[uid] = 1;
+  }
+  if(player != CurrentPlayer()){
+    legal_move_mask[NoOPUid()] = 1;
   }
   rela::TensorDict res = {
       {"s", torch::tensor(encoding, {torch::kFloat32})},
@@ -240,9 +245,11 @@ ble::BridgeObservation BridgeEnv::BleObservation() const {
 }
 
 rela::TensorDict BridgeEnv::TerminalFeature() const {
+  torch::Tensor legal_move = torch::zeros(MaxNumAction(), {torch::kFloat32});
+  legal_move[NoOPUid()] = 1;
   rela::TensorDict feature = {
       {"s", torch::zeros(encoder_.Shape()[0], {torch::kFloat32})},
-      {"legal_move", torch::ones(ble::kNumCalls, {torch::kFloat32})}};
+      {"legal_move", legal_move}};
   return feature;
 }
 

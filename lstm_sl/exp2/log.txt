@@ -1,0 +1,32 @@
+{'batch_size': 128,
+ 'capacity': 10000,
+ 'dataset_path': 'D:\\Projects\\bridge_research\\expert\\train.txt',
+ 'device': 'cuda',
+ 'epoch_len': 1000,
+ 'eps': 1e-08,
+ 'eval_batch_size': 400,
+ 'eval_dataset': 'D:\\Projects\\bridge_research\\expert\\valid.txt',
+ 'eval_only': 0,
+ 'hid_dim': 1024,
+ 'inf_loop': 1,
+ 'load_model': 'lstm_sl/exp1/model4.pthw',
+ 'lr': 0.0001,
+ 'max_grad_norm': 40.0,
+ 'max_len': 60,
+ 'no_op_actions_weight': 0.0,
+ 'num_epoch': 1000,
+ 'num_lstm_layer': 2,
+ 'num_mlp_layer': 4,
+ 'num_threads': 4,
+ 'prefetch': 2,
+ 'save_dir': 'lstm_sl\\exp2',
+ 'seed': 42}
+Epoch 0, loss: 4.337387746810913, accuracy: 0.9033571377985645, accuracy_without_no_op: 0.15505646603251808, eval_accuracy: 0.9173828738927842, eval_accuracy_without_no_op: 0.16738287210464478, eval_loss: 2.940262134075165model_saved: True
+Epoch 1, loss: 2.8185366475582123, accuracy: 0.9203796397447586, accuracy_without_no_op: 0.17017672324180602, eval_accuracy: 0.9215277487039566, eval_accuracy_without_no_op: 0.1715277473628521, eval_loss: 2.748431079387665model_saved: True
+Epoch 2, loss: 2.6022857692241668, accuracy: 0.9244689492583275, accuracy_without_no_op: 0.1744632782638073, eval_accuracy: 0.927618812918663, eval_accuracy_without_no_op: 0.1776188127696514, eval_loss: 2.4812693643569945model_saved: True
+Epoch 3, loss: 2.380480996012688, accuracy: 0.9292619894742966, accuracy_without_no_op: 0.179329014390707, eval_accuracy: 0.931487517952919, eval_accuracy_without_no_op: 0.18148752093315124, eval_loss: 2.310626709461212model_saved: True
+Epoch 4, loss: 2.1957648458480836, accuracy: 0.9338939543962479, accuracy_without_no_op: 0.18388969361782073, eval_accuracy: 0.9368782985210419, eval_accuracy_without_no_op: 0.18687830120325089, eval_loss: 2.1196685707569123model_saved: True
+Epoch 5, loss: 2.0156609202623366, accuracy: 0.9390473976731301, accuracy_without_no_op: 0.18898399433493615, eval_accuracy: 0.9410177147388459, eval_accuracy_without_no_op: 0.19101771399378775, eval_loss: 1.9661745882034303model_saved: True
+Epoch 6, loss: 1.891908375620842, accuracy: 0.9425343210101128, accuracy_without_no_op: 0.19237719638645648, eval_accuracy: 0.9428678381443024, eval_accuracy_without_no_op: 0.19286783829331397, eval_loss: 1.8706372427940368model_saved: True
+Epoch 7, loss: 1.800805420398712, accuracy: 0.9448773459792137, accuracy_without_no_op: 0.1949301166832447, eval_accuracy: 0.9453650379180908, eval_accuracy_without_no_op: 0.19536503940820693, eval_loss: 1.7743627655506133model_saved: True
+Epoch 8, loss: 1.6986990135908127, accuracy: 0.9479668101668358, accuracy_without_no_op: 0.19802274821698665, eval_accuracy: 0.9478254997730255, eval_accuracy_without_no_op: 0.19782549813389777, eval_loss: 1.705173087120056model_saved: True

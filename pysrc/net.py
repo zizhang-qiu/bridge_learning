@@ -7,10 +7,17 @@ import torch.nn.functional as F
 from common_utils import activation_function_from_str
 
 
-def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden_size: int,
-               activation_function: str, activation_args: Optional[Dict] = None,
-               use_dropout: bool = False,
-               dropout_prob: float = 0.5, use_layer_norm: bool = False) -> nn.Module:
+def create_mlp(
+    input_size: int,
+    output_size: int,
+    num_hidden_layers: int,
+    hidden_size: int,
+    activation_function: str,
+    activation_args: Optional[Dict] = None,
+    use_dropout: bool = False,
+    dropout_prob: float = 0.5,
+    use_layer_norm: bool = False,
+) -> nn.Module:
     """
     Create a Multi-Layer Perceptron (MLP) model.
 
@@ -31,7 +38,7 @@ def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden
     layers = []
     if isinstance(activation_function, str):
         # activation_function = getattr(torch.nn, activation_function)
-        
+
         activation_func = activation_function_from_str(activation_function)
     else:
         activation_func = activation_function
@@ -40,7 +47,9 @@ def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden
     layers.append(nn.Linear(input_size, hidden_size))
     if use_layer_norm:
         layers.append(nn.LayerNorm(hidden_size))
-    layers.append(activation_func(**activation_args) if activation_args else activation_func())
+    layers.append(
+        activation_func(**activation_args) if activation_args else activation_func()
+    )
     if use_dropout:
         layers.append(nn.Dropout(p=dropout_prob))
 
@@ -49,7 +58,9 @@ def create_mlp(input_size: int, output_size: int, num_hidden_layers: int, hidden
         layers.append(nn.Linear(hidden_size, hidden_size))
         if use_layer_norm:
             layers.append(nn.LayerNorm(hidden_size))
-        layers.append(activation_func(**activation_args) if activation_args else activation_func())
+        layers.append(
+            activation_func(**activation_args) if activation_args else activation_func()
+        )
         if use_dropout:
             layers.append(nn.Dropout(p=dropout_prob))
 
@@ -67,14 +78,21 @@ class MLP(torch.jit.ScriptModule):
         "hidden_size",
         "use_dropout",
         "dropout_prob",
-        "use_layer_norm"
+        "use_layer_norm",
     ]
 
-    def __init__(self, input_size: int = 480, output_size: int = 38, num_hidden_layers: int = 4,
-                 hidden_size: int = 1024,
-                 activation_function: str="gelu", activation_args: Optional[Dict] = None, # type: ignore
-                 use_dropout: bool = False,
-                 dropout_prob: float = 0.5, use_layer_norm: bool = False):
+    def __init__(
+        self,
+        input_size: int = 480,
+        output_size: int = 38,
+        num_hidden_layers: int = 4,
+        hidden_size: int = 1024,
+        activation_function: str = "gelu",
+        activation_args: Optional[Dict] = None,  # type: ignore
+        use_dropout: bool = False,
+        dropout_prob: float = 0.5,
+        use_layer_norm: bool = False,
+    ):
         super().__init__()
         self.input_size = input_size
         self.output_size = output_size
@@ -86,15 +104,17 @@ class MLP(torch.jit.ScriptModule):
         self.dropout_prob = dropout_prob
         self.use_layer_norm = use_layer_norm
 
-        self.net = create_mlp(input_size=self.input_size,
-                              output_size=self.output_size,
-                              num_hidden_layers=self.num_hidden_layers,
-                              hidden_size=self.hidden_size,
-                              activation_function=self.activation_function,
-                              activation_args=self.activation_args,
-                              use_dropout=self.use_dropout,
-                              dropout_prob=self.dropout_prob,
-                              use_layer_norm=self.use_layer_norm)
+        self.net = create_mlp(
+            input_size=self.input_size,
+            output_size=self.output_size,
+            num_hidden_layers=self.num_hidden_layers,
+            hidden_size=self.hidden_size,
+            activation_function=self.activation_function,
+            activation_args=self.activation_args,
+            use_dropout=self.use_dropout,
+            dropout_prob=self.dropout_prob,
+            use_layer_norm=self.use_layer_norm,
+        )
 
     @torch.jit.script_method
     def forward(self, s: torch.Tensor) -> torch.Tensor:
@@ -102,69 +122,72 @@ class MLP(torch.jit.ScriptModule):
         return x
 
     def get_conf(self) -> Dict[str, Union[int, bool, float, Dict, None]]:
-        conf = dict(input_size=self.input_size,
-                    output_size=self.output_size,
-                    num_hidden_layers=self.num_hidden_layers,
-                    hidden_size=self.hidden_size,
-                    activation_function=self.activation_function,
-                    activation_args=self.activation_args,
-                    use_dropout=self.use_dropout,
-                    dropout_prob=self.dropout_prob,
-                    use_layer_norm=self.use_layer_norm)
-        return conf # type: ignore
+        conf = dict(
+            input_size=self.input_size,
+            output_size=self.output_size,
+            num_hidden_layers=self.num_hidden_layers,
+            hidden_size=self.hidden_size,
+            activation_function=self.activation_function,
+            activation_args=self.activation_args,
+            use_dropout=self.use_dropout,
+            dropout_prob=self.dropout_prob,
+            use_layer_norm=self.use_layer_norm,
+        )
+        return conf  # type: ignore
 
     def get_save_dict(self):
         conf = self.get_conf()
         state_dict = self.state_dict()
-        save_dict = {
-            "conf": conf,
-            "state_dict": state_dict
-        }
+        save_dict = {"conf": conf, "state_dict": state_dict}
         return save_dict
 
     def save_with_conf(self, save_path: str):
         conf = self.get_conf()
         state_dict = self.state_dict()
-        save_dict = {
-            "conf": conf,
-            "state_dict": state_dict
-        }
+        save_dict = {"conf": conf, "state_dict": state_dict}
         torch.save(save_dict, save_path)
 
     @classmethod
     def from_conf(cls, conf: Dict[str, Union[int, bool, Dict, nn.Module, str]]) -> MLP:
-        return cls(**conf) # type: ignore
+        return cls(**conf)  # type: ignore
 
     @classmethod
     def from_file(cls, file: Union[str, Dict]) -> MLP:
         if isinstance(file, str):
             file = torch.load(file)
-        conf: Dict = file["conf"] # type: ignore
+        conf: Dict = file["conf"]  # type: ignore
 
         net = cls.from_conf(conf)
         if "state_dict" in conf.keys():
-            state_dict = file["state_dict"] # type: ignore
-            net.load_state_dict(state_dict) # type: ignore
+            state_dict = file["state_dict"]  # type: ignore
+            net.load_state_dict(state_dict)  # type: ignore
         return net
 
+
 class PublicLSTMNet(torch.jit.ScriptModule):
-# class PublicLSTMNet(nn.Module):
-    def __init__(self, device:str,
-                 in_dim:int,
-                 hid_dim:int,
-                 out_dim:int,
-                 num_mlp_layer:int,
-                 num_lstm_layer:int):
+    __constants__ = ["in_dim", "hid_dim", "out_dim", "num_mlp_layer", "num_lstm_layer"]
+
+    # class PublicLSTMNet(nn.Module):
+    def __init__(
+        self,
+        device: str,
+        in_dim: int,
+        hid_dim: int,
+        out_dim: int,
+        num_mlp_layer: int,
+        num_lstm_layer: int,
+    ):
         super().__init__()
         self.device = device
         self.in_dim = in_dim
         self.priv_in_dim = 52
         self.publ_in_dim = in_dim - 52
-        
+
         self.hid_dim = hid_dim
+        self.out_dim = out_dim
         self.num_mlp_layer = num_mlp_layer
         self.num_lstm_layer = num_lstm_layer
-        
+
         self.priv_net = nn.Sequential(
             nn.Linear(self.priv_in_dim, self.hid_dim),
             nn.ReLU(),
@@ -178,33 +201,30 @@ class PublicLSTMNet(torch.jit.ScriptModule):
             ff_layers.append(nn.Linear(self.hid_dim, self.hid_dim))
             ff_layers.append(nn.ReLU())
         self.publ_net = nn.Sequential(*ff_layers)
-        
+
         self.lstm = nn.LSTM(
             self.hid_dim,
             self.hid_dim,
             num_layers=self.num_lstm_layer,
         ).to(device)
         self.lstm.flatten_parameters()
-        
+
         self.policy_head = nn.Linear(self.hid_dim, out_dim)
         self.value_head = nn.Linear(self.hid_dim, 1)
-        
-        
+
     @torch.jit.script_method
-    def get_h0(self)->Dict[str, torch.Tensor]:
+    def get_h0(self) -> Dict[str, torch.Tensor]:
         shape = (self.num_lstm_layer, self.hid_dim)
         hid = {"h0": torch.zeros(*shape), "c0": torch.zeros(*shape)}
         return hid
-    
+
     @torch.jit.script_method
-    def act(self, 
-            priv_s:torch.Tensor, 
-            publ_s:torch.Tensor, 
-            hid:Dict[str, torch.Tensor])->Dict[str, torch.Tensor]:
-        
+    def act(
+        self, priv_s: torch.Tensor, publ_s: torch.Tensor, hid: Dict[str, torch.Tensor]
+    ) -> Dict[str, torch.Tensor]:
+
         assert priv_s.dim() == 2
-        
-        
+
         batch_size = hid["h0"].size(0)
         assert hid["h0"].dim() == 3
         # hid size: [batch, num_layer, dim]
@@ -213,20 +233,20 @@ class PublicLSTMNet(torch.jit.ScriptModule):
             "h0": hid["h0"].transpose(0, 1).contiguous(),
             "c0": hid["c0"].transpose(0, 1).contiguous(),
         }
-        
+
         priv_s = priv_s.unsqueeze(0)
         publ_s = publ_s.unsqueeze(0)
-        
+
         priv_o = self.priv_net(priv_s)
         x = self.publ_net(publ_s)
         publ_o, (h, c) = self.lstm(x, (hid["h0"], hid["c0"]))
         # print(h, h.size(), c, c.size())
-        
+
         o = priv_o * publ_o
         o = o.squeeze(0)
         pi = torch.nn.functional.softmax(self.policy_head(o), dim=-1)
         v = self.value_head(o)
-        
+
         interim_hid_shape = (
             self.num_lstm_layer,
             batch_size,
@@ -234,7 +254,41 @@ class PublicLSTMNet(torch.jit.ScriptModule):
         )
         h = h.view(*interim_hid_shape).transpose(0, 1)
         c = c.view(*interim_hid_shape).transpose(0, 1)
-        
+
         return {"pi": pi, "v": v, "h0": h, "c0": c}
-        
-        
+
+    def forward(
+        self,
+        priv_s: torch.Tensor,
+        publ_s: torch.Tensor,
+        legal_move: torch.Tensor,
+        hid: Dict[str, torch.Tensor],
+    ) -> Dict[str, torch.Tensor]:
+        assert (
+            priv_s.dim() == 3 or priv_s.dim() == 2
+        ), "dim = 3/2, [seq_len(optional), batch, dim]"
+
+        one_step = False
+        if priv_s.dim() == 2:
+            priv_s = priv_s.unsqueeze(0)
+            publ_s = publ_s.unsqueeze(0)
+            legal_move = legal_move.unsqueeze(0)
+            one_step = True
+
+        x = self.publ_net(publ_s)
+        if len(hid) == 0:
+            publ_o, _ = self.lstm(x)
+        else:
+            publ_o, _ = self.lstm(x, (hid["h0"], hid["c0"]))
+
+        priv_o = self.priv_net(priv_s)
+        o = priv_o * publ_o
+        pi = self.policy_head(o)
+        v = self.value_head(o)
+        legal_pi = pi * legal_move[:, :, -self.out_dim :]
+
+        if one_step:
+            pi = pi.squeeze(0)
+            v = v.squeeze(0)
+            legal_pi = legal_pi.squeeze(0)
+        return {"pi": pi, "v": v, "legal_pi": legal_pi}

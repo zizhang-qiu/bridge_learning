@@ -65,6 +65,8 @@ class GameEnv {
   // Get the feature for a player, default: current player.
   virtual rela::TensorDict Feature(int player = -1) const = 0;
 
+  virtual int NoOPUid() const{return MaxNumAction() - 1;};
+
  private:
   torch::Tensor LegalActionMask() const {
     torch::Tensor legal_move = torch::zeros({MaxNumAction()});

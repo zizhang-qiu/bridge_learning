@@ -120,16 +120,17 @@ target_link_libraries(rela_lib PUBLIC ${TORCH_LIBRARIES})
 target_link_libraries(rela_lib PUBLIC ${TORCH_PYTHON_LIBRARIES})
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    pybind11_add_module(rela SHARED rela/pybind.cc)
-    target_include_directories(rela PUBLIC "third_party/pybind11/include")
-    target_include_directories(rela PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_include_directories(rela PUBLIC ${TORCH_INCLUDE_DIRS})
-    target_include_directories(rela PUBLIC ${Python3_INCLUDE_DIRS})
-    target_link_libraries(rela PUBLIC rela_lib ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
+    pybind11_add_module(pyrela SHARED rela/pybind.cc)
+    target_include_directories(pyrela PUBLIC "third_party/pybind11/include")
+    target_include_directories(pyrela PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(pyrela PUBLIC ${TORCH_INCLUDE_DIRS})
+    target_include_directories(pyrela PUBLIC ${Python3_INCLUDE_DIRS})
+    target_link_libraries(pyrela PUBLIC rela_lib ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
 endif ()
 
 
 add_library(_bridgelearn OBJECT
+        rlcc/env.h
         rlcc/bridge_env.h
         rlcc/bridge_env.cc
         rlcc/bridge_dataset.h

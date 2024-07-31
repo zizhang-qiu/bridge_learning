@@ -67,7 +67,6 @@ class BridgeEnvActor : public EnvActor {
     if (!env_->Terminated()) {
       return;
     }
-    const auto rewards = env_->Rewards();
 
     for (int i = 0; i < actors_.size(); ++i) {
       rela::TensorDict d = {{"r", torch::tensor(last_rewards_[i])}};

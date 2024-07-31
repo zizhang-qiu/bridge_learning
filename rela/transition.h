@@ -77,6 +77,8 @@ class RNNTransition {
 
   TensorDict toDict();
 
+  void toDevice(const std::string& device);
+
   TensorDict obs;
   TensorDict h0;
   TensorDict action;

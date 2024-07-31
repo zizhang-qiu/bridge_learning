@@ -19,7 +19,7 @@
 namespace py = pybind11;
 using namespace rela;
 
-PYBIND11_MODULE(rela, m) {
+PYBIND11_MODULE(pyrela, m) {
   py::class_<RNNTransition, std::shared_ptr<RNNTransition>>(m, "RNNTransition")
       .def_readwrite("obs", &RNNTransition::obs)
       .def_readwrite("h0", &RNNTransition::h0)
@@ -27,7 +27,9 @@ PYBIND11_MODULE(rela, m) {
       .def_readwrite("reward", &RNNTransition::reward)
       .def_readwrite("terminal", &RNNTransition::terminal)
       .def_readwrite("bootstrap", &RNNTransition::bootstrap)
-      .def_readwrite("seq_len", &RNNTransition::seqLen);
+      .def_readwrite("seq_len", &RNNTransition::seqLen)
+      .def("to_dict", &RNNTransition::toDict)
+      .def("to_device", &RNNTransition::toDevice);
 
   py::class_<RNNPrioritizedReplay, std::shared_ptr<RNNPrioritizedReplay>>(
       m,

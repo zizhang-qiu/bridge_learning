@@ -55,6 +55,7 @@ PYBIND11_MODULE(bridge, m) {
 
   m.def("all_contracts", &AllContracts);
 
+  // Constants
   m.attr("example_deals") = example_deals;
   m.attr("example_ddts") = example_ddts;
   m.attr("NUM_PLAYERS") = kNumPlayers;
@@ -72,6 +73,7 @@ PYBIND11_MODULE(bridge, m) {
   m.attr("NUM_CONTRACTS") = kNumContracts;
   m.attr("NUM_VULNERABILITIES") = kNumVulnerabilities;
   m.attr("NUM_TRICKS") = kNumTricks;
+  m.attr("BIDDING_ACTION_BASE") = kBiddingActionBase;
 
   py::enum_<Seat>(m, "Seat")
       .value("NORTH", Seat::kNorth)
