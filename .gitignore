@@ -16,3 +16,4 @@
 *.pyc
 *.mat
 /.vscode
+/lstm_sl
