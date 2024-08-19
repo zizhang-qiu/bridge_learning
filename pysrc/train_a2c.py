@@ -359,10 +359,10 @@ def main(args):
         eval_runner.start()
         rewards1, history_infos1, elapsed1 = evaluate(args, eval_runner, eval_rival_runner, args.num_eval_threads,
                                                       args.num_eval_envs_per_thread,
-                                                      args.eval_dataset)
+                                                      args.eval_dataset, args.num_eval_games)
         rewards2, history_infos2, elapsed2 = evaluate(args, eval_rival_runner, eval_runner, args.num_eval_threads,
                                                       args.num_eval_envs_per_thread,
-                                                      args.eval_dataset)
+                                                      args.eval_dataset, args.num_eval_games)
 
         elapsed = elapsed1 + elapsed2
         imps = [bridge.get_imp(int(score1), int(score2)) for score1, score2 in zip(rewards1, rewards2)]

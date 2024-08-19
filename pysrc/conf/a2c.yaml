@@ -52,3 +52,4 @@ lr: 0.000001
 # Evaluation
 num_eval_threads: 8
 num_eval_envs_per_thread: 250
+num_eval_games: 10000
