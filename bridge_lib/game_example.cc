@@ -1,6 +1,7 @@
 #include <memory>
 #include <random>
 #include <vector>
+#include <cstring>
 #include "bridge_state.h"
 #include "bridge_observation.h"
 #include "canonical_encoder.h"
