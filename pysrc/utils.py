@@ -7,6 +7,7 @@
 """
 
 import os
+import time
 
 from typing import List, Tuple, Dict, OrderedDict
 
@@ -14,6 +15,8 @@ import torch
 import yaml
 import numpy as np
 import pickle
+
+import common_utils
 
 
 def load_dataset(file_path: str) -> List[List[int]]:
@@ -41,7 +44,7 @@ def load_dataset(file_path: str) -> List[List[int]]:
 
 
 def load_net_conf_and_state_dict(
-    model_dir: str, model_name: str, net_conf_filename: str = "net.yaml"
+        model_dir: str, model_name: str, net_conf_filename: str = "net.yaml"
 ) -> Tuple[Dict, OrderedDict]:
     with open(os.path.join(model_dir, net_conf_filename), "r") as fp:
         conf = yaml.full_load(fp)
@@ -50,7 +53,7 @@ def load_net_conf_and_state_dict(
     return conf, state_dict
 
 
-def is_trajectory_not_passed_out(trajectory: List[int])->bool:
+def is_trajectory_not_passed_out(trajectory: List[int]) -> bool:
     """Check if a trajectory is a game which is passed out, i.e., four players make a call of pass.
 
     Args:
@@ -63,7 +66,7 @@ def is_trajectory_not_passed_out(trajectory: List[int])->bool:
 
 
 def extract_not_passed_out_trajectories(
-    trajectories: List[List[int]],
+        trajectories: List[List[int]],
 ) -> List[List[int]]:
     """Extract trajectories which are not passed out from a list of trajectories.
 
@@ -81,7 +84,7 @@ def extract_not_passed_out_trajectories(
 
 
 def tensor_dict_to_device(
-    d: Dict[str, torch.Tensor], device: str
+        d: Dict[str, torch.Tensor], device: str
 ) -> Dict[str, torch.Tensor]:
     """Move a TensorDict to device.
 
@@ -99,7 +102,7 @@ def tensor_dict_to_device(
     return res
 
 
-def tensor_dict_unsqueeze(d: Dict[str, torch.Tensor], dim=0)-> Dict[str, torch.Tensor]:
+def tensor_dict_unsqueeze(d: Dict[str, torch.Tensor], dim=0) -> Dict[str, torch.Tensor]:
     """Do torch.unsqueeze() for all tensors in a tensor dict.
 
     Args:
@@ -116,7 +119,7 @@ def tensor_dict_unsqueeze(d: Dict[str, torch.Tensor], dim=0)-> Dict[str, torch.T
 
 
 def load_rl_dataset(
-    usage: str, dataset_dir: str = "D:/Projects/bridge_research/dataset/rl_data"
+        usage: str, dataset_dir: str = "D:/Projects/bridge_research/dataset/rl_data"
 ) -> Dict[str, np.ndarray]:
     """
     Load dataset.
@@ -136,3 +139,38 @@ def load_rl_dataset(
         dataset: Dict[str, np.ndarray] = pickle.load(fp)
 
     return dataset
+
+
+class Tachometer:
+    def __init__(self):
+        self.num_buffer = 0
+        self.num_train = 0
+        self.t = None
+        self.total_time = 0
+
+    def start(self):
+        self.t = time.time()
+
+    def lap(self, replay_buffer, num_train, factor):
+        t = time.time() - self.t
+        self.total_time += t
+        num_buffer = replay_buffer.num_add()
+        buffer_rate = factor * (num_buffer - self.num_buffer) / t
+        train_rate = factor * num_train / t
+        print(
+            "Speed: train: %.1f, buffer_add: %.1f, buffer_size: %d"
+            % (train_rate, buffer_rate, replay_buffer.size())
+        )
+        self.num_buffer = num_buffer
+        self.num_train += num_train
+        print(
+            "Total Time: %s, %ds"
+            % (common_utils.sec2str(self.total_time), self.total_time)
+        )
+        print(
+            "Total Sample: train: %s, buffer: %s"
+            % (
+                common_utils.num2str(self.num_train),
+                common_utils.num2str(self.num_buffer),
+            )
+        )

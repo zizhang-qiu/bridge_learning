@@ -42,6 +42,9 @@ epoch_len: 100
 max_grad_norm: 40.0
 synq_freq: 50
 save_dir: lstm_a2c
+clip_eps: 0.1
+entropy_ratio: 0.01
+value_loss_weight: 1.0
 
 # Optimizer
 lr: 0.00001

@@ -242,6 +242,8 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         action = batch.action["a"]
         action[action >= 52] -= 52
 
+        mask[action.squeeze(2) == self.out_dim - 1] = 0
+
         # [seq_len, batch_size, num_actions]
         current_log_probs = torch.log(pi + 1e-8)
         # current_log_probs = current_log_probs * mask

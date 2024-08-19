@@ -14,7 +14,12 @@ from tqdm import trange
 
 from agent import BridgeLSTMAgent
 from set_path import append_sys_path
-from common_utils import get_mem_usage, MultiStats, get_avg_and_sem, mkdir_with_increment, Logger, TopkSaver
+from common_utils import (get_mem_usage,
+                          MultiStats,
+                          get_avg_and_sem,
+                          mkdir_with_increment,
+                          Logger, TopkSaver, Stopwatch)
+from utils import Tachometer
 
 append_sys_path()
 import bridge
@@ -152,8 +157,6 @@ def create_agent_and_optimizer(args,
         opt.load_state_dict(checkpoint["opt_state_dict"])
         print("load rl checkpoint")
 
-
-
     runner = pyrela.BatchRunner(agent, args.act_device, 1000, ["act", "get_h0"])
     runner.start()
 
@@ -228,8 +231,9 @@ def main(args):
     stats = MultiStats()
     logger = Logger(os.path.join(args.save_dir, "log.txt"), True, auto_line_feed=True)
     saver = TopkSaver(args.save_dir, 5)
+    stopwatch = Stopwatch()
+    tachometer = Tachometer()
     agent, runner, replay_buffer, opt = create_agent_and_optimizer(args, in_dim, out_dim)
-    # agent.eval()
     eval_rival_agent = BridgeLSTMAgent(
         args.act_device,
         in_dim,
@@ -245,8 +249,6 @@ def main(args):
     )
 
     eval_rival_agent.load_state_dict(agent.state_dict())
-    # eval_rival_agent.eval()
-    # eval_rival_agent.greedy = True
     eval_rival_runner = pyrela.BatchRunner(eval_rival_agent, args.act_device, 1000, ["act", "get_h0"])
     eval_rival_runner.start()
     # eval_agent = BridgeLSTMAgent(
@@ -299,39 +301,41 @@ def main(args):
         print(f"Epoch {i_epoch}.")
         print(get_mem_usage())
         stats.reset()
+        stopwatch.reset()
+        tachometer.start()
         for i_batch in trange(args.epoch_len):
             num_update = i_batch + i_epoch * args.epoch_len
             if num_update % args.synq_freq == 0:
                 runner.update_model(agent)
-            opt.zero_grad()
+            torch.cuda.synchronize()
+            stopwatch.time("Synchronize model")
+
             batch, weight = replay_buffer.sample(args.batch_size, args.train_device)
-            # for k, v in batch.obs.items():
-            #     print(k, v.size())
-            #
-            # for k, v in batch.action.items():
-            #     print(k, v.size())
-            # print(batch.seq_len)
-            # print(batch.reward)
-            # print(batch.h0)
-
+            stopwatch.time("Sample data")
             p_loss, v_loss, priority = agent.compute_loss_and_priority(batch,
-                                                                       0.1,
-                                                                       0.01,
-                                                                       1.0)
-            # print(p_loss, v_loss, priority)
-            # print(p_loss.size(), v_loss.size(), priority.size())
-            # print(priority)
-            stats.feed("p_loss", p_loss.mean().item())
-            stats.feed("v_loss", v_loss.mean().item())
+                                                                       args.clip_eps,
+                                                                       args.entropy_ratio,
+                                                                       args.value_loss_weight)
+            stopwatch.time("forward & backward")
 
-            replay_buffer.update_priority(priority)
             weighted_loss = ((p_loss + v_loss) * weight).mean()
             weighted_loss.backward()
             g_norm = torch.nn.utils.clip_grad_norm_(agent.parameters(), args.max_grad_norm)
+
             opt.step()
+            opt.zero_grad()
+            stopwatch.time("update model")
+
+            replay_buffer.update_priority(priority)
+            stopwatch.time("update priority")
+
             stats.feed("g_norm", g_norm.item())
+            stats.feed("p_loss", p_loss.mean().item())
+            stats.feed("v_loss", v_loss.mean().item())
         for stat in stats.stats.values():
             print(stat.summary())
+        tachometer.lap(replay_buffer, args.epoch_len * args.batch_size, 1)
+        stopwatch.summary()
 
         # Evaluate.
         context.pause()
