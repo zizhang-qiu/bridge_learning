@@ -228,8 +228,10 @@ def main(args):
 
     args.save_dir = mkdir_with_increment(args.save_dir)
 
+
     stats = MultiStats()
     logger = Logger(os.path.join(args.save_dir, "log.txt"), True, auto_line_feed=True)
+    logger.write(pprint.pformat(vars(args)))
     saver = TopkSaver(args.save_dir, 5)
     stopwatch = Stopwatch()
     tachometer = Tachometer()
