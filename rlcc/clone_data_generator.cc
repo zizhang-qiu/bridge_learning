@@ -54,13 +54,10 @@ void DataGenLoop::mainLoop() {
       for (int player = 0; player < ble::kNumPlayers; ++player) {
         auto feature = env.Feature(player);
         // Split public and private.
-        constexpr int kPrivateFeatureSize = ble::kVulnerabilityTensorSize +
-                                            ble::kOpeningPassTensorSize +
-                                            ble::kBiddingHistoryTensorSize;
+        const int kPrivateFeatureSize = feature.at("s").size(0) - ble::kNumCards;
         feature["publ_s"] = feature.at("s").index(
             {torch::indexing::Slice(0, kPrivateFeatureSize)});
-        feature["priv_s"] = feature.at("s").index({torch::indexing::Slice(
-            kPrivateFeatureSize, ble::kAuctionTensorSize)});
+        feature["priv_s"] = feature.at("s");
         transition_buffers_[player].PushObs(feature);
         // std::cout << "Thread " << thread_idx_
         //         << " Push obs.\n";
@@ -150,13 +147,10 @@ std::vector<rela::RNNTransition> CloneDataGenerator::GenerateEvalData(
       for (int player = 0; player < ble::kNumPlayers; ++player) {
         auto feature = env.Feature(player);
         // Split public and private.
-        constexpr int kPrivateFeatureSize = ble::kVulnerabilityTensorSize +
-                                            ble::kOpeningPassTensorSize +
-                                            ble::kBiddingHistoryTensorSize;
+        const int kPrivateFeatureSize = feature.at("s").size(0) - ble::kNumCards;
         feature["publ_s"] = feature.at("s").index(
             {torch::indexing::Slice(0, kPrivateFeatureSize)});
-        feature["priv_s"] = feature.at("s").index({torch::indexing::Slice(
-            kPrivateFeatureSize, ble::kAuctionTensorSize)});
+        feature["priv_s"] = feature.at("s");
         transition_buffers_[player].PushObs(feature);
 
         int action;

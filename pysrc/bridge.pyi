@@ -254,3 +254,5 @@ def get_imp(score1: int, score2: int) -> int: ...
 ALL_SUITS: List[Suit]
 ALL_DENOMINATIONS: List[Denomination]
 ALL_SEATS: List[Seat]
+
+default_game_params : Dict[str, str]

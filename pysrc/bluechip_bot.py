@@ -10,7 +10,6 @@ import set_path
 set_path.append_sys_path()
 
 import bridge
-import rela
 import bridgeplay
 
 

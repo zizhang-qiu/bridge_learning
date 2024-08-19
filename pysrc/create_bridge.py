@@ -7,7 +7,7 @@ from set_path import append_sys_path
 append_sys_path()
 import bridge
 import torch
-import rela
+import pyrela
 import bridgeplay
 
 from utils import load_net_conf_and_state_dict
@@ -133,7 +133,7 @@ class BotFactory:
                 agent.to(self.device)
                 print("Network loaded.")
 
-                batch_runner = rela.BatchRunner(agent, self.device, 100, ["get_policy", "get_belief"])
+                batch_runner = pyrela.BatchRunner(agent, self.device, 100, ["get_policy", "get_belief"])
                 batch_runner.start()
 
                 torch_actor = bridgeplay.TorchActor(batch_runner)

@@ -28,13 +28,14 @@
 #include "rlcc/bridge_env_actor.h"
 #include "rlcc/duplicate_env.h"
 #include "rlcc/env_actor.h"
+#include "rlcc/detailed_encoder.h"
 
 // #include "rlcc/belief_data_gen.h"
 
 const ble::GameParameters params = {};
 const auto game = std::make_shared<ble::BridgeGame>(params);
 
-std::vector<size_t> FindNonZeroIndices(const std::vector<int>& vec) {
+std::vector<size_t> FindNonZeroIndices(const std::vector<int> &vec) {
   std::vector<size_t> indices;
 
   for (size_t i = 0; i < vec.size(); ++i) {
@@ -46,33 +47,24 @@ std::vector<size_t> FindNonZeroIndices(const std::vector<int>& vec) {
   return indices;
 }
 
-int main(int argc, char** argv) {
-  rlcc::BridgeEnvOptions options{};
-  options.dnns_feature = true;
-  options.jps_feature = true;
-  options.dnns_feature = true;
-  // auto dataset = std::make_shared<rlcc::BridgeDataset>(ble::example_deals,
-  //                                                      ble::example_ddts);
-  // rlcc::DuplicateEnv env{{}, options, dataset};
-  // env.Reset();
-  // std::cout << env.ToString() << std::endl;
-  // for (const int action : {55, 52, 52, 52}) {
-  //   std::cout << env.CurrentPlayer() << std::endl;
-  //   std::cout << env.LegalActions() << std::endl;
-  //   env.Step(action);
-  // }
+int main(int argc, char **argv) {
+  std::mt19937 rng(22);
+  ble::BridgeState state{ble::default_game};
+  while (state.IsChanceNode()) {
+    state.ApplyRandomChance();
+  }
 
-  // auto actor = std::make_shared<rlcc::AllPassActor>();
-  // const rlcc::EnvActorOptions env_actor_options{};
-  // rlcc::BridgeEnvActor env_actor(std::make_shared<rlcc::DuplicateEnv>(env),
-  //                                env_actor_options,
-  //                                {actor, actor, actor, actor});
-  
-  // env_actor.ObserveAfterAct();
-  // env_actor.Act();
-  // env_actor.ObserveBeforeAct();
-  // env_actor.SendExperience();
-  // env_actor.PostSendExperience();
+  int num_moves = 0;
+  while (state.IsInPhase(ble::Phase::kAuction) && num_moves < 7) {
+    const auto legal_moves = state.LegalMoves();
+    const auto random_move = rela::utils::UniformSample(legal_moves, rng);
+    state.ApplyMove(random_move);
+    ++num_moves;
+  }
 
-  // std::cout << env_actor.GetEnv()->ToString() << std::endl;
+  std::cout << state << std::endl;
+
+  auto encoder = DetailedEncoder(ble::default_game);
+  auto encoding = encoder.Encode({state});
+  std::cout << encoding << std::endl;
 }

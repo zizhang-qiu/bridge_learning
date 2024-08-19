@@ -213,11 +213,15 @@ void BridgeEnv::ResetWithDeckAndDoubleDummyResults(
 }
 
 void BridgeEnv::ResetWithDataSet() {
+//    std::cout << "Enter reset with dataset.\n";
   RELA_CHECK_NOTNULL(bridge_dataset_);
   const BridgeData bridge_data = bridge_dataset_->Next();
+//  std::cout << "Get data.\n";
+//  std::cout << bridge_data.deal.size() << std::endl;
   state_ = std::make_unique<ble::BridgeState>(
       std::make_shared<bridge_learning_env::BridgeGame>(game_));
   for (int i = 0; i < ble::kNumCards; ++i) {
+//      std::cout << "i: " << i << "\n";
     const int card = bridge_data.deal[i];
     const ble::BridgeMove move = game_.GetChanceOutcome(card);
     state_->ApplyMove(move);

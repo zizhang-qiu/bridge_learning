@@ -5,8 +5,8 @@
 
 namespace rlcc {
 
-void BridgeA2CActor::ObserveBeforeAct(const GameEnv& env) {
-  if(env.CurrentPlayer() != player_idx_){
+void BridgeA2CActor::ObserveBeforeAct(const GameEnv &env) {
+  if (env.CurrentPlayer() != player_idx_) {
     return;
   }
   torch::NoGradGuard ng;
@@ -16,7 +16,7 @@ void BridgeA2CActor::ObserveBeforeAct(const GameEnv& env) {
   fut_reply_ = runner_->call("act", input);
 }
 
-void BridgeA2CActor::Act(GameEnv& env, int current_player) {
+void BridgeA2CActor::Act(GameEnv &env, int current_player) {
   if (current_player != player_idx_) {
     return;
   }
@@ -26,8 +26,8 @@ void BridgeA2CActor::Act(GameEnv& env, int current_player) {
   env.Step(action);
 }
 
-void JPSActor::ObserveBeforeAct(const GameEnv& env) {
-  if(env.CurrentPlayer() != player_idx_){
+void JPSActor::ObserveBeforeAct(const GameEnv &env) {
+  if (env.CurrentPlayer() != player_idx_) {
     return;
   }
   torch::NoGradGuard ng;
@@ -37,7 +37,7 @@ void JPSActor::ObserveBeforeAct(const GameEnv& env) {
   fut_reply_ = runner_->call("act_greedy", input);
 }
 
-void JPSActor::Act(GameEnv& env, int current_player) {
+void JPSActor::Act(GameEnv &env, int current_player) {
   if (current_player != player_idx_) {
     return;
   }
@@ -47,15 +47,15 @@ void JPSActor::Act(GameEnv& env, int current_player) {
   env.Step(action);
 }
 
-void AddHid(rela::TensorDict& to, rela::TensorDict& hid) {
-  for (auto& kv : hid) {
+void AddHid(rela::TensorDict &to, rela::TensorDict &hid) {
+  for (auto &kv : hid) {
     auto ret = to.emplace(kv.first, kv.second);
     RELA_CHECK(ret.second);
   }
 }
 
-void MoveHid(rela::TensorDict& from, rela::TensorDict& hid) {
-  for (auto& kv : hid) {
+void MoveHid(rela::TensorDict &from, rela::TensorDict &hid) {
+  for (auto &kv : hid) {
     auto it = from.find(kv.first);
     RELA_CHECK(it != from.end());
     auto newHid = it->second;
@@ -65,7 +65,7 @@ void MoveHid(rela::TensorDict& from, rela::TensorDict& hid) {
   }
 }
 
-void BridgePublicLSTMActor::Reset(const GameEnv& env) {
+void BridgePublicLSTMActor::Reset(const GameEnv &env) {
   hidden_ = GetH0(runner_);
 
   if (transition_buffer_ != nullptr) {
@@ -73,7 +73,7 @@ void BridgePublicLSTMActor::Reset(const GameEnv& env) {
   }
 }
 
-void BridgePublicLSTMActor::ObserveBeforeAct(const GameEnv& env) {
+void BridgePublicLSTMActor::ObserveBeforeAct(const GameEnv &env) {
   torch::NoGradGuard ng;
   prev_hidden_ = hidden_;
 
@@ -97,22 +97,21 @@ void BridgePublicLSTMActor::ObserveBeforeAct(const GameEnv& env) {
 }
 
 rela::TensorDict BridgePublicLSTMActor::SplitPrivatePublic(
-    const rela::TensorDict& feature) {
+    const rela::TensorDict &feature) {
   rela::TensorDict res = feature;
-  constexpr int kPrivateFeatureSize = ble::kVulnerabilityTensorSize +
-                                      ble::kOpeningPassTensorSize +
-                                      ble::kBiddingHistoryTensorSize;
+  const int kPrivateFeatureSize = feature.at("s").size(0) - ble::kNumCards;
   res["publ_s"] =
       feature.at("s").index({torch::indexing::Slice(0, kPrivateFeatureSize)});
-  res["priv_s"] = feature.at("s").index(
-      {torch::indexing::Slice(kPrivateFeatureSize, ble::kAuctionTensorSize)});
+  res["priv_s"] = feature.at("s");
   return res;
 }
 
-void BridgePublicLSTMActor::Act(GameEnv& env, int current_player) {
+void BridgePublicLSTMActor::Act(GameEnv &env, int current_player) {
   torch::NoGradGuard ng;
 
   auto reply = fut_reply_.get();
+//  std::cout << "Get reply\n";
+//  std::cout << "a: " << reply.at("a") << std::endl;
   // std::cout << "Get reply\n";
 
   // Update hidden state.
@@ -139,7 +138,7 @@ void BridgePublicLSTMActor::SetTerminal() {
   }
 }
 
-void BridgePublicLSTMActor::SendExperience(const rela::TensorDict& t) {
+void BridgePublicLSTMActor::SendExperience(const rela::TensorDict &t) {
   if (transition_buffer_ != nullptr) {
     transition_buffer_->PushReward(t);
     const auto transition = transition_buffer_->PopTransition();

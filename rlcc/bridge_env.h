@@ -14,6 +14,7 @@
 #include "bridge_lib/dnns_encoder.h"
 #include "bridge_lib/jps_encoder.h"
 #include "bridge_lib/pbe_encoder.h"
+#include "detailed_encoder.h"
 #include "env.h"
 #include "rela/logging.h"
 #include "rela/tensor_dict.h"
@@ -123,10 +124,11 @@ class BridgeEnv : public GameEnv {
   const ble::BridgeGame game_;
   const BridgeEnvOptions options_;
   std::unique_ptr<ble::BridgeState> state_;
-  const ble::CanonicalEncoder encoder_;
+  const DetailedEncoder encoder_;
   const ble::PBEEncoder pbe_encoder_;
   const ble::JPSEncoder jps_encoder_;
   const ble::DNNsEncoder dnns_encoder_;
+
 
   ble::Player last_active_player_;
   ble::BridgeMove last_move_;

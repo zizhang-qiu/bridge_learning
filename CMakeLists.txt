@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 include(CTest)
 enable_testing()
 
-add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -17,17 +17,22 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 message(STATUS CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
-
+add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 if (WIN32)
     add_definitions(-DNOMINMAX)  # Define NOMINMAX for Windows builds
+
 endif ()
 
-set(Python3_ROOT_DIR D:/Anaconda/envs/bridge_research)
-set(Python3_FIND_VIRTUALENV ONLY)
+#set(Python3_ROOT_DIR D:/Anaconda/envs/bridge_research)
+#set(Python3_FIND_VIRTUALENV ONLY)
 if (WIN32)
-    set(CUDA_HOME D:\\cuda-12.3)
+    set(CUDA_HOME "D:/cuda-12.5")
+#    set(CMAKE_GENERATOR_TOOLSET "D:/cuda-12.5/")
+#    set(CUDA_TOOLKIT_ROOT_DIR "D:/cuda-12.5")
+#    set(CMAKE_CUDA_COMPILER "D:/cuda-12.5/bin/nvcc.exe")
+#    set(CUDA_CUDART_LIBRARY "D:\\cuda-12.5\\lib\\x64\\cudart.lib")
     message("Compiling on Windows")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPYBIND11_COMPILER_TYPE=\\\"_msvc\\\" -DPYBIND11_STDLIB=\"\" -DPYBIND11_BUILD_ABI=\"\"")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPYBIND11_COMPILER_TYPE=\\\"_msvc\\\" -DPYBIND11_STDLIB=\"\" -DPYBIND11_BUILD_ABI=\"\"")
 
     #
     #    set(PYTHON_EXECUTABLE "${CONDA_PREFIX}/python.exe")
@@ -35,6 +40,7 @@ if (WIN32)
     #    set(PYTHON_LIBRARIES "${CONDA_PREFIX}/libs/python38.lib")
 else ()
     message("Compiling on Linux")
+    add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
     set(CMAKE_CXX_FLAGS
             "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -Wno-register -fPIC -march=native -Wfatal-errors")
 
@@ -118,6 +124,7 @@ target_include_directories(rela_lib PUBLIC ${Python3_INCLUDE_DIRS})
 target_include_directories(rela_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(rela_lib PUBLIC ${TORCH_LIBRARIES})
 target_link_libraries(rela_lib PUBLIC ${TORCH_PYTHON_LIBRARIES})
+target_compile_definitions(rela_lib PUBLIC _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     pybind11_add_module(pyrela SHARED rela/pybind.cc)
@@ -126,6 +133,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_include_directories(pyrela PUBLIC ${TORCH_INCLUDE_DIRS})
     target_include_directories(pyrela PUBLIC ${Python3_INCLUDE_DIRS})
     target_link_libraries(pyrela PUBLIC rela_lib ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
+    target_compile_definitions(pyrela PUBLIC _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 endif ()
 
 
@@ -148,6 +156,8 @@ add_library(_bridgelearn OBJECT
         rlcc/rnn_buffer.h
         rlcc/clone_data_generator.cc
         rlcc/clone_data_generator.h
+        rlcc/detailed_encoder.cpp
+        rlcc/detailed_encoder.h
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)
@@ -162,6 +172,7 @@ target_link_libraries(_bridgelearn PUBLIC
         absl::str_format
         absl::strings
         absl::time)
+target_compile_definitions(_bridgelearn PUBLIC _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 
 add_library(_bridgeplay
         playcc/utils.h
@@ -223,6 +234,7 @@ add_library(_bridgeplay
         playcc/rule_based_defender.h
         playcc/trajectory_bidding_bot.cc
 )
+target_compile_definitions(_bridgeplay PUBLIC _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 # target_link_directories(_bridgeplay PUBLIC bridge_lib/third_party/dds/src)
 # target_link_libraries(_bridgeplay PUBLIC dds)
 target_link_libraries(_bridgeplay PUBLIC bridge_lib)
@@ -267,12 +279,14 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_libraries(bridgelearn PUBLIC bridge_lib)
     target_link_libraries(bridgelearn PUBLIC rela_lib ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
     target_include_directories(bridgelearn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+    target_compile_definitions(bridgelearn PUBLIC _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 
     pybind11_add_module(bridgeplay SHARED playcc/pybind.cc)
     target_link_libraries(bridgeplay PUBLIC bridge_lib)
     target_link_libraries(bridgeplay PUBLIC _bridgeplay)
     target_link_libraries(bridgeplay PUBLIC rela_lib ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARIES})
     target_include_directories(bridgeplay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_compile_definitions(bridgeplay PUBLIC _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 
     add_executable(temp test.cc)
 

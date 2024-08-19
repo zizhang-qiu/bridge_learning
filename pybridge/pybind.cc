@@ -318,6 +318,7 @@ PYBIND11_MODULE(bridge, m) {
                       }
       ));
 
+  m.attr("default_game_params") = default_game_params;
   m.attr("default_game") = default_game;
 
   py::enum_<Phase>(m, "Phase")

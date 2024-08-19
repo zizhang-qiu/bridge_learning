@@ -8,22 +8,22 @@
 #include "rlcc/env.h"
 
 namespace rlcc {
-class BridgeEnvActor : public EnvActor {
+class BridgeEnvActor final : public EnvActor {
  public:
-  BridgeEnvActor(const std::shared_ptr<GameEnv>& env,
-                 const EnvActorOptions& options,
+  BridgeEnvActor(const std::shared_ptr<GameEnv> &env,
+                 const EnvActorOptions &options,
                  std::vector<std::shared_ptr<Actor>> actors)
       : EnvActor(actors, options), env_(env) {
     CheckValid(*env);
     if (env_->Terminated()) {
       env_->Reset();
     }
-    Reset();
+    this->Reset();
   }
 
-  void Reset() override{
-    for (int i = 0; i < actors_.size(); ++i){
-      actors_[i] -> Reset(*env_);
+  void Reset() override {
+    for (int i = 0; i < actors_.size(); ++i) {
+      actors_[i]->Reset(*env_);
     }
   }
 
@@ -32,7 +32,7 @@ class BridgeEnvActor : public EnvActor {
     // const int current_player = env_->CurrentPlayer();
 
     // actors_[current_player]->ObserveBeforeAct(*env_);
-    for(size_t i=0; i<actors_.size(); ++i){
+    for (size_t i = 0; i < actors_.size(); ++i) {
       actors_[i]->ObserveBeforeAct(*env_);
     }
 
@@ -45,7 +45,8 @@ class BridgeEnvActor : public EnvActor {
     // actors_[current_player]->Act(*env_);
     // // std::cout << "After actors_[current_player]->Act(*env_)\n";
 
-    for(size_t i=0; i<actors_.size(); ++i){
+    for (size_t i = 0; i < actors_.size(); ++i) {
+//      std::cout << i << ", " << std::endl;
       actors_[i]->Act(*env_, current_player);
     }
 
@@ -82,7 +83,7 @@ class BridgeEnvActor : public EnvActor {
     Reset();
   }
 
-  const std::shared_ptr<GameEnv>& GetEnv() const override { return env_; }
+  const std::shared_ptr<GameEnv> &GetEnv() const override { return env_; }
 
  private:
   std::vector<float> last_rewards_;

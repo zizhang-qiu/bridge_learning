@@ -25,11 +25,18 @@ BridgeDataset::BridgeDataset(const std::vector<std::vector<int>> &deals,
 }
 
 BridgeData BridgeDataset::Next() {
+//  std::cout << "1" << std::endl;
+//  std::cout << "size: " << Size() << std::endl;
+  {
   std::lock_guard<std::mutex> lk(m_);
+//  std::cout << "2" << std::endl;
   // RELA_CHECK_GE(Size(), 0);
   const BridgeData data = dataset_[index_];
-  index_ = (index_ + 1) % Size();
+//  std::cout << "3" << std::endl;
+  index_ = (index_ + 1) % dataset_.size();
+//  std::cout << "4" << std::endl;
   return data;
+  }
 }
 
 }

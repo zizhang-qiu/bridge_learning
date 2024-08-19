@@ -6,6 +6,7 @@
 #include <pybind11/cast.h>
 #include <memory>
 #include <utility>
+#include <mutex>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
@@ -25,6 +26,27 @@
 
 namespace py = pybind11;
 using namespace rlcc;
+
+
+
+class ThreadSafeCounter {
+ public:
+  ThreadSafeCounter() : count(0) {}
+
+  void increment() {
+    std::unique_lock<std::mutex> guard(mutex_);
+    ++count;
+  }
+
+  int get() const {
+    std::unique_lock<std::mutex> guard(mutex_);
+    return count;
+  }
+
+ private:
+  mutable std::mutex mutex_;
+  int count;
+};
 
 PYBIND11_MODULE(bridgelearn, m) {
   py::class_<BridgeData>(m, "BridgeData")
@@ -78,6 +100,7 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def("feature", &BridgeEnv::Feature)
       .def("parameters", &BridgeEnv::Parameters)
       .def("spec", &BridgeEnv::Spec)
+      .def("max_num_action", &BridgeEnv::MaxNumAction)
       .def("__repr__", &BridgeEnv::ToString);
 
   py::class_<DuplicateEnv, GameEnv, std::shared_ptr<DuplicateEnv>>(
@@ -198,4 +221,9 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def("start_data_generation", &CloneDataGenerator::StartDataGeneration)
       .def("terminate", &CloneDataGenerator::Terminate)
       .def("generate_eval_data", &CloneDataGenerator::GenerateEvalData);
+
+  py::class_<ThreadSafeCounter>(m, "ThreadSafeCounter")
+      .def(py::init<>())
+      .def("increment", &ThreadSafeCounter::increment)
+      .def("get", &ThreadSafeCounter::get);
 }
