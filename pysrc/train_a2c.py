@@ -231,7 +231,7 @@ def main(args):
 
     stats = MultiStats()
     logger = Logger(os.path.join(args.save_dir, "log.txt"), True, auto_line_feed=True)
-    logger.write(pprint.pformat(vars(args)))
+    logger.write(pprint.pformat(args))
     saver = TopkSaver(args.save_dir, 5)
     stopwatch = Stopwatch()
     tachometer = Tachometer()
@@ -328,7 +328,7 @@ def main(args):
             opt.zero_grad()
             stopwatch.time("update model")
 
-            replay_buffer.update_priority(priority)
+            replay_buffer.update_priority(weight.cpu())
             stopwatch.time("update priority")
 
             stats.feed("g_norm", g_norm.item())

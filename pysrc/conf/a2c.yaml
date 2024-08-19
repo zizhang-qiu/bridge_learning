@@ -22,8 +22,8 @@ gamma: 1.0
 
 
 # Dataset
-train_dataset: "d:/Projects/bridge_research/dataset/rl_data/train.pkl"
-eval_dataset: "d:/Projects/bridge_research/dataset/rl_data/valid.pkl"
+train_dataset: "../rl_data/train.pkl"
+eval_dataset: "../rl_data/valid.pkl"
 
 # Env settings
 dealer: 0
@@ -34,20 +34,20 @@ duplicate: False
 # Training settings
 num_threads: 6
 num_envs_per_thread: 100
-batch_size: 10
+batch_size: 32
 train_device: "cuda"
 burn_in: 5000
 num_epochs: 1000
-epoch_len: 100
-max_grad_norm: 40.0
+epoch_len: 1000
+max_grad_norm: 0.5
 synq_freq: 50
 save_dir: lstm_a2c
-clip_eps: 0.1
-entropy_ratio: 0.01
-value_loss_weight: 1.0
+clip_eps: 0.2
+entropy_ratio: 0.001
+value_loss_weight: 0.5
 
 # Optimizer
-lr: 0.00001
+lr: 0.000001
 
 # Evaluation
 num_eval_threads: 8

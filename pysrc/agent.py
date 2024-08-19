@@ -243,6 +243,7 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         action[action >= 52] -= 52
 
         mask[action.squeeze(2) == self.out_dim - 1] = 0
+        # print("mask: ", mask)
 
         # [seq_len, batch_size, num_actions]
         current_log_probs = torch.log(pi + 1e-8)
@@ -268,12 +269,14 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
 
         # [seq_len, batch_size]
         advantage = (batch.reward / 7600 - v.squeeze()) * mask
-        # print(advantage)
+        # print("advantage: ", advantage)
 
         surr1 = ratio * (advantage.detach())
         surr2 = torch.clamp(ratio, 1 - clip_eps, 1 + clip_eps) * (advantage.detach())
-
+        # print("surr1: ", surr1)
+        # print("surr2: ", surr2)
         entropy = -torch.sum(pi * current_log_probs, dim=-1)
+        # print("entropy: ", entropy)
 
         policy_loss = -torch.min(surr1, surr2) - entropy_ratio * entropy
         policy_loss = policy_loss * mask
