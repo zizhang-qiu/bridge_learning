@@ -1,0 +1,51 @@
+# Agent.
+act_device: "cuda"
+hid_dim: 1024
+num_priv_mlp_layer: 4
+num_publ_mlp_layer: 2
+num_lstm_layer: 1
+activation: "gelu"
+dropout: !!float 0.0
+net: "lstm"
+rl_checkpoint: ""
+sl_checkpoint: "lstm_sl/exp4/model0.pthw"
+
+# Replay buffer.
+capacity: 30000
+alpha: 0.8
+beta: 0.6
+prefetch: 2
+
+# Actor
+max_len: 60
+gamma: 1.0
+
+
+# Dataset
+train_dataset: "d:/Projects/bridge_research/dataset/rl_data/train.pkl"
+eval_dataset: "d:/Projects/bridge_research/dataset/rl_data/valid.pkl"
+
+# Env settings
+dealer: 0
+is_dealer_vulnerable: False
+is_non_dealer_vulnerable: False
+duplicate: False
+
+# Training settings
+num_threads: 6
+num_envs_per_thread: 100
+batch_size: 10
+train_device: "cuda"
+burn_in: 5000
+num_epochs: 1000
+epoch_len: 100
+max_grad_norm: 40.0
+synq_freq: 50
+save_dir: lstm_a2c
+
+# Optimizer
+lr: 0.00001
+
+# Evaluation
+num_eval_threads: 8
+num_eval_envs_per_thread: 250
