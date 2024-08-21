@@ -99,6 +99,7 @@ def create_env(dealer: int,
                is_dealer_vulnerable: bool,
                is_non_dealer_vulnerable: bool,
                seed: int,
+               max_len: int,
                dataset: Optional[bridgelearn.BridgeDataset] = None,
                duplicate: bool = False) \
         -> Union[bridgelearn.BridgeEnv, bridgelearn.DuplicateEnv]:
@@ -112,6 +113,7 @@ def create_env(dealer: int,
     env_options.bidding_phase = True
     env_options.playing_phase = False
     env_options.verbose = False
+    env_options.max_len = max_len
 
     if duplicate:
         env = bridgelearn.DuplicateEnv(game_params, env_options)
@@ -192,6 +194,7 @@ def create_context(args,
                              args.is_dealer_vulnerable,
                              args.is_non_dealer_vulnerable,
                              0,
+                             args.max_len,
                              bridge_dataset,
                              args.duplicate)
             actors = [bridgelearn.BridgePublicLSTMActor(runner,
@@ -217,7 +220,7 @@ def create_context(args,
 @hydra.main("conf", "a2c.yaml", version_base="1.2")
 def main(args):
     pprint.pprint(args)
-    env = create_env(0, False, False, 1, None, False)
+    env = create_env(0, False, False, 1, -1, None, False)
     in_dim = env.feature_size()
     out_dim = env.max_num_action() - bridge.NUM_CARDS
     print(in_dim, out_dim)
@@ -228,10 +231,9 @@ def main(args):
 
     args.save_dir = mkdir_with_increment(args.save_dir)
 
-
     stats = MultiStats()
     logger = Logger(os.path.join(args.save_dir, "log.txt"), True, auto_line_feed=True)
-    logger.write(pprint.pformat(args))
+    logger.write(pprint.pformat(vars(args)))
     saver = TopkSaver(args.save_dir, 5)
     stopwatch = Stopwatch()
     tachometer = Tachometer()
