@@ -5,6 +5,7 @@
 #include <numeric>
 #include "detailed_encoder.h"
 #include "rela/utils.h"
+#include "encoder_registerer.h"
 
 int FlatLength(const std::vector<int> &shape) {
   return std::accumulate(std::begin(shape), std::end(shape), 1,
@@ -62,7 +63,7 @@ int EncodeAuctionDetailed(const ble::BridgeObservation &obs, int start_offset, s
 }
 
 std::vector<int> DetailedEncoder::Encode(const ble::BridgeObservation &obs) const {
-  if (obs.NumCardsPlayed() > 0){
+  if (obs.NumCardsPlayed() > 0) {
     rela::utils::RelaFatalError("This encoder doesn't support playing phase.");
   }
   std::vector<int> encoding(FlatLength(Shape()), 0);
@@ -75,4 +76,14 @@ std::vector<int> DetailedEncoder::Encode(const ble::BridgeObservation &obs) cons
   REQUIRE_EQ(offset, kDetailedFeatureSize);
   return encoding;
 }
+
+class DetailedEncoderFactory : public rlcc::ObservationEncoderFactory {
+ public:
+  std::unique_ptr<ble::ObservationEncoder> Create(std::shared_ptr<ble::BridgeGame> &game,
+                                                  const bridge_learning_env::GameParameters &encoder_params) override {
+    return std::make_unique<DetailedEncoder>(game);
+  }
+};
+
+rlcc::REGISTER_OBSERVATION_ENCODER("detailed", DetailedEncoderFactory);
 

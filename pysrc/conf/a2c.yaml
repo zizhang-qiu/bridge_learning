@@ -8,16 +8,16 @@ activation: "gelu"
 dropout: !!float 0.0
 net: "lstm"
 rl_checkpoint: ""
-sl_checkpoint: "lstm_sl/exp4/model0.pthw"
+sl_checkpoint: "lstm_sl/exp5/model1.pthw"
 
 # Replay buffer.
-capacity: 30000
+capacity: 20000
 alpha: 0.8
 beta: 0.6
 prefetch: 2
 
 # Actor
-max_len: 60
+max_len: 50
 gamma: 1.0
 
 
@@ -33,21 +33,21 @@ duplicate: False
 
 # Training settings
 num_threads: 6
-num_envs_per_thread: 100
-batch_size: 32
+num_envs_per_thread: 250
+batch_size: 64
 train_device: "cuda"
 burn_in: 5000
 num_epochs: 1000
 epoch_len: 1000
 max_grad_norm: 0.5
-synq_freq: 50
+synq_freq: 5
 save_dir: lstm_a2c
 clip_eps: 0.2
-entropy_ratio: 0.001
+entropy_ratio: 0.01
 value_loss_weight: 0.5
 
 # Optimizer
-lr: 0.000001
+lr: 0.0000001
 
 # Evaluation
 num_eval_threads: 8

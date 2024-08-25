@@ -8,7 +8,6 @@ from typing import List, Optional, Tuple, Callable
 from argparse import ArgumentParser
 import pprint
 import os
-
 from set_path import append_sys_path
 
 append_sys_path()
@@ -24,8 +23,9 @@ from common_utils import (
     MultiStats,
     mkdir_with_increment,
     TopkSaver,
+    find_files_in_dir
 )
-from utils import load_dataset
+from utils import load_dataset, Tachometer
 from agent import BridgeLSTMAgent
 
 BIDDING_ACTION_BASE = bridge.BIDDING_ACTION_BASE
@@ -85,7 +85,7 @@ def create_data_generator(
     for i, game_trajectory in enumerate(trajectories):
         data_gen.add_game(game_trajectory)
         if (i + 1) % 10000 == 0:
-            print(f"{i + 1} games added.")
+            print(f"\r{i + 1} games added.", end="")
 
     return data_gen, replay_buffer
 
@@ -102,6 +102,7 @@ def compute_loss(
             pred_logits.size() == legal_move.size()
     ), f"size not match, {pred_logits.size()} vs {legal_move.size()}"
     # pred_logits = pred_logits * legal_move
+    pred_logits = pred_logits - (1 - legal_move) * 1e10
     pred_logits = pred_logits.reshape(-1, num_actions)
 
     ground_truth_action = ground_truth_action.flatten()
@@ -129,6 +130,7 @@ def compute_accuracy(
             pred_logits.size() == legal_move.size()
     ), f"size not match, {pred_logits.size()} vs {legal_move.size()}"
     # pred_logits = pred_logits * legal_move
+    pred_logits = pred_logits - (1 - legal_move) * 1e10
     pred_logits = pred_logits.reshape(-1, num_actions)
     ground_truth_action = ground_truth_action.flatten()
     # print("pred_action: ", pred_logits.argmax(dim=1))
@@ -265,7 +267,7 @@ def parse_args():
     )
     parser.add_argument("--num_threads", type=int, default=6)
     parser.add_argument(
-        "--capacity", type=int, default=int(4e4), help="Capacity of replay buffer."
+        "--capacity", type=int, default=int(2e4), help="Capacity of replay buffer."
     )
     parser.add_argument("--prefetch", type=int, default=3)
 
@@ -284,13 +286,13 @@ def parse_args():
     parser.add_argument(
         "--no_op_actions_weight",
         type=float,
-        default=0.0,
+        default=1.0,
         help="The weight to compute loss on no op actions.",
     )
-    parser.add_argument("--max_grad_norm", type=float, default=40.0)
+    parser.add_argument("--max_grad_norm", type=float, default=0.5)
 
     parser.add_argument("--save_dir", type=str, default="lstm_sl")
-    parser.add_argument("--eval_only", type=int, default=0)
+    parser.add_argument("--eval_only", type=int, default=1)
     parser.add_argument(
         "--eval_dataset",
         type=str,
@@ -298,7 +300,7 @@ def parse_args():
     )
 
     parser.add_argument("--eval_batch_size", type=int, default=400)
-    parser.add_argument("--load_model", type=str, default="lstm_sl/exp3/model0.pthw")
+    parser.add_argument("--load_model", type=str, default="lstm_sl/exp5")
 
     return parser.parse_args()
 
@@ -332,38 +334,47 @@ if __name__ == "__main__":
         del clone_data_generator
         print("Start eval.")
         assert args.load_model
-        checkpoint = torch.load(args.load_model)
-        agent = BridgeLSTMAgent(
-            args.device,
-            in_dim,
-            args.hid_dim,
-            out_dim,
-            args.num_priv_mlp_layer,
-            args.num_publ_mlp_layer,
-            args.num_lstm_layer,
-            args.activation,
-            args.dropout,
-            args.net
-        )
-        agent.load_state_dict(checkpoint["model_state_dict"])
-        print("Load trained model.")
+        if os.path.isdir(args.load_model):
+            model_paths = find_files_in_dir(args.load_model, "pthw")
+        elif os.path.isfile(args.load_model):
+            model_paths = [args.load_model]
+        else:
+            raise ValueError(f"load_model {args.load_model} is neither a directory nor a file.")
+        for model_path in model_paths:
+            print(f"Model {model_path:}")
+            checkpoint = torch.load(model_path)
+            agent = BridgeLSTMAgent(
+                args.device,
+                in_dim,
+                args.hid_dim,
+                out_dim,
+                args.num_priv_mlp_layer,
+                args.num_publ_mlp_layer,
+                args.num_lstm_layer,
+                args.activation,
+                args.dropout,
+                args.net
+            )
+            agent.load_state_dict(checkpoint["model_state_dict"])
+            agent.eval()
+            # print("Load trained model.")
+            with torch.no_grad():
+                eval_stats = evaluate(agent, eval_batch, args)
 
-        eval_stats = evaluate(agent, eval_batch, args)
+            # print(f"Done. Eval result for model {args.load_model}:")
+            for name, stat in eval_stats.stats.items():
+                print(stat.summary())
 
-        print(f"Done. Eval result for model {args.load_model}:")
-        for name, stat in eval_stats.stats.items():
-            print(stat.summary())
+            accuracy_without_no_op = (
+                    (np.array(eval_stats.get("accuracy_without_no_op").stat_list)
+                     * np.array(eval_stats.get("num_eval_actions_without_no_op").stat_list)).sum(0)
+                    / np.array(eval_stats.get("num_eval_actions_without_no_op").stat_list).sum(0))
 
-        accuracy_without_no_op = (
-                (np.array(eval_stats.get("accuracy_without_no_op").stat_list)
-                 * np.array(eval_stats.get("num_eval_actions_without_no_op").stat_list)).sum(0)
-                / np.array(eval_stats.get("num_eval_actions_without_no_op").stat_list).sum(0))
-
-        accuracy = (
-                (np.array(eval_stats.get("accuracy").stat_list)
-                 * np.array(eval_stats.get("num_eval_actions").stat_list)).sum(0)
-                / np.array(eval_stats.get("num_eval_actions").stat_list).sum(0))
-        print(f"accuracy: {accuracy:.2%}, accuracy_without_no_op: {accuracy_without_no_op:.2%}")
+            accuracy = (
+                    (np.array(eval_stats.get("accuracy").stat_list)
+                     * np.array(eval_stats.get("num_eval_actions").stat_list)).sum(0)
+                    / np.array(eval_stats.get("num_eval_actions").stat_list).sum(0))
+            print(f"accuracy: {accuracy:.2%}, accuracy_without_no_op: {accuracy_without_no_op:.2%}")
 
         sys.exit(0)
 
@@ -393,9 +404,11 @@ if __name__ == "__main__":
         args.dropout,
         args.net
     )
-    opt = torch.optim.Adam(agent.net.parameters(), lr=args.lr, eps=args.eps)
+    opt = torch.optim.Adam(agent.network.parameters(), lr=args.lr, eps=args.eps)
 
     if args.load_model:
+        if not os.path.isfile(args.load_model):
+            raise ValueError(f"The model path {args.load_model} is not available.")
         checkpoint = torch.load(args.load_model)
         agent.load_state_dict(checkpoint["model_state_dict"])
         opt.load_state_dict(checkpoint["opt_state_dict"])
@@ -425,6 +438,7 @@ if __name__ == "__main__":
     args.save_dir = mkdir_with_increment(args.save_dir)
     logger = Logger(os.path.join(args.save_dir, "log.txt"), auto_line_feed=True)
     logger.write(pprint.pformat(vars(args)))
+    tachometer = Tachometer()
 
     data_gen, replay_buffer = create_data_generator(
         game_trajectories,
@@ -445,6 +459,7 @@ if __name__ == "__main__":
     stopwatch = Stopwatch()
     stats = MultiStats()
     saver = TopkSaver(args.save_dir, 5)
+    tachometer.start()
 
     for epoch in range(args.num_epoch):
         stopwatch.reset()
@@ -465,6 +480,7 @@ if __name__ == "__main__":
 
         print(f"Epoch {epoch}:")
         print(get_mem_usage())
+        tachometer.lap(replay_buffer, args.epoch_len * args.batch_size, 1)
         stopwatch.summary()
 
         # Eval.

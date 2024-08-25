@@ -42,7 +42,7 @@ def main(args):
     if not os.path.exists(args.save_dir):
         os.mkdir(args.save_dir)
 
-    policy_net = MLP.from_conf(args.net)
+    policy_net = MLP.from_conf(args.network)
     initialize_fc(policy_net)
     policy_net.to(device=args.device)
     policy_net.train()

@@ -1,3 +1,5 @@
+import math
+
 from net import PublicLSTMNet
 import torch
 import numpy as np
@@ -5,6 +7,7 @@ from agent import BridgeLSTMAgent
 from utils import load_dataset
 from set_path import append_sys_path
 import multiprocessing as mp
+
 append_sys_path()
 # import sys
 # sys.path.append("../cmake-build-release-visual-studio-1")
@@ -42,7 +45,7 @@ if __name__ == "__main__":
 
     # reply = agent.act(obs)
     # print(reply)
-    
+
     # dataset = load_dataset(r"D:\Projects\bridge_research\expert\test.txt")
     # lengths = [len(data) - 52 * 2 if len(data) > 52 + 4 else len(data) - 52
     #            for data in dataset]
@@ -55,9 +58,26 @@ if __name__ == "__main__":
     # print(torch.nn.functional.softmax(a, 1))
     # print(torch.nn.functional.softmax(a, 2))
     # print(torch.nn.functional.softmax(a, -1))
-    a = torch.rand(3, 4, 5)
-    print(a)
-    a = a.view(-1, 5)
-    print(a.size())
-    print(a)
-    
+    # 示例 tensor
+    # a = torch.tensor([[[1, 2, 3],
+    #                    [4, 5, 6],
+    #                    [7, 8, 9]],
+    #                   [[1, 2, 3],
+    #                    [4, 5, 6],
+    #                    [7, 8, 9]],
+    #                   [[1, 2, 3],
+    #                    [4, 5, 6],
+    #                    [7, 8, 9]]])
+    #
+    # # mask tensor
+    # mask = torch.tensor([[0, 1, 0],
+    #                      [1, 0, 1],
+    #                      [0, 1, 0]])
+    #
+    # # 使用 mask 进行索引
+    # result = a[mask == 1]
+    #
+    # print(result)
+    a = torch.tensor([1,2,3,4,5])
+    b = torch.repeat_interleave(a.unsqueeze(0), 10, 0)
+    print(b)

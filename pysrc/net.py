@@ -377,6 +377,7 @@ class PublicLSTMNet(torch.jit.ScriptModule):
         o = o.squeeze(0)
         pi = torch.nn.functional.softmax(self.policy_head(o), dim=-1)
         v = self.value_head(o)
+        # v = torch.nn.functional.tanh(v)
 
         interim_hid_shape = (
             self.num_lstm_layer,
@@ -388,6 +389,7 @@ class PublicLSTMNet(torch.jit.ScriptModule):
 
         return {"pi": pi, "v": v, "h0": h, "c0": c}
 
+    @torch.jit.script_method
     def forward(
             self,
             priv_s: torch.Tensor,
@@ -418,6 +420,7 @@ class PublicLSTMNet(torch.jit.ScriptModule):
         # pi = torch.nn.functional.softmax(self.policy_head(o), dim=-1)
         pi = self.policy_head(o)
         v = self.value_head(o)
+        # v = torch.nn.functional.tanh(v)
         legal_pi = pi * legal_move[:, :, -self.out_dim:]
 
         if one_step:

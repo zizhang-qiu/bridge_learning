@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 import torch
 from torch import nn
@@ -164,12 +164,12 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
     ):
         super().__init__()
         if net == "publ-lstm":
-            self.net = PublicLSTMNet(
+            self.network = PublicLSTMNet(
                 device, in_dim, hid_dim, out_dim, num_priv_mlp_layer, num_publ_mlp_layer, num_lstm_layer, activation,
                 dropout
             ).to(device)
         elif net == "lstm":
-            self.net = LSTMNet(
+            self.network = LSTMNet(
                 device, in_dim, hid_dim, out_dim, num_priv_mlp_layer, num_publ_mlp_layer, num_lstm_layer, activation,
                 dropout
             ).to(device)
@@ -182,11 +182,34 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         self.num_priv_mlp_layer = num_priv_mlp_layer
         self.num_publ_mlp_layer = num_publ_mlp_layer
         self.num_lstm_layer = num_lstm_layer
+        self.dropout = dropout
         self.activation = activation
+        self.net = net
+
+    def clone(self, device: str, overwrite: Optional[Dict] = None):
+
+        if overwrite is None:
+            overwrite = dict()
+        cloned = type(self)(
+            device,
+            self.in_dim,
+            self.hid_dim,
+            self.out_dim,
+            self.num_priv_mlp_layer,
+            self.num_publ_mlp_layer,
+            self.num_lstm_layer,
+            overwrite.get("activation", self.activation),
+            overwrite.get("dropout", self.dropout),
+            self.net,
+            overwrite.get("greedy", self.greedy)
+        )
+        cloned.load_state_dict(self.state_dict())
+        cloned.train(self.training)
+        return cloned.to(device)
 
     @torch.jit.script_method
     def get_h0(self) -> Dict[str, torch.Tensor]:
-        return self.net.get_h0()
+        return self.network.get_h0()
 
     @torch.jit.script_method
     def act(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -194,9 +217,11 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         publ_s = obs["publ_s"]
         legal_move = obs["legal_move"]
         hid = {"h0": obs["h0"], "c0": obs["c0"]}
-        reply = self.net.act(priv_s, publ_s, hid)
+        reply = self.network.act(priv_s, publ_s, hid)
 
         # print("get_reply")
+        # for k, v in reply.items():
+        #     print(k, v.size())
         legal_pi = reply["pi"] * legal_move[:, -self.out_dim:]
         # legal_pi[legal_move[:, -self.out_dim:] == 1] += 1e-8
         if self.greedy:
@@ -220,55 +245,79 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
             hid = {"h0": obs["h0"], "c0": obs["c0"]}
         else:
             hid = {}
-        return self.net.forward(obs["priv_s"], obs["publ_s"], obs["legal_move"], hid)
+        return self.network.forward(obs["priv_s"], obs["publ_s"], obs["legal_move"], hid)
 
     def compute_loss_and_priority(self,
                                   batch: pyrela.RNNTransition,
                                   clip_eps: float,
                                   entropy_ratio: float,
-                                  value_loss_weight: float):
+                                  batch_weight: torch.Tensor,
+                                  value_loss_weight: float,
+                                  policy_no_op_coeff: float,
+                                  value_no_op_coeff: float):
         priv_s = batch.obs["priv_s"]
         seq_len, batch_size, _ = priv_s.size()
-        mask = torch.arange(0, priv_s.size(0), device=batch.seq_len.device)
+        mask = torch.arange(0, seq_len, device=batch.seq_len.device)
         # [seq_len, batch_size]
         mask = (mask.unsqueeze(1) < batch.seq_len.unsqueeze(0)).float()
         # print(mask.size())
         # print("mask: ", mask)
+        batch.obs["h0"] = batch.h0["h0"]
+        batch.obs["c0"] = batch.h0["c0"]
         reply = self.forward(batch.obs)
+        # [seq_len, batch_size, num_actions]
         pi = torch.nn.functional.softmax(reply["pi"], dim=-1)
+        # print("pi: ", pi)
+        # print("old pi: ", batch.action["pi"])
         # [seq_len, batch_size, 1]
         v = reply["v"]
 
-        action = batch.action["a"]
+        action = batch.action["a"].squeeze(2)
         action[action >= 52] -= 52
+        action = action[mask == 1]
+        # print("action", action.squeeze(2))
 
-        mask[action.squeeze(2) == self.out_dim - 1] = 0
+        # policy_mask = mask.clone()
+        # policy_mask[action.squeeze(2) == self.out_dim - 1] = policy_no_op_coeff
+        # value_mask = mask.clone()
+        # value_mask[action.squeeze(2) == self.out_dim - 1] = value_no_op_coeff
+        # mask[action.squeeze(2) == self.out_dim - 1] = 0
         # print("mask: ", mask)
 
-        # [seq_len, batch_size, num_actions]
+        pi = pi[mask == 1]
+        v = v[mask == 1]
+
+        weight = torch.repeat_interleave(batch_weight.unsqueeze(0), seq_len, 0)
+        weight = weight[mask == 1]
+
+        # [batch_size, num_actions]
         current_log_probs = torch.log(pi + 1e-8)
-        # current_log_probs = current_log_probs * mask
         # [seq_len * batch_size, num_actions]
         # current_log_probs = current_log_probs.view(-1, self.out_dim)
 
         # print("current_log_probs: ", current_log_probs)
 
-        current_action_log_probs = current_log_probs.gather(2, action).squeeze(2)
+        current_action_log_probs = current_log_probs.gather(1, action.unsqueeze(1)).squeeze(1)
 
         # print("current_action_log_probs: ", current_action_log_probs)
         old_probs = batch.action["pi"]
+        old_probs = old_probs[mask == 1]
         old_log_probs = torch.log(old_probs + 1e-8)
         old_action_log_probs = old_log_probs.gather(
-            2,
-            action.long()
-        ).squeeze(2)
+            1,
+            action.unsqueeze(1)
+        ).squeeze(1)
         # print("old_action_log_probs: ", old_action_log_probs)
 
+        #
         ratio = torch.exp(current_action_log_probs - old_action_log_probs)
         # print("ratio: ", ratio)
 
-        # [seq_len, batch_size]
-        advantage = (batch.reward / 7600 - v.squeeze()) * mask
+        # [batch_size]
+        reward = batch.reward[mask == 1]
+        reward = reward / 7600
+        # reward = (reward - reward.mean()) / (reward.std() + 1e-8)
+        advantage = (reward - v.squeeze())
         # print("advantage: ", advantage)
 
         surr1 = ratio * (advantage.detach())
@@ -279,11 +328,11 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         # print("entropy: ", entropy)
 
         policy_loss = -torch.min(surr1, surr2) - entropy_ratio * entropy
-        policy_loss = policy_loss * mask
+        policy_loss = policy_loss
 
         value_loss = torch.pow(advantage, 2) * value_loss_weight
-        value_loss = value_loss * mask
+        value_loss = value_loss
 
-        priority = advantage.detach() * mask
+        priority = advantage.detach()
 
-        return policy_loss.mean(0), value_loss.mean(0), priority.sum(0).abs().cpu()
+        return policy_loss * weight, value_loss * weight, priority.abs().cpu()

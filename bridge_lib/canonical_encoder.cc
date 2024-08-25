@@ -7,15 +7,15 @@
 namespace bridge_learning_env {
 // Computes the product of dimensions in shape, i.e. how many individual
 // pieces of data the encoded observation requires.
-int FlatLength(const std::vector<int>& shape) {
+int FlatLength(const std::vector<int> &shape) {
   return std::accumulate(std::begin(shape), std::end(shape), 1,
                          std::multiplies<>());
 }
 
-int EncodeVulnerabilityBoth(const BridgeObservation& obs,
-                            const std::shared_ptr<BridgeGame>& game,
+int EncodeVulnerabilityBoth(const BridgeObservation &obs,
+                            const std::shared_ptr<BridgeGame> &game,
                             const int start_offset,
-                            std::vector<int>* encoding) {
+                            std::vector<int> *encoding) {
   int offset = start_offset;
   (*encoding)[offset + obs.IsPlayerVulnerable()] = 1;
   offset += kNumVulnerabilities;
@@ -25,10 +25,10 @@ int EncodeVulnerabilityBoth(const BridgeObservation& obs,
   return offset - start_offset;
 }
 
-int EncodeAuction(const BridgeObservation& obs, const int start_offset,
-                  std::vector<int>* encoding) {
+int EncodeAuction(const BridgeObservation &obs, const int start_offset,
+                  std::vector<int> *encoding) {
   int offset = start_offset;
-  const auto& history = obs.AuctionHistory();
+  const auto &history = obs.AuctionHistory();
   int idx = 0;
   // Opening pass
   for (; idx < history.size(); idx++) {
@@ -45,18 +45,18 @@ int EncodeAuction(const BridgeObservation& obs, const int start_offset,
   // makes/doubles/redoubles the bid.
   int last_bid = 0;
   for (; idx < history.size(); idx++) {
-    const auto& item = history[idx];
+    const auto &item = history[idx];
     if (item.other_call == kDouble) {
       (*encoding)[offset + (last_bid - kFirstBid) * kSingleBidTensorSize +
-                  kNumPlayers + item.player] = 1;
+          kNumPlayers + item.player] = 1;
     } else if (item.other_call == kRedouble) {
       (*encoding)[offset + (last_bid - kFirstBid) * kSingleBidTensorSize +
-                  kNumPlayers * 2 + item.player] = 1;
+          kNumPlayers * 2 + item.player] = 1;
     } else if (item.move.IsBid()) {
       // Should be a bid.
       const int bid_index = BidIndex(item.level, item.denomination);
       (*encoding)[offset + (bid_index - kFirstBid) * kSingleBidTensorSize +
-                  item.player] = 1;
+          item.player] = 1;
       last_bid = bid_index;
     }
   }
@@ -66,12 +66,12 @@ int EncodeAuction(const BridgeObservation& obs, const int start_offset,
   return offset - start_offset;
 }
 
-int EncodePlayerHand(const BridgeObservation& obs, const int start_offset,
-                     std::vector<int>* encoding, const int relative_player) {
+int EncodePlayerHand(const BridgeObservation &obs, const int start_offset,
+                     std::vector<int> *encoding, const int relative_player) {
   int offset = start_offset;
-  const auto& cards = obs.Hands()[relative_player].Cards();
+  const auto &cards = obs.Hands()[relative_player].Cards();
   REQUIRE(cards.size() <= kNumCardsPerHand);
-  for (const BridgeCard& card : cards) {
+  for (const BridgeCard &card : cards) {
     REQUIRE(card.IsValid());
     (*encoding)[offset + card.Index()] = 1;
   }
@@ -80,22 +80,18 @@ int EncodePlayerHand(const BridgeObservation& obs, const int start_offset,
 }
 
 // Convert double status to index, undoubled=0, doubled=1, redoubled=2.
-int DoubleStatusToIndex(const DoubleStatus& double_status) {
+int DoubleStatusToIndex(const DoubleStatus &double_status) {
   switch (double_status) {
-    case kUndoubled:
-      return 0;
-    case kDoubled:
-      return 1;
-    case kRedoubled:
-      return 2;
-    default:
-      std::cerr << "Invalid double status: " << double_status << std::endl;
+    case kUndoubled:return 0;
+    case kDoubled:return 1;
+    case kRedoubled:return 2;
+    default:std::cerr << "Invalid double status: " << double_status << std::endl;
       std::abort();
   }
 }
 
-int EncodeContract(const BridgeObservation& obs, const int start_offset,
-                   std::vector<int>* encoding) {
+int EncodeContract(const BridgeObservation &obs, const int start_offset,
+                   std::vector<int> *encoding) {
   int offset = start_offset;
 
   // Contract level.
@@ -117,17 +113,17 @@ int EncodeContract(const BridgeObservation& obs, const int start_offset,
   (*encoding)[offset + relative_declarer] = 1;
   offset += kNumPlayers;
   REQUIRE_EQ(offset - start_offset, kNumBidLevels + kNumDenominations +
-                                        kNumDoubleStatus + kNumPlayers);
+      kNumDoubleStatus + kNumPlayers);
   return offset - start_offset;
 }
 
-int EncodeVulnerabilityDeclarer(const BridgeObservation& obs,
+int EncodeVulnerabilityDeclarer(const BridgeObservation &obs,
                                 const int start_offset,
-                                std::vector<int>* encoding) {
+                                std::vector<int> *encoding) {
   int offset = start_offset;
   const bool is_observing_player_declarer =
       Partnership(obs.ObservingPlayer()) ==
-      Partnership(obs.GetContract().declarer);
+          Partnership(obs.GetContract().declarer);
   const bool vul = is_observing_player_declarer ? obs.IsPlayerVulnerable()
                                                 : obs.IsOpponentVulnerable();
 
@@ -137,15 +133,15 @@ int EncodeVulnerabilityDeclarer(const BridgeObservation& obs,
   return offset - start_offset;
 }
 
-int EncodeDummyHand(const BridgeObservation& obs, const int start_offset,
-                    std::vector<int>* encoding) {
+int EncodeDummyHand(const BridgeObservation &obs, const int start_offset,
+                    std::vector<int> *encoding) {
   int offset = start_offset;
   const int dummy = Partner(obs.GetContract().declarer);
   const int relative_dummy = PlayerToOffset(dummy, obs.ObservingPlayer());
-  const auto& hands = obs.Hands();
-  const auto& dummy_hand = hands[relative_dummy];
+  const auto &hands = obs.Hands();
+  const auto &dummy_hand = hands[relative_dummy];
 
-  for (const auto& card : dummy_hand.Cards()) {
+  for (const auto &card : dummy_hand.Cards()) {
     (*encoding)[offset + card.Index()] = 1;
   }
   offset += kNumCards;
@@ -153,14 +149,14 @@ int EncodeDummyHand(const BridgeObservation& obs, const int start_offset,
   return offset - start_offset;
 }
 
-int EncodePlayedTricks(const BridgeObservation& obs, const int start_offset,
-                       std::vector<int>* encoding, const int num_tricks) {
+int EncodePlayedTricks(const BridgeObservation &obs, const int start_offset,
+                       std::vector<int> *encoding, const int num_tricks) {
   int offset = start_offset;
 
   const int current_trick = obs.NumCardsPlayed() / kNumPlayers;
   const int this_trick_cards_played = obs.NumCardsPlayed() % kNumPlayers;
   const int this_trick_start = obs.NumCardsPlayed() - this_trick_cards_played;
-  const auto& play_history = obs.PlayHistory();
+  const auto &play_history = obs.PlayHistory();
 
   // Current trick.
   if (obs.CurrentPhase() != Phase::kGameOver) {
@@ -179,7 +175,7 @@ int EncodePlayedTricks(const BridgeObservation& obs, const int start_offset,
        j >= std::max(0, current_trick - num_tricks + 1); --j) {
     for (int i = 0; i < kNumPlayers; ++i) {
       const auto item = play_history[this_trick_start -
-                                     kNumPlayers * (current_trick - j) + i];
+          kNumPlayers * (current_trick - j) + i];
       // const int relative_player = PlayerToOffset(item.player, obs.ObservingPlayer());
       const int card_index = CardIndex(item.suit, item.rank);
       (*encoding)[offset + item.player * kNumCards + card_index] = 1;
@@ -195,8 +191,8 @@ int EncodePlayedTricks(const BridgeObservation& obs, const int start_offset,
   return offset - start_offset;
 }
 
-int EncodeNumTricksWon(const BridgeObservation& obs, const int start_offset,
-                       std::vector<int>* encoding) {
+int EncodeNumTricksWon(const BridgeObservation &obs, const int start_offset,
+                       std::vector<int> *encoding) {
   int offset = start_offset;
 
   // Tricks won by declarer side.
@@ -213,11 +209,11 @@ int EncodeNumTricksWon(const BridgeObservation& obs, const int start_offset,
   return offset - start_offset;
 }
 
-int EncodeHandEvaluationOneHot(const BridgeObservation& obs, int start_offset,
-                               std::vector<int>* encoding,
+int EncodeHandEvaluationOneHot(const BridgeObservation &obs, int start_offset,
+                               std::vector<int> *encoding,
                                int relative_player) {
   int offset = start_offset;
-  const auto& hand = obs.Hands()[relative_player];
+  const auto &hand = obs.Hands()[relative_player];
   const auto hand_evaluation = hand.GetHandEvaluation();
   // HCP
   (*encoding)[offset + hand_evaluation.hcp] = 1;
@@ -236,10 +232,10 @@ int EncodeHandEvaluationOneHot(const BridgeObservation& obs, int start_offset,
   return offset - start_offset;
 }
 
-int EncodeHandEvaluation(const BridgeObservation& obs, int start_offset,
-                         std::vector<int>* encoding, int relative_player) {
+int EncodeHandEvaluation(const BridgeObservation &obs, int start_offset,
+                         std::vector<int> *encoding, int relative_player) {
   int offset = start_offset;
-  const auto& hand = obs.Hands()[relative_player];
+  const auto &hand = obs.Hands()[relative_player];
   const auto hand_evaluation = hand.GetHandEvaluation();
   // HCP
   (*encoding)[offset] = hand_evaluation.hcp;
@@ -263,7 +259,7 @@ std::vector<int> CanonicalEncoder::Shape() const {
 }
 
 std::vector<int> CanonicalEncoder::EncodeMyHand(
-    const BridgeObservation& obs) const {
+    const BridgeObservation &obs) const {
   std::vector<int> encoding(kNumCards, 0);
   int offset = 0;
   offset += EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/0);
@@ -272,7 +268,7 @@ std::vector<int> CanonicalEncoder::EncodeMyHand(
 }
 
 std::vector<int> CanonicalEncoder::EncodeOtherHands(
-    const BridgeObservation& obs) const {
+    const BridgeObservation &obs) const {
   std::vector<int> encoding((kNumPlayers - 1) * kNumCards, 0);
   int offset = 0;
   for (int relative_player = 1; relative_player <= 3; ++relative_player) {
@@ -283,7 +279,7 @@ std::vector<int> CanonicalEncoder::EncodeOtherHands(
 }
 
 std::vector<int> CanonicalEncoder::EncodeOtherHandEvaluationsOneHot(
-    const BridgeObservation& obs) const {
+    const BridgeObservation &obs) const {
   std::vector<int> encoding((kNumPlayers - 1) * kHandEvaluationOneHotTensorSize,
                             0);
   int offset = 0;
@@ -296,7 +292,7 @@ std::vector<int> CanonicalEncoder::EncodeOtherHandEvaluationsOneHot(
 }
 
 std::vector<int> CanonicalEncoder::EncodeOtherHandEvaluations(
-    const BridgeObservation& obs) const {
+    const BridgeObservation &obs) const {
   std::vector<int> encoding((kNumPlayers - 1) * kHandEvaluationTensorSize, 0);
   int offset = 0;
   for (int relative_player = 1; relative_player <= 3; ++relative_player) {
@@ -306,7 +302,7 @@ std::vector<int> CanonicalEncoder::EncodeOtherHandEvaluations(
   return encoding;
 }
 
-std::vector<int> CanonicalEncoder::Encode(const BridgeObservation& obs) const {
+std::vector<int> CanonicalEncoder::Encode(const BridgeObservation &obs) const {
   std::vector<int> encoding(FlatLength(Shape()), 0);
 
   int offset = 0;
@@ -336,4 +332,5 @@ std::vector<int> CanonicalEncoder::Encode(const BridgeObservation& obs) const {
   REQUIRE(offset <= encoding.size());
   return encoding;
 }
+
 }  // namespace bridge_learning_env

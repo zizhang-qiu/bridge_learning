@@ -32,7 +32,7 @@ def auction_from_str(auction_str: str):
 
 @hydra.main("conf", "console_play", version_base="1.2")
 def main(args):
-    policy_net: MLP = hydra.utils.instantiate(args.net)
+    policy_net: MLP = hydra.utils.instantiate(args.network)
     # print(policy_net)
     policy_net.load_state_dict(torch.load(args.policy_weight))
     policy_net.to(args.device)

@@ -29,6 +29,7 @@
 #include "rlcc/duplicate_env.h"
 #include "rlcc/env_actor.h"
 #include "rlcc/detailed_encoder.h"
+#include "rlcc/encoder_registerer.h"
 
 // #include "rlcc/belief_data_gen.h"
 
@@ -48,23 +49,24 @@ std::vector<size_t> FindNonZeroIndices(const std::vector<int> &vec) {
 }
 
 int main(int argc, char **argv) {
-  std::mt19937 rng(22);
-  ble::BridgeState state{ble::default_game};
-  while (state.IsChanceNode()) {
-    state.ApplyRandomChance();
-  }
-
-  int num_moves = 0;
-  while (state.IsInPhase(ble::Phase::kAuction) && num_moves < 7) {
-    const auto legal_moves = state.LegalMoves();
-    const auto random_move = rela::utils::UniformSample(legal_moves, rng);
-    state.ApplyMove(random_move);
-    ++num_moves;
-  }
-
-  std::cout << state << std::endl;
-
-  auto encoder = DetailedEncoder(ble::default_game);
-  auto encoding = encoder.Encode({state});
-  std::cout << encoding << std::endl;
+//  std::mt19937 rng(22);
+//  ble::BridgeState state{ble::default_game};
+//  while (state.IsChanceNode()) {
+//    state.ApplyRandomChance();
+//  }
+//
+//  int num_moves = 0;
+//  while (state.IsInPhase(ble::Phase::kAuction) && num_moves < 7) {
+//    const auto legal_moves = state.LegalMoves();
+//    const auto random_move = rela::utils::UniformSample(legal_moves, rng);
+//    state.ApplyMove(random_move);
+//    ++num_moves;
+//  }
+//
+//  std::cout << state << std::endl;
+//
+//  auto encoder = DetailedEncoder(ble::default_game);
+//  auto encoding = encoder.Encode({state});
+//  std::cout << encoding << std::endl;
+  std::cout << rlcc::RegisteredEncoders() << std::endl;
 }

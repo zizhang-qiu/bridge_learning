@@ -9,7 +9,7 @@
 namespace ble = bridge_learning_env;
 
 // For each bid and player, a player can make it, pass after it is made,
-// double it, double after it is made, redouble it and redouble after it is made.
+// double it, pass after it is doubled, redouble it and pass after it is redoubled.
 inline static constexpr int kSingleBidTensorSize = 6 * ble::kNumPlayers;
 inline static constexpr int kDetailedFeatureSize =
     ble::kNumPartnerships * ble::kNumVulnerabilities // Vulnerabilities.

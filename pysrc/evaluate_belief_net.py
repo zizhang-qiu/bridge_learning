@@ -7,7 +7,7 @@ from net import MLP
 
 @hydra.main("conf", "evaluate_belief_net", version_base="1.2")
 def main(args):
-    policy_net:MLP = hydra.utils.instantiate(args.net)
+    policy_net:MLP = hydra.utils.instantiate(args.network)
     belief_net: MLP = hydra.utils.instantiate(args.belief_net)
     print(policy_net)
     print(belief_net)

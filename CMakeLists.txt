@@ -156,8 +156,10 @@ add_library(_bridgelearn OBJECT
         rlcc/rnn_buffer.h
         rlcc/clone_data_generator.cc
         rlcc/clone_data_generator.h
-        rlcc/detailed_encoder.cpp
+        rlcc/detailed_encoder.cc
         rlcc/detailed_encoder.h
+        rlcc/encoder_registerer.h
+        rlcc/encoder_registerer.cc
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

@@ -41,7 +41,7 @@ def main(args):
 
     pbe_agent = PBEModel()
     pbe_agent.to(args.device)
-    policy_conf = dict(args.net)
+    policy_conf = dict(args.network)
     # del policy_conf["_target_"]
     value_conf = dict(args.value_net)
     # del value_conf["_target_"]
