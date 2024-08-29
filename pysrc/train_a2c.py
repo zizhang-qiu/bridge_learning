@@ -43,7 +43,7 @@ def evaluate_once(args,
     num_games = len(cards)
     num_games_per_env = num_games // (num_threads * num_envs_per_thread)
     assert num_games_per_env * num_envs_per_thread * num_threads == num_games
-    # bridge_dataset = bridgelearn.BridgeDataset(cards, ddts)
+    bridge_dataset = bridgelearn.BridgeDataset(cards, ddts)
     env_actor_options = bridgelearn.EnvActorOptions()
     env_actor_options.eval = True
 
@@ -52,19 +52,20 @@ def evaluate_once(args,
     for i_t in range(num_threads):
         env_actors = []
         for i_e in range(num_envs_per_thread):
-            left = i_e * num_games_per_env + i_t * (num_envs_per_thread * num_games_per_env)
-            right = left + num_games_per_env
-            bridge_dataset = bridgelearn.BridgeDataset(
-                cards[left:right],
-                ddts[left:right]
-            )
+            # left = i_e * num_games_per_env + i_t * (num_envs_per_thread * num_games_per_env)
+            # right = left + num_games_per_env
+            # bridge_dataset = bridgelearn.BridgeDataset(
+            #     cards[left:right],
+            #     ddts[left:right]
+            # )
             env = create_env(args.dealer,
                              args.is_dealer_vulnerable,
                              args.is_non_dealer_vulnerable,
                              0,
                              -1,
+                             args.encoder,
                              bridge_dataset,
-                             False)
+                             True)
             actors = [
                 actor0_cons(0),
                 actor1_cons(1),
@@ -101,28 +102,62 @@ def evaluate(agent: BridgeLSTMAgent,
     eval_agent.eval()
     eval_runner = pyrela.BatchRunner(eval_agent, args.act_device, 1000, ["act", "get_h0"])
     eval_runner.start()
-    eval_actor_cons = lambda player_idx: bridgelearn.BridgePublicLSTMActor(eval_runner, player_idx)
-    eval_rival_actor_cons = lambda player_idx: bridgelearn.BridgePublicLSTMActor(eval_rival_runner, player_idx)
+    eval_actor_cons = lambda player_idx: bridgelearn.BridgeLSTMActor(eval_runner, player_idx)
+    eval_rival_actor_cons = lambda player_idx: bridgelearn.BridgeLSTMActor(eval_rival_runner, player_idx)
     rewards1, history_infos1, elapsed1 = evaluate_once(args, eval_actor_cons, eval_rival_actor_cons,
                                                        args.num_eval_threads,
                                                        args.num_eval_envs_per_thread,
                                                        args.eval_dataset, args.num_eval_games)
-    rewards2, history_infos2, elapsed2 = evaluate_once(args, eval_rival_actor_cons, eval_actor_cons,
+    # rewards2, history_infos2, elapsed2 = evaluate_once(args, eval_rival_actor_cons, eval_actor_cons,
+    #                                                    args.num_eval_threads,
+    #                                                    args.num_eval_envs_per_thread,
+    #                                                    args.eval_dataset, args.num_eval_games)
+
+    elapsed = elapsed1
+    # print(*history_infos1[:3], sep="\n")
+    # indices = np.nonzero(rewards1)[0]
+    # for idx in indices:
+    #     print(history_infos1[idx])
+    # imps = [bridge.get_imp(int(score1), int(score2)) for score1, score2 in zip(rewards1, rewards2)]
+    #
+    # if num_display > 0:
+    #     indices = np.nonzero(imps)[0]
+    #     random_indices = np.random.choice(indices, size=num_display)
+    #     for idx in random_indices:
+    #         print(f"game {idx}\n{history_infos1[idx]}\nscore: {rewards1[idx]}\n"
+    #               f"{history_infos2[idx]}\nscore: {rewards2[idx]}\nimp: {imps[idx]}")
+
+    return rewards1, elapsed
+
+
+def evaluate_with_all_pass_actor(agent, args,
+                                 num_display: int = 0):
+    eval_agent = agent.clone(args.act_device, overwrite={"greedy": True})
+    eval_agent.eval()
+    eval_runner = pyrela.BatchRunner(eval_agent, args.act_device, 1000, ["act", "get_h0"])
+    eval_runner.start()
+    eval_actor_cons = lambda player_idx: bridgelearn.BridgeLSTMActor(eval_runner, player_idx)
+    all_pass_actor_cons = lambda player_idx: bridgelearn.AllPassActor(player_idx)
+    rewards1, history_infos1, elapsed1 = evaluate_once(args, eval_actor_cons, all_pass_actor_cons,
                                                        args.num_eval_threads,
                                                        args.num_eval_envs_per_thread,
                                                        args.eval_dataset, args.num_eval_games)
+    # rewards2, history_infos2, elapsed2 = evaluate_once(args, all_pass_actor_cons, eval_actor_cons,
+    #                                                    args.num_eval_threads,
+    #                                                    args.num_eval_envs_per_thread,
+    #                                                    args.eval_dataset, args.num_eval_games)
+    elapsed = elapsed1
+    # print(*history_infos1[:3], sep="\n")
+    # imps = [bridge.get_imp(int(score1), int(score2)) for score1, score2 in zip(rewards1, rewards2)]
 
-    elapsed = elapsed1 + elapsed2
-    imps = [bridge.get_imp(int(score1), int(score2)) for score1, score2 in zip(rewards1, rewards2)]
+    # if num_display > 0:
+    #     indices = np.nonzero(imps)[0]
+    #     random_indices = np.random.choice(indices, size=num_display)
+    #     for idx in random_indices:
+    #         print(f"game {idx}\n{history_infos1[idx]}\nscore: {rewards1[idx]}\n"
+    #               f"{history_infos2[idx]}\nscore: {rewards2[idx]}\nimp: {imps[idx]}")
 
-    if num_display > 0:
-        indices = np.nonzero(imps)[0]
-        random_indices = np.random.choice(indices, size=num_display)
-        for idx in random_indices:
-            print(f"game {idx}\n{history_infos1[idx]}\nscore: {rewards1[idx]}\n"
-                  f"{history_infos2[idx]}\nscore: {rewards2[idx]}\nimp: {imps[idx]}")
-
-    return imps, elapsed
+    return rewards1, elapsed
 
 
 def create_env(dealer: int,
@@ -130,6 +165,7 @@ def create_env(dealer: int,
                is_non_dealer_vulnerable: bool,
                seed: int,
                max_len: int,
+               encoder: str,
                dataset: Optional[bridgelearn.BridgeDataset] = None,
                duplicate: bool = False) \
         -> Union[bridgelearn.BridgeEnv, bridgelearn.DuplicateEnv]:
@@ -142,6 +178,7 @@ def create_env(dealer: int,
     env_options = bridgelearn.BridgeEnvOptions()
     env_options.bidding_phase = True
     env_options.playing_phase = False
+    env_options.encoder = encoder
     env_options.verbose = False
     env_options.max_len = max_len
 
@@ -193,10 +230,11 @@ def create_agent_and_optimizer(args,
         args.activation,
         args.dropout,
         args.net,
-        greedy=False
+        greedy=False,
+        uniform_priority=False
     )
     agent = agent_cons()
-    # agent = agent.to(args.act_device)
+    agent = agent.to(args.act_device)
     if args.sl_checkpoint:
         checkpoint = torch.load(args.sl_checkpoint, map_location=torch.device(args.act_device))
         agent.load_state_dict(checkpoint["model_state_dict"])
@@ -211,7 +249,9 @@ def create_agent_and_optimizer(args,
         opt.load_state_dict(checkpoint["opt_state_dict"])
         print("load rl checkpoint")
 
-    runner = pyrela.BatchRunner(agent, args.act_device, 1000, ["act", "get_h0"])
+
+
+    runner = pyrela.BatchRunner(agent, args.act_device, 1000, ["act", "get_h0", "compute_priority"])
     runner.start()
 
     buffer_seed = 3
@@ -247,13 +287,14 @@ def create_context(args,
                              args.is_non_dealer_vulnerable,
                              0,
                              args.max_len,
+                             args.encoder,
                              bridge_dataset,
                              args.duplicate)
-            actors = [bridgelearn.BridgePublicLSTMActor(runner,
-                                                        args.max_len,
-                                                        args.gamma,
-                                                        buffer,
-                                                        idx) for idx in range(bridge.NUM_PLAYERS)]
+            actors = [bridgelearn.BridgeLSTMActor(runner,
+                                                  args.max_len,
+                                                  args.gamma,
+                                                  buffer,
+                                                  idx) for idx in range(bridge.NUM_PLAYERS)]
             env_actor = bridgelearn.BridgeEnvActor(env, env_actor_options, actors)
             env_actors.append(env_actor)
 
@@ -273,10 +314,10 @@ def create_context(args,
 def main(args):
     torch.set_printoptions(threshold=100000000000)
     pprint.pprint(args)
-    env = create_env(0, False, False, 1, -1, None, False)
+    env = create_env(0, False, False, 1, -1, args.encoder, None, args.duplicate)
     in_dim = env.feature_size()
     out_dim = env.max_num_action() - bridge.NUM_CARDS
-    print(in_dim, out_dim)
+    print(f"in_dim: {in_dim}, out_dim: {out_dim}.")
     del env
 
     if not os.path.exists(args.save_dir):
@@ -295,7 +336,14 @@ def main(args):
     eval_rival_agent = create_sl_agent(args, in_dim, out_dim)
     eval_rival_runner = pyrela.BatchRunner(eval_rival_agent, args.act_device, 1000, ["act", "get_h0"])
     eval_rival_runner.start()
+    print("Evaluating with sl actor...")
     imps, elapsed = evaluate(agent, eval_rival_runner, args)
+    imps = np.round(np.array(imps) * 24)
+    print(imps, get_avg_and_sem(imps), elapsed)
+
+    print("Evaluating with all pass actor...")
+    imps, elapsed = evaluate_with_all_pass_actor(agent, args)
+    imps = np.round(np.array(imps) * 24)
     print(imps, get_avg_and_sem(imps), elapsed)
 
     context, all_env_actors = create_context(args, runner, replay_buffer)
@@ -314,7 +362,7 @@ def main(args):
         stats.reset()
         stopwatch.reset()
         tachometer.start()
-        for i_batch in range(args.epoch_len):
+        for i_batch in trange(args.epoch_len):
             num_update = i_batch + i_epoch * args.epoch_len
             if num_update % args.synq_freq == 0:
                 runner.update_model(agent)
@@ -326,19 +374,21 @@ def main(args):
             # print(weight)
             # for k, v in batch.obs.items():
             #     print(k, v)
-            # print(batch.reward[0])
+            # print(batch.reward * 24)
+            # print(batch.seq_len)
             stopwatch.time("Sample data")
-            p_loss, v_loss, priority = agent.compute_loss_and_priority(batch,
-                                                                       args.clip_eps,
-                                                                       args.entropy_ratio,
-                                                                       weight,
-                                                                       args.value_loss_weight,
-                                                                       1.0,
-                                                                       1.0)
+            p_loss, v_loss, priority = (
+                agent.compute_loss_and_priority(batch,
+                                                args.clip_eps,
+                                                args.entropy_ratio,
+                                                args.value_loss_weight,
+                                                1.0,
+                                                1.0))
+            # print(priority)
             stopwatch.time("forward & backward")
             # print(p_loss, v_loss, priority, sep="\n")
 
-            loss = (p_loss + v_loss).mean()
+            loss = ((p_loss + v_loss) * weight).mean()
             loss.backward()
             g_norm = torch.nn.utils.clip_grad_norm_(agent.parameters(), args.max_grad_norm)
 
@@ -346,12 +396,13 @@ def main(args):
             opt.zero_grad()
             stopwatch.time("update model")
 
-            replay_buffer.update_priority(weight.cpu())
+            replay_buffer.update_priority(priority)
             stopwatch.time("update priority")
 
             stats.feed("g_norm", g_norm.item())
             stats.feed("p_loss", p_loss.mean().item())
             stats.feed("v_loss", v_loss.mean().item())
+            stats.feed("loss", loss.detach().item())
 
             # input()
         for stat in stats.stats.values():
@@ -362,7 +413,15 @@ def main(args):
         # Evaluate.
         # context.pause()
         with torch.no_grad():
+            print("Evaluating with all pass actor...")
+            imps, elapsed = evaluate_with_all_pass_actor(agent, args, 3)
+            imps = np.round(np.array(imps) * 24)
+            print(imps, get_avg_and_sem(imps), elapsed)
+
+            print("Evaluating with sl actor...")
             imps, elapsed = evaluate(agent, eval_rival_runner, args, 3)
+            imps = np.round(np.array(imps) * 24)
+            print(imps, get_avg_and_sem(imps), elapsed)
 
         avg_imp, sem_imp = get_avg_and_sem(imps)
         global_stats.feed("avg_imp", avg_imp)

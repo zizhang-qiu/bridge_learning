@@ -34,10 +34,9 @@ class GameEnv:
 class BridgeEnvOptions:
     bidding_phase: bool
     playing_phase: bool
-    pbe_feature: bool
-    jps_feature: bool
-    dnns_feature: bool
+    encoder: str
     verbose: bool
+    max_len: int
 
 
 class BridgeEnv(GameEnv):
@@ -208,7 +207,7 @@ class RandomActor(Actor):
     def __init__(self, player_idx: int): ...
 
 
-class BridgePublicLSTMActor(Actor):
+class BridgeLSTMActor(Actor):
     @overload
     def __init__(self, runner: pyrela.BatchRunner, player_idx: int): ...
 
@@ -274,10 +273,12 @@ class EnvActorThreadLoop(pyrela.ThreadLoop):
 
 class CloneDataGenerator:
     def __init__(
-            self, replay_buffer: pyrela.RNNPrioritizedReplay, max_len: int, num_threads: int
+            self, replay_buffer: pyrela.RNNPrioritizedReplay, max_len: int, num_threads: int, reward_type: str
     ) -> None: ...
 
     def set_game_params(self, params: Dict[str, str]): ...
+
+    def set_env_options(self, env_options: BridgeEnvOptions): ...
 
     def add_game(self, game_trajectory: List[int]): ...
 
@@ -288,3 +289,41 @@ class CloneDataGenerator:
     def generate_eval_data(
             self, batch_size: int, device: str, game_trajectories: List[List[int]]
     ) -> List[pyrela.RNNTransition]: ...
+
+
+def registered_encoders() -> List[str]: ...
+
+
+@overload
+def load_encoder(name: str, game: bridge.BridgeGame, encoder_params: Dict[str, str]) -> bridge.ObservationEncoder: ...
+
+
+@overload
+def load_encoder(name: str, game: bridge.BridgeGame) -> bridge.ObservationEncoder: ...
+
+
+def is_encoder_registered(name: str) -> bool: ...
+
+
+class FFCloneDataGenerator:
+    def __init__(
+            self, replay_buffer: pyrela.FFPrioritizedReplay,
+            num_threads: int,
+            env_options: BridgeEnvOptions,
+            reward_type: str,
+            gamma: float
+    ) -> None: ...
+
+    def set_game_params(self, params: Dict[str, str]): ...
+
+    def set_env_options(self, env_options: BridgeEnvOptions): ...
+
+    def add_game(self, game_trajectory: List[int]): ...
+
+    def start_data_generation(self, inf_loop: bool, seed: int): ...
+
+    def terminate(self): ...
+
+    def generate_eval_data(
+            self, batch_size: int, device: str, game_trajectories: List[List[int]]
+    ) -> List[pyrela.FFTransition]: ...

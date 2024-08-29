@@ -6,8 +6,6 @@
 #include <random>
 #include <vector>
 #include "bridge_lib/bridge_utils.h"
-#include "bridge_lib/dnns_encoder.h"
-#include "bridge_lib/jps_encoder.h"
 #include "rela/logging.h"
 #include "rela/utils.h"
 using Phase = ble::Phase;
@@ -48,10 +46,6 @@ BridgeEnv::BridgeEnv(const ble::GameParameters &params,
       game_(params_),
       options_(options),
       state_(nullptr),
-      encoder_(std::make_shared<ble::BridgeGame>(game_)),
-      pbe_encoder_(std::make_shared<ble::BridgeGame>(game_)),
-      jps_encoder_(std::make_shared<ble::BridgeGame>(game_)),
-      dnns_encoder_(),
       last_active_player_(ble::kChancePlayerId),
       last_move_(),
       max_len_(options.max_len) {
@@ -60,6 +54,8 @@ BridgeEnv::BridgeEnv(const ble::GameParameters &params,
         "Both bidding and playing phase are off. At least one phase should be "
         "on.");
   }
+  const auto game = std::make_shared<ble::BridgeGame>(game_);
+  encoder_ = std::move(rlcc::LoadEncoder(options_.encoder, game));
   if (options_.verbose) {
     std::cout << "Bridge game created, with parameters:\n";
     for (const auto &item : params) {
@@ -118,6 +114,9 @@ std::vector<int> BridgeEnv::Returns() const {
   if (state_->CurrentPhase() == ble::Phase::kAuction) {
     return {0, 0, 0, 0};
   }
+  if (state_->IsTerminal()){
+    return state_->Scores();
+  }
   int contract_index = state_->GetContract().Index();
   int north_score = state_->ScoreForContracts(ble::Seat::kNorth, {contract_index})[0];
   return {north_score, -north_score, north_score, -north_score};
@@ -161,7 +160,7 @@ rela::TensorDict BridgeEnv::Feature(int player) const {
     return TerminalFeature();
   }
   const auto observation = ble::BridgeObservation(*state_, player);
-  const auto encoding = encoder_.Encode(observation);
+  const auto encoding = encoder_->Encode(observation);
   const auto &legal_moves = observation.LegalMoves();
   std::vector<float> legal_move_mask(MaxNumAction(), 0);
   for (const auto &move : legal_moves) {
@@ -175,30 +174,6 @@ rela::TensorDict BridgeEnv::Feature(int player) const {
       {"s", torch::tensor(encoding, {torch::kFloat32})},
       {"legal_move", torch::tensor(legal_move_mask, {torch::kFloat32})}};
 
-  if (state_->IsInPhase(Phase::kAuction)) {
-    if (options_.pbe_feature) {
-      // Add pbe feature with key "pbe_s"
-      const std::vector<int> pbe_feature = pbe_encoder_.Encode({*state_});
-      res["pbe_s"] = torch::tensor(
-          std::vector<int>(pbe_feature.begin(), pbe_feature.begin() + 94),
-          {torch::kFloat32});
-      int convert = pbe_feature.back();
-      res["pbe_convert"] = torch::tensor({convert});
-    }
-    if (options_.jps_feature) {
-      // Add jps feature with key "jps_s", "jps_legal_move"
-      const std::vector<int> jps_feature = jps_encoder_.Encode({*state_});
-      res["jps_s"] = torch::tensor(jps_feature, {torch::kFloat32});
-      const std::vector<int> jps_legal_move(jps_feature.end() - 39,
-                                            jps_feature.end());
-      res["jps_legal_move"] = torch::tensor(jps_legal_move, {torch::kFloat32});
-    }
-    if (options_.dnns_feature) {
-      // Add jps feature with key "dnns_s"
-      const std::vector<int> dnns_feature = dnns_encoder_.Encode({*state_});
-      res["dnns_s"] = torch::tensor(dnns_feature, {torch::kFloat32});
-    }
-  }
   return res;
 }
 
@@ -216,15 +191,11 @@ void BridgeEnv::ResetWithDeckAndDoubleDummyResults(
 }
 
 void BridgeEnv::ResetWithDataSet() {
-//    std::cout << "Enter reset with dataset.\n";
   RELA_CHECK_NOTNULL(bridge_dataset_);
   const BridgeData bridge_data = bridge_dataset_->Next();
-//  std::cout << "Get data.\n";
-//  std::cout << bridge_data.deal.size() << std::endl;
   state_ = std::make_unique<ble::BridgeState>(
       std::make_shared<bridge_learning_env::BridgeGame>(game_));
   for (int i = 0; i < ble::kNumCards; ++i) {
-//      std::cout << "i: " << i << "\n";
     const int card = bridge_data.deal[i];
     const ble::BridgeMove move = game_.GetChanceOutcome(card);
     state_->ApplyMove(move);
@@ -255,7 +226,7 @@ rela::TensorDict BridgeEnv::TerminalFeature() const {
   torch::Tensor legal_move = torch::zeros(MaxNumAction(), {torch::kFloat32});
   legal_move[NoOPUid()] = 1;
   rela::TensorDict feature = {
-      {"s", torch::zeros(encoder_.Shape()[0], {torch::kFloat32})},
+      {"s", torch::zeros(encoder_->Shape()[0], {torch::kFloat32})},
       {"legal_move", legal_move}};
   return feature;
 }

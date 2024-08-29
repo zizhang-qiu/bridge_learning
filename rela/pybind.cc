@@ -94,7 +94,7 @@ PYBIND11_MODULE(pyrela, m) {
                     float,  // beta, importance sampling exponent
                     bool,   // whther we do prefetch
                     int>())
-      //batchdim axis (usually it is 0, if we use LSTM then this can be 1)
+          //batchdim axis (usually it is 0, if we use LSTM then this can be 1)
       .def("size", &PrioritizedReplay2::size)
       .def("num_add", &PrioritizedReplay2::numAdd)
       .def("sample", &PrioritizedReplay2::sample)
@@ -110,9 +110,9 @@ PYBIND11_MODULE(pyrela, m) {
   //                   const std::shared_ptr<PrioritizedReplay2> &>());
 
   py::class_<BatchRunner, std::shared_ptr<BatchRunner>>(m, "BatchRunner")
-      .def(py::init<py::object, const std::string&, int,
-                    const std::vector<std::string>&>())
-      .def(py::init<py::object, const std::string&>())
+      .def(py::init<py::object, const std::string &, int,
+                    const std::vector<std::string> &>())
+      .def(py::init<py::object, const std::string &>())
       .def("add_method", &BatchRunner::addMethod)
       .def("start", &BatchRunner::start)
       .def("stop", &BatchRunner::stop)
@@ -139,4 +139,30 @@ PYBIND11_MODULE(pyrela, m) {
         py::arg("dim"), py::arg("i"), py::arg("len"), py::arg("squeeze"));
   m.def("tensor_dict_clone", &tensor_dict::clone, py::arg("d"));
   m.def("tensor_dict_zeros_like", &tensor_dict::zerosLike, py::arg("d"));
+
+  py::class_<FFTransition, std::shared_ptr<FFTransition>>(m, "FFTransition")
+      .def(py::init<>())
+      .def_readwrite("obs", &FFTransition::obs)
+      .def_readwrite("action", &FFTransition::action)
+      .def_readwrite("reward", &FFTransition::reward)
+      .def_readwrite("terminal", &FFTransition::terminal)
+      .def_readwrite("bootstrap", &FFTransition::bootstrap)
+      .def_readwrite("next_obs", &FFTransition::nextObs);
+
+  py::class_<FFPrioritizedReplay, std::shared_ptr<FFPrioritizedReplay>>(
+      m,
+      "FFPrioritizedReplay")
+      .def(py::init<int,    // capacity,
+                    int,    // seed,
+                    float,  // alpha, priority exponent
+                    float,  // beta, importance sampling exponent
+                    int>())
+      .def("clear", &FFPrioritizedReplay::clear)
+      .def("terminate", &FFPrioritizedReplay::terminate)
+      .def("size", &FFPrioritizedReplay::size)
+      .def("num_add", &FFPrioritizedReplay::numAdd)
+      .def("sample", &FFPrioritizedReplay::sample)
+      .def("update_priority", &FFPrioritizedReplay::updatePriority)
+      .def("get", &FFPrioritizedReplay::get);
+
 }

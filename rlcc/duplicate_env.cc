@@ -79,9 +79,12 @@ void DuplicateEnv::Step(int uid) {
   auto state = states_.at(game_index_).get();
   const auto move = game_.GetMove(uid);
   state->ApplyMove(move);
+  ++num_steps_;
   if (state->IsTerminal() || (!options_.playing_phase &&
-                              state->CurrentPhase() > ble::Phase::kAuction)) {
+      state->CurrentPhase() > ble::Phase::kAuction)
+      || (options_.max_len > 0 && num_steps_ == options_.max_len)) {
     ++game_index_;
+    num_steps_ = 0;
     if (game_index_ > 1) {
       terminated_ = true;
     }
@@ -91,13 +94,13 @@ void DuplicateEnv::Step(int uid) {
 float DuplicateEnv::PlayerReward(int player) const {
   const int side = (player & 1);
   const int score1 = options_.playing_phase
-                         ? states_[0]->Scores()[side]
-                         : states_[0]->ScoreForContracts(
-                               side, {states_[0]->GetContract().Index()})[0];
+                     ? states_[0]->Scores()[side]
+                     : states_[0]->ScoreForContracts(
+          side, {states_[0]->GetContract().Index()})[0];
   const int score2 = options_.playing_phase
-                         ? states_[1]->Scores()[side]
-                         : states_[1]->ScoreForContracts(
-                               side, {states_[1]->GetContract().Index()})[0];
+                     ? states_[1]->Scores()[side]
+                     : states_[1]->ScoreForContracts(
+          side, {states_[1]->GetContract().Index()})[0];
   const float reward = static_cast<float>(ble::GetImp(score1, score2)) / 24.0f;
   return reward;
 }
@@ -119,7 +122,7 @@ std::vector<int> DuplicateEnv::LegalActions() const {
   const auto legal_moves = state->LegalMoves();
   std::vector<int> legal_actions;
   legal_actions.reserve(legal_moves.size());
-  for (const auto& move : legal_moves) {
+  for (const auto &move : legal_moves) {
     const int uid = game_.GetMoveUid(move);
     legal_actions.push_back(uid);
   }
@@ -128,53 +131,38 @@ std::vector<int> DuplicateEnv::LegalActions() const {
 
 rela::TensorDict DuplicateEnv::Feature(int player) const {
   auto state = states_.at(game_index_).get();
+  int state_player = 0;
   if (player == -1) {
-    player = state->CurrentPlayer();
+    state_player = state->CurrentPlayer();
   } else {
     if (game_index_ == 1) {
-      player = (player - 1 + ble::kNumPlayers) % ble::kNumPlayers;
+      state_player = (player + 1) % ble::kNumPlayers;
+    } else {
+      state_player = player;
     }
   }
+  const int acting_player = CurrentPlayer();
   rela::TensorDict feature = {};
 
-  const auto observation = ble::BridgeObservation(*state);
-  const auto encoding = encoder_.Encode(observation);
-  const auto& legal_moves = observation.LegalMoves();
-  std::vector<float> legal_move_mask(game_.NumDistinctActions(), 0);
-  for (const auto& move : legal_moves) {
-    const int uid = game_.GetMoveUid(move);
-    legal_move_mask[uid] = 1;
+  const auto observation = ble::BridgeObservation(*state, state_player);
+  const auto encoding = encoder_->Encode(observation);
+  if (acting_player != player) {
+    feature["legal_move"] = torch::zeros(game_.NumDistinctActions() + 1, {torch::kFloat32});
+    feature["legal_move"][game_.NumDistinctActions()] = 1;
+  } else {
+    const auto &legal_moves = observation.LegalMoves();
+    std::vector<float> legal_move_mask(game_.NumDistinctActions() + 1, 0);
+    for (const auto &move : legal_moves) {
+      const int uid = game_.GetMoveUid(move);
+      legal_move_mask[uid] = 1;
+    }
+    feature["legal_move"] = torch::tensor(legal_move_mask, {torch::kFloat32});
   }
-  feature["s"] = torch::tensor(encoding, {torch::kFloat32});
-  feature["legal_move"] = torch::tensor(legal_move_mask, {torch::kFloat32});
 
+  feature["s"] = torch::tensor(encoding, {torch::kFloat32});
+
+  feature["table_idx"] = torch::tensor(game_index_);
   // std::cout << "phase: " << static_cast<int>(state->CurrentPhase()) << std::endl;
-  if (state->CurrentPhase() == ble::Phase::kAuction) {
-    // std::cout << "Options: " << options_.pbe_feature << ", " << options_.jps_feature << ", " << options_.dnns_feature << std::endl;
-    if (options_.pbe_feature) {
-      // Add pbe feature with key "pbe_s"
-      const std::vector<int> pbe_feature = pbe_encoder_.Encode({*state});
-      feature["pbe_s"] = torch::tensor(
-          std::vector<int>(pbe_feature.begin(), pbe_feature.begin() + 94),
-          {torch::kFloat32});
-      int convert = pbe_feature.back();
-      feature["pbe_convert"] = torch::tensor({convert});
-    }
-    if (options_.jps_feature) {
-      // Add jps feature with key "jps_s", "jps_legal_move"
-      const std::vector<int> jps_feature = jps_encoder_.Encode({*state});
-      feature["jps_s"] = torch::tensor(jps_feature, {torch::kFloat32});
-      const std::vector<int> jps_legal_move(jps_feature.end() - 39,
-                                            jps_feature.end());
-      feature["jps_legal_move"] =
-          torch::tensor(jps_legal_move, {torch::kFloat32});
-    }
-    if (options_.dnns_feature) {
-      // Add jps feature with key "dnns_s"
-      const std::vector<int> dnns_feature = dnns_encoder_.Encode({*state});
-      feature["dnns_s"] = torch::tensor(dnns_feature, {torch::kFloat32});
-    }
-  }
 
   return feature;
 }

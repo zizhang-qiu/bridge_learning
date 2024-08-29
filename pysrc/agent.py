@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Optional
 import torch
 from torch import nn
 
-from net import MLP, PublicLSTMNet, LSTMNet
+from net import MLP, PublicLSTMNet, LSTMNet, FFWDA2CSeparateNet, FFWDA2CWeightSharingNet
 from set_path import append_sys_path
 
 append_sys_path()
@@ -145,8 +145,13 @@ class BridgeBeliefModel(torch.jit.ScriptModule):
 
 
 class BridgeLSTMAgent(torch.jit.ScriptModule):
-    __constants__ = ["in_dim", "hid_dim", "out_dim",
-                     "num_priv_mlp_layer", "num_publ_mlp_layer", "num_lstm_layer", "greedy"]
+    __constants__ = ["in_dim",
+                     "hid_dim",
+                     "out_dim",
+                     "num_priv_mlp_layer",
+                     "num_publ_mlp_layer",
+                     "num_lstm_layer",
+                     "uniform_priority"]
 
     def __init__(
             self,
@@ -161,6 +166,7 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
             dropout: float = 0.,
             net: str = "publ-lstm",
             greedy=False,
+            uniform_priority=True
     ):
         super().__init__()
         if net == "publ-lstm":
@@ -185,6 +191,7 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         self.dropout = dropout
         self.activation = activation
         self.net = net
+        self.uniform_priority = uniform_priority
 
     def clone(self, device: str, overwrite: Optional[Dict] = None):
 
@@ -214,6 +221,7 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
     @torch.jit.script_method
     def act(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         priv_s = obs["priv_s"]
+        # print(priv_s.size())
         publ_s = obs["publ_s"]
         legal_move = obs["legal_move"]
         hid = {"h0": obs["h0"], "c0": obs["c0"]}
@@ -247,11 +255,30 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
             hid = {}
         return self.network.forward(obs["priv_s"], obs["publ_s"], obs["legal_move"], hid)
 
+    @torch.jit.script_method
+    def compute_priority(self, input_: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        # Uniform priority, all to 1.
+        # Since the input is batched in 0 dim, we have to use size(0) here.
+        if self.uniform_priority:
+            return {"priority": torch.ones(input_["reward"].size(0))}
+
+        for k, v in input_.items():
+            if v.dim() > 1:
+                input_[k] = v.transpose(0, 1).contiguous()
+        reply = self.forward(input_)
+
+        v = reply["v"]
+
+        # [seq_len, batch_size]
+        advantage = input_["reward"] - v.squeeze()
+        priority = advantage.abs()
+        priority = priority.sum(0) / input_["seq_len"]
+        return {"priority": priority}
+
     def compute_loss_and_priority(self,
                                   batch: pyrela.RNNTransition,
                                   clip_eps: float,
                                   entropy_ratio: float,
-                                  batch_weight: torch.Tensor,
                                   value_loss_weight: float,
                                   policy_no_op_coeff: float,
                                   value_no_op_coeff: float):
@@ -272,67 +299,196 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         # [seq_len, batch_size, 1]
         v = reply["v"]
 
-        action = batch.action["a"].squeeze(2)
+        action = batch.action["a"]
         action[action >= 52] -= 52
-        action = action[mask == 1]
+        # action = action[mask == 1]
         # print("action", action.squeeze(2))
 
-        # policy_mask = mask.clone()
-        # policy_mask[action.squeeze(2) == self.out_dim - 1] = policy_no_op_coeff
-        # value_mask = mask.clone()
-        # value_mask[action.squeeze(2) == self.out_dim - 1] = value_no_op_coeff
+        policy_mask = mask.clone()
+        policy_mask[action.squeeze(2) == self.out_dim - 1] = policy_no_op_coeff
+        value_mask = mask.clone()
+        value_mask[action.squeeze(2) == self.out_dim - 1] = value_no_op_coeff
         # mask[action.squeeze(2) == self.out_dim - 1] = 0
         # print("mask: ", mask)
 
-        pi = pi[mask == 1]
-        v = v[mask == 1]
+        # pi = pi[mask == 1]
+        # v = v[mask == 1]
+        # print("pi: ", pi)
+        # print("v: ", v)
 
-        weight = torch.repeat_interleave(batch_weight.unsqueeze(0), seq_len, 0)
-        weight = weight[mask == 1]
+        # weight = torch.repeat_interleave(batch_weight.unsqueeze(0), seq_len, 0)
+        # weight = weight[mask == 1]
 
-        # [batch_size, num_actions]
-        current_log_probs = torch.log(pi + 1e-8)
+        # [seq_len, batch_size, num_actions]
+        current_log_probs = torch.log(pi + 1e-16)
         # [seq_len * batch_size, num_actions]
         # current_log_probs = current_log_probs.view(-1, self.out_dim)
 
         # print("current_log_probs: ", current_log_probs)
 
-        current_action_log_probs = current_log_probs.gather(1, action.unsqueeze(1)).squeeze(1)
+        current_action_log_probs = current_log_probs.gather(2, action.long()).squeeze(2)
 
         # print("current_action_log_probs: ", current_action_log_probs)
         old_probs = batch.action["pi"]
-        old_probs = old_probs[mask == 1]
-        old_log_probs = torch.log(old_probs + 1e-8)
+        # old_probs = old_probs[mask == 1]
+        old_log_probs = torch.log(old_probs + 1e-16)
         old_action_log_probs = old_log_probs.gather(
-            1,
-            action.unsqueeze(1)
-        ).squeeze(1)
+            2,
+            action.long()
+        ).squeeze(2)
         # print("old_action_log_probs: ", old_action_log_probs)
 
-        #
-        ratio = torch.exp(current_action_log_probs - old_action_log_probs)
+        # [seq_len, batch_size]
+        ratio = torch.exp(current_action_log_probs - old_action_log_probs) * policy_mask
         # print("ratio: ", ratio)
 
         # [batch_size]
-        reward = batch.reward[mask == 1]
-        reward = reward / 7600
+        reward = batch.reward
+        # print("reward: ", reward)
         # reward = (reward - reward.mean()) / (reward.std() + 1e-8)
-        advantage = (reward - v.squeeze())
+        advantage = (reward / 7600 - v.squeeze()) * value_mask
         # print("advantage: ", advantage)
 
         surr1 = ratio * (advantage.detach())
         surr2 = torch.clamp(ratio, 1 - clip_eps, 1 + clip_eps) * (advantage.detach())
         # print("surr1: ", surr1)
         # print("surr2: ", surr2)
-        entropy = -torch.sum(pi * current_log_probs, dim=-1)
+        # [seq_len, batch_size]
+        entropy = -torch.sum(pi * current_log_probs, dim=-1) * policy_mask
         # print("entropy: ", entropy)
 
+        # [seq_len, batch_size]
         policy_loss = -torch.min(surr1, surr2) - entropy_ratio * entropy
-        policy_loss = policy_loss
-
+        # [seq_len, batch_size]
         value_loss = torch.pow(advantage, 2) * value_loss_weight
-        value_loss = value_loss
 
+        # [seq_len, batch_size]
         priority = advantage.detach()
+        # [batch_size]
+        priority = priority.abs().sum(0) / batch.seq_len
 
-        return policy_loss * weight, value_loss * weight, priority.abs().cpu()
+        return policy_loss.sum(0) / batch.seq_len, value_loss.sum(0) / batch.seq_len, priority.cpu()
+
+
+class BridgeFFWDAgent(torch.jit.ScriptModule):
+    __constants__ = ["device", "greedy", "uniform_priority"]
+
+    def __init__(self,
+                 device: str,
+                 p_in_dim: int,
+                 v_in_dim: int,
+                 p_hid_dim: int,
+                 v_hid_dim: int,
+                 p_out_dim: int,
+                 num_p_mlp_layer: int,
+                 num_v_mlp_layer: int,
+                 p_activation: str,
+                 v_activation: str,
+                 dropout: float,
+                 net: str,
+                 greedy: bool = False,
+                 uniform_priority: bool = False
+                 ):
+        super().__init__()
+        self.device = device
+        self.p_in_dim = p_in_dim
+        self.v_in_dim = v_in_dim
+        self.p_hid_dim = p_hid_dim
+        self.v_hid_dim = v_hid_dim
+        self.p_out_dim = p_out_dim
+        self.num_p_mlp_layer = num_p_mlp_layer
+        self.num_v_mlp_layer = num_v_mlp_layer
+        self.p_activation = p_activation
+        self.v_activation = v_activation
+        self.dropout = dropout
+        self.net = net
+        self.greedy = greedy
+        self.uniform_priority = uniform_priority
+
+        if net == "ws":
+            self.network = FFWDA2CWeightSharingNet(
+                in_dim=p_in_dim,
+                hid_dim=p_hid_dim,
+                out_dim=p_out_dim,
+                num_mlp_layer=num_p_mlp_layer,
+                activation=p_activation,
+                dropout=dropout
+            ).to(self.device)
+        elif net == "sep":
+            self.network = FFWDA2CSeparateNet(
+                p_in_dim=p_in_dim,
+                v_in_dim=v_in_dim,
+                p_hid_dim=p_hid_dim,
+                v_hid_dim=v_hid_dim,
+                p_out_dim=p_out_dim,
+                num_p_mlp_layer=num_p_mlp_layer,
+                num_v_mlp_layer=num_v_mlp_layer,
+                p_activation=p_activation,
+                v_activation=v_activation,
+                dropout=dropout
+            ).to(self.device)
+        else:
+            raise ValueError(f"The net {net} is not supported.")
+
+    def clone(self, device: str, overwrite: Dict = None):
+        if overwrite is None:
+            overwrite = {}
+
+        cloned = type(self)(
+            device,
+            self.p_in_dim,
+            self.v_in_dim,
+            self.p_hid_dim,
+            self.v_hid_dim,
+            self.p_out_dim,
+            self.num_p_mlp_layer,
+            self.num_v_mlp_layer,
+            self.p_activation,
+            self.v_activation,
+            overwrite.get("dropout", self.dropout),
+            self.net,
+            overwrite.get("greedy", self.greedy),
+            overwrite.get("uniform_priority", self.uniform_priority)
+        )
+        cloned.train(self.training)
+        return cloned.to(device)
+
+    @torch.jit.script_method
+    def forward(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        return self.network.forward(obs)
+
+    @torch.jit.script_method
+    def act(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        reply = self.forward(obs)
+        assert "legal_pi" in reply
+        legal_pi = reply["legal_pi"]
+        single_act = legal_pi.dim() == 1
+        greedy_a = torch.argmax(legal_pi, -1).view(-1, 1)
+
+        if self.greedy:
+            a = greedy_a
+        else:
+            a = torch.multinomial(legal_pi, num_samples=1).view(-1, 1)
+        reply["a"] = a + 52
+        reply["greedy_a"] = greedy_a + 52
+        if single_act:
+            reply["a"] = reply["a"].squeeze(0)
+            reply["greedy_a"] = reply["greedy_a"].squeeze(0)
+        return reply
+
+    @torch.jit.script_method
+    def compute_priority(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        if self.uniform_priority:
+            batch_size = obs["legal_move"].size(0)
+            priority = torch.ones(batch_size)
+            return {"priority": priority}
+
+        # Use abs(v - r) to compute priority.
+        v = self.forward(obs)["v"].squeeze(0)  # [batch_size, ]
+        r = obs["reward"]  # [batch_size, ]
+        adv = v - r
+        priority = torch.abs(adv).detach().cpu()
+
+        return {"priority": priority}
+
+    # Python only functions

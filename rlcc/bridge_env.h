@@ -18,8 +18,7 @@
 #include "env.h"
 #include "rela/logging.h"
 #include "rela/tensor_dict.h"
-
-
+#include "encoder_registerer.h"
 #include "bridge_dataset.h"
 namespace ble = bridge_learning_env;
 
@@ -28,19 +27,14 @@ namespace rlcc {
 struct BridgeEnvOptions {
   bool bidding_phase = true;
   bool playing_phase = false;
-  // Whether the feature contains pbe style.
-  bool pbe_feature = false;
-  // Whether the feature contains jps style.
-  bool jps_feature = false;
-  // Whether the feature contains dnns style.
-  bool dnns_feature = false;
+  std::string encoder = "canonical";
   bool verbose = false;
   int max_len = 50;
 };
 
 class BridgeEnv : public GameEnv {
  public:
-  BridgeEnv(const ble::GameParameters& params, const BridgeEnvOptions& options);
+  BridgeEnv(const ble::GameParameters &params, const BridgeEnvOptions &options);
 
   void SetBridgeDataset(std::shared_ptr<BridgeDataset> bridge_dataset) {
     bridge_dataset_ = std::move(bridge_dataset);
@@ -48,19 +42,19 @@ class BridgeEnv : public GameEnv {
 
   int MaxNumAction() const override { return game_.NumDistinctActions() + 1; }
 
-  int FeatureSize() const { return encoder_.Shape()[0]; }
+  int FeatureSize() const { return encoder_->Shape()[0]; }
 
-  void ResetWithDeck(const std::vector<int>& cards);
+  void ResetWithDeck(const std::vector<int> &cards);
 
   void ResetWithDeckAndDoubleDummyResults(
-      const std::vector<int>& cards,
-      const std::vector<int>& double_dummy_results);
+      const std::vector<int> &cards,
+      const std::vector<int> &double_dummy_results);
 
   bool Reset() override;
 
   void ResetWithDataSet();
 
-  void Step(const ble::BridgeMove& move);
+  void Step(const ble::BridgeMove &move);
 
   void Step(int uid) override;
 
@@ -110,7 +104,7 @@ class BridgeEnv : public GameEnv {
 
   rela::TensorDict Feature(int player = -1) const override;
 
-  const ble::GameParameters& Parameters() const;
+  const ble::GameParameters &Parameters() const;
 
   EnvSpec Spec() const override {
     return {ble::kNumPlayers, ble::kNumPartnerships};
@@ -124,11 +118,7 @@ class BridgeEnv : public GameEnv {
   const ble::BridgeGame game_;
   const BridgeEnvOptions options_;
   std::unique_ptr<ble::BridgeState> state_;
-  const DetailedEncoder encoder_;
-  const ble::PBEEncoder pbe_encoder_;
-  const ble::JPSEncoder jps_encoder_;
-  const ble::DNNsEncoder dnns_encoder_;
-
+  std::unique_ptr<ble::ObservationEncoder> encoder_;
 
   ble::Player last_active_player_;
   ble::BridgeMove last_move_;

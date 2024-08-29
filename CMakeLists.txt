@@ -160,6 +160,7 @@ add_library(_bridgelearn OBJECT
         rlcc/detailed_encoder.h
         rlcc/encoder_registerer.h
         rlcc/encoder_registerer.cc
+        rlcc/utils.cc
 )
 target_link_libraries(_bridgelearn PUBLIC bridge_lib)
 target_link_libraries(_bridgelearn PUBLIC rela_lib)

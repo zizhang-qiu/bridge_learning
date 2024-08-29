@@ -54,6 +54,8 @@ def create_data_generator(
         replay_buffer_capacity: int,
         prefetch: int,
         seed: int,
+        encoder: str,
+        reward_type: str
 ) -> Tuple[bridgelearn.CloneDataGenerator, pyrela.RNNPrioritizedReplay]:
     """Create data generator and replay buffer.
 
@@ -64,6 +66,7 @@ def create_data_generator(
         replay_buffer_capacity (int): The capacity of replay buffer.
         prefetch (int): The prefetch of replay buffer.
         seed (int): Random seed.
+        encoder (str): The type of encoder.
 
     Returns:
         Tuple[bridgelearn.CloneDataGenerator, pyrela.RNNPrioritizedReplay]: Clone data generator and replay buffer.
@@ -76,16 +79,21 @@ def create_data_generator(
         replay_buffer_capacity, seed, priority_exponent, priority_weight, prefetch
     )
 
-    data_gen = bridgelearn.CloneDataGenerator(replay_buffer, max_len, num_threads)
+    data_gen = bridgelearn.CloneDataGenerator(replay_buffer, max_len, num_threads, reward_type)
 
     game_params = {}
 
     data_gen.set_game_params(game_params)
 
+    env_options = bridgelearn.BridgeEnvOptions()
+    env_options.encoder = encoder
+    data_gen.set_env_options(env_options)
+
     for i, game_trajectory in enumerate(trajectories):
         data_gen.add_game(game_trajectory)
         if (i + 1) % 10000 == 0:
             print(f"\r{i + 1} games added.", end="")
+    print()
 
     return data_gen, replay_buffer
 
@@ -94,29 +102,43 @@ def compute_loss(
         pred_logits: torch.Tensor,
         legal_move: torch.Tensor,
         ground_truth_action: torch.Tensor,
+        pred_value: torch.Tensor,
+        grond_truth_value: torch.Tensor,
         mask: torch.Tensor,
-        no_op_actions_weight: float = 1.0,
+        seq_len: torch.Tensor,
+        no_op_actions_weight: float,
+        value_loss_weight: float
 ):
-    seq_len, bsize, num_actions = pred_logits.size()
+    max_seq_len, bsize, num_actions = pred_logits.size()
     assert (
             pred_logits.size() == legal_move.size()
     ), f"size not match, {pred_logits.size()} vs {legal_move.size()}"
     # pred_logits = pred_logits * legal_move
-    pred_logits = pred_logits - (1 - legal_move) * 1e10
-    pred_logits = pred_logits.reshape(-1, num_actions)
+    # pred_logits = pred_logits - (1 - legal_move) * 1e10
 
+    # [batch_size x seq_leb, num_actions]
+    pred_logits = pred_logits.reshape(-1, num_actions)
+    # [batch_size x seq_len]
     ground_truth_action = ground_truth_action.flatten()
     loss = torch.nn.functional.cross_entropy(
         pred_logits, ground_truth_action, reduction="none"
     )
-    loss = loss.view(seq_len, bsize)
+    loss = loss.view(max_seq_len, bsize)
     mask2 = mask.clone()
-    mask2[(ground_truth_action == num_actions - 1).view(seq_len, bsize)] = (
+    mask2[(ground_truth_action == num_actions - 1).view(max_seq_len, bsize)] = (
         no_op_actions_weight
     )
 
-    loss = (loss * mask2).sum(0).mean()
-    return loss
+    loss = ((loss * mask2).sum(0) / seq_len)
+
+    pred_value = pred_value.reshape(-1, 1)
+    grond_truth_value = grond_truth_value.reshape(-1, 1)
+
+    value_loss = torch.pow(pred_value - grond_truth_value / 7600, 2) * value_loss_weight
+    value_loss = value_loss.view(max_seq_len, bsize) * mask
+    value_loss = value_loss.sum(0) / seq_len
+
+    return loss.mean(), value_loss.mean()
 
 
 def compute_accuracy(
@@ -130,7 +152,7 @@ def compute_accuracy(
             pred_logits.size() == legal_move.size()
     ), f"size not match, {pred_logits.size()} vs {legal_move.size()}"
     # pred_logits = pred_logits * legal_move
-    pred_logits = pred_logits - (1 - legal_move) * 1e10
+    # pred_logits = pred_logits - (1 - legal_move) * 1e10
     pred_logits = pred_logits.reshape(-1, num_actions)
     ground_truth_action = ground_truth_action.flatten()
     # print("pred_action: ", pred_logits.argmax(dim=1))
@@ -163,8 +185,10 @@ def train(
     for i_batch in trange(num_batch):
         batch, weight = replay_buffer.sample(batch_size, device)
         # print(batch.seq_len)
+        # print(batch.reward)
 
         priv_s = batch.obs["priv_s"]
+        # print(priv_s[:, :, -1])
         publ_s = batch.obs["publ_s"]
         legal_move = batch.obs["legal_move"]
         # [seq_len, batch]
@@ -178,13 +202,23 @@ def train(
             stopwatch.time("sample data")
 
         reply = model.forward(
-            dict(priv_s=priv_s, publ_s=publ_s, legal_move=legal_move, action=action)
+            dict(priv_s=priv_s, publ_s=publ_s, legal_move=legal_move)
         )
         pi = reply["pi"]
+        v = reply["v"]
         legal_move = legal_move[:, :, -model.out_dim:]
 
-        loss = compute_loss(pi, legal_move, action, mask, no_op_actions_weight)
+        p_loss, v_loss = compute_loss(pi,
+                                      legal_move,
+                                      action,
+                                      v,
+                                      batch.reward,
+                                      mask,
+                                      batch.seq_len,
+                                      no_op_actions_weight,
+                                      args.value_loss_weight)
         # print(f"loss: {loss.item()}")
+        loss = p_loss + v_loss
         loss.backward()
         if stopwatch is not None:
             torch.cuda.synchronize()
@@ -199,10 +233,12 @@ def train(
         if stopwatch is not None:
             stopwatch.time("update model")
 
-        accuracy, num_eval_actions, accuracy_without_no_op, num_eval_actions_without_no_op = compute_accuracy(
-            pi, legal_move, action, mask
-        )
-
+        with torch.no_grad():
+            accuracy, num_eval_actions, accuracy_without_no_op, num_eval_actions_without_no_op = compute_accuracy(
+                pi, legal_move, action, mask
+            )
+        stats.feed("p_loss", p_loss.detach().item())
+        stats.feed("v_loss", v_loss.detach().item())
         stats.feed("loss", loss.item())
         stats.feed("grad_norm", g_norm.item())
         stats.feed("accuracy", accuracy.item())
@@ -217,7 +253,6 @@ def evaluate(
 ):
     stats_ = MultiStats()
     for batch in tqdm(eval_batch):
-        # batch.to_device(args.device)
         priv_s = batch.obs["priv_s"].to(args.device)
         publ_s = batch.obs["publ_s"].to(args.device)
         legal_move = batch.obs["legal_move"].to(args.device)
@@ -229,18 +264,35 @@ def evaluate(
 
         mask = torch.arange(0, priv_s.size(0), device=action.device)
         mask = (mask.unsqueeze(1) < seq_len.unsqueeze(0)).float()
+
         reply = agent.forward(
-            dict(priv_s=priv_s, publ_s=publ_s, legal_move=legal_move, action=action)
+            dict(priv_s=priv_s,
+                 publ_s=publ_s,
+                 legal_move=legal_move)
         )
         pi = reply["pi"]
+        v = reply["v"]
         legal_move = legal_move[:, :, -agent.out_dim:]
-        loss = compute_loss(pi, legal_move, action, mask, args.no_op_actions_weight)
+        # print(batch.reward[0, :20])
+        # print(v.squeeze(2)[0, :20] * 7600)
+        p_loss, v_loss = compute_loss(pi,
+                                      legal_move,
+                                      action,
+                                      v,
+                                      batch.reward.to(args.device),
+                                      mask,
+                                      seq_len,
+                                      args.no_op_actions_weight,
+                                      args.value_loss_weight)
+        loss = p_loss + v_loss
         accuracy, num_eval_actions, accuracy_without_no_op, num_eval_actions_without_no_op = compute_accuracy(
             pi, legal_move, action, mask
         )
         # batch.to_device("cpu")
         torch.cuda.empty_cache()
         stats_.feed("loss", loss.item())
+        stats_.feed("p_loss", p_loss.item())
+        stats_.feed("v_loss", v_loss.item())
         stats_.feed("accuracy", accuracy.item())
         stats_.feed("accuracy_without_no_op", accuracy_without_no_op.item())
         stats_.feed("num_eval_actions", num_eval_actions.item())
@@ -260,14 +312,15 @@ def parse_args():
         type=str,
         default=r"D:\Projects\bridge_research\expert\train.txt",
     )
-    parser.add_argument("--batch_size", type=int, default=256)
+    parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=1e-4, help="The learning rate.")
     parser.add_argument(
         "--eps", type=float, default=1e-8, help="The eps for adam optimizer."
     )
     parser.add_argument("--num_threads", type=int, default=6)
+    parser.add_argument("--encoder", type=str, default="detailed(turn=true)")
     parser.add_argument(
-        "--capacity", type=int, default=int(2e4), help="Capacity of replay buffer."
+        "--capacity", type=int, default=int(20000), help="Capacity of replay buffer."
     )
     parser.add_argument("--prefetch", type=int, default=3)
 
@@ -275,6 +328,8 @@ def parse_args():
     parser.add_argument("--epoch_len", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     parser.add_argument("--inf_loop", type=int, default=1)
+    parser.add_argument("--reward_type", type=str, default="real", choices=["real", "dds"])
+    parser.add_argument("--value_loss_weight", type=float, default=1.0)
 
     parser.add_argument("--net", type=str, choices=["publ-lstm", "lstm"], default="lstm")
     parser.add_argument("--hid_dim", type=int, default=1024)
@@ -292,7 +347,8 @@ def parse_args():
     parser.add_argument("--max_grad_norm", type=float, default=0.5)
 
     parser.add_argument("--save_dir", type=str, default="lstm_sl")
-    parser.add_argument("--eval_only", type=int, default=1)
+    parser.add_argument("--eval_only", type=int, default=0,
+                        help="Set to 1 if you only want to evaluate model.")
     parser.add_argument(
         "--eval_dataset",
         type=str,
@@ -300,7 +356,7 @@ def parse_args():
     )
 
     parser.add_argument("--eval_batch_size", type=int, default=400)
-    parser.add_argument("--load_model", type=str, default="lstm_sl/exp5")
+    parser.add_argument("--load_model", type=str, default="")
 
     return parser.parse_args()
 
@@ -314,17 +370,19 @@ if __name__ == "__main__":
     print("Load eval dataset.")
 
     assert bridge.NUM_PLAYERS * len(eval_dataset) % args.eval_batch_size == 0
-
-    env = bridgelearn.BridgeEnv({}, bridgelearn.BridgeEnvOptions())
+    env_options = bridgelearn.BridgeEnvOptions()
+    env_options.encoder = args.encoder
+    env = bridgelearn.BridgeEnv({}, env_options)
     in_dim = env.feature_size()
     out_dim = env.max_num_action() - bridge.NUM_CARDS  # No play actions.
-    print(f"in_dim：{in_dim}, out_dim:{out_dim}")
+    print(f"in_dim：{in_dim}, out_dim:{out_dim}.")
 
     del env
 
     if bool(args.eval_only):
         max_len = get_max_len(eval_dataset, len_func=get_bidding_length)
-        clone_data_generator = bridgelearn.CloneDataGenerator(None, max_len, 1)  # type: ignore
+        clone_data_generator = bridgelearn.CloneDataGenerator(None, max_len, 1, args.reward_type)  # type: ignore
+        clone_data_generator.set_env_options(env_options)
         eval_batch = clone_data_generator.generate_eval_data(
             args.eval_batch_size,
             "cpu",  # Put batches in cpu here due to gpu usage.
@@ -382,12 +440,14 @@ if __name__ == "__main__":
 
     max_len = get_max_len(eval_dataset, game_trajectories, len_func=get_bidding_length)
     print(f"max_len: {max_len}")
-    clone_data_generator = bridgelearn.CloneDataGenerator(None, max_len, 1)  # type: ignore
+    clone_data_generator = bridgelearn.CloneDataGenerator(None, max_len, 1, args.reward_type)  # type: ignore
+    clone_data_generator.set_env_options(env_options)
     eval_batch = clone_data_generator.generate_eval_data(
         args.eval_batch_size,
         "cpu",  # Put batches in cpu here due to gpu usage.
         eval_dataset,
     )
+    print("Eval batch loaded.")
 
     del clone_data_generator
 
@@ -447,6 +507,8 @@ if __name__ == "__main__":
         args.capacity,
         args.prefetch,
         args.seed,
+        args.encoder,
+        args.reward_type
     )
 
     data_gen.start_data_generation(bool(args.inf_loop), args.seed)
@@ -511,7 +573,8 @@ if __name__ == "__main__":
             f"accuracy_without_no_op: {stats.get('accuracy_without_no_op').mean():.2%}, "
             f"eval_accuracy: {accuracy:.2%}, "
             f"eval_accuracy_without_no_op: {accuracy_without_no_op:.2%}, "
-            f"eval_loss: {eval_stats.get('loss').mean():.4f}, "
+            f"eval_p_loss: {eval_stats.get('p_loss').mean():.4f}, "
+            f"eval_v_loss: {eval_stats.get('v_loss').mean():.4f}, "
             f"model_saved: {model_saved}."
         )
 

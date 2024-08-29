@@ -64,9 +64,7 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def_readwrite("max_len", &BridgeEnvOptions::max_len)
       .def_readwrite("bidding_phase", &BridgeEnvOptions::bidding_phase)
       .def_readwrite("playing_phase", &BridgeEnvOptions::playing_phase)
-      .def_readwrite("pbe_feature", &BridgeEnvOptions::pbe_feature)
-      .def_readwrite("jps_feature", &BridgeEnvOptions::jps_feature)
-      .def_readwrite("dnns_feature", &BridgeEnvOptions::dnns_feature)
+      .def_readwrite("encoder", &BridgeEnvOptions::encoder)
       .def_readwrite("verbose", &BridgeEnvOptions::verbose);
 
   py::class_<EnvSpec>(m, "EnvSpec")
@@ -119,6 +117,7 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def("current_partnership", &DuplicateEnv::CurrentPartnership)
       .def("legal_actions", &DuplicateEnv::LegalActions)
       .def("feature", &DuplicateEnv::Feature)
+      .def("feature_size", &DuplicateEnv::FeatureSize)
       .def("spec", &DuplicateEnv::Spec);
 
   py::class_<BridgeVecEnv>(m, "BridgeVecEnv")
@@ -174,14 +173,14 @@ PYBIND11_MODULE(bridgelearn, m) {
   py::class_<RandomActor, Actor, std::shared_ptr<RandomActor>>(m, "RandomActor")
       .def(py::init<int>());
 
-  py::class_<BridgePublicLSTMActor, Actor,
-             std::shared_ptr<BridgePublicLSTMActor>>(m, "BridgePublicLSTMActor")
+  py::class_<BridgeLSTMActor, Actor,
+             std::shared_ptr<BridgeLSTMActor>>(m, "BridgeLSTMActor")
       .def(py::init<const std::shared_ptr<rela::BatchRunner> &, int>())
       .def(py::init<const std::shared_ptr<rela::BatchRunner> &, int, float,
                     std::shared_ptr<rela::RNNPrioritizedReplay> &, int>())
-      .def("reset", &BridgePublicLSTMActor::Reset)
-      .def("observe_before_act", &BridgePublicLSTMActor::ObserveBeforeAct)
-      .def("act", &BridgePublicLSTMActor::Act);
+      .def("reset", &BridgeLSTMActor::Reset)
+      .def("observe_before_act", &BridgeLSTMActor::ObserveBeforeAct)
+      .def("act", &BridgeLSTMActor::Act);
 
   py::class_<EnvActorOptions>(m, "EnvActorOptions")
       .def(py::init<>())
@@ -213,15 +212,35 @@ PYBIND11_MODULE(bridgelearn, m) {
 
   py::class_<CloneDataGenerator, std::shared_ptr<CloneDataGenerator>>(
       m, "CloneDataGenerator")
-      .def(py::init<std::shared_ptr<rela::RNNPrioritizedReplay>, int, int>())
+      .def(py::init<std::shared_ptr<rela::RNNPrioritizedReplay> &, int, int, std::string_view>())
       .def("set_game_params", &CloneDataGenerator::SetGameParams)
+      .def("set_env_options", &CloneDataGenerator::SetEnvOptions)
+      .def("set_reward_type", &CloneDataGenerator::SetRewardType)
       .def("add_game", &CloneDataGenerator::AddGame)
       .def("start_data_generation", &CloneDataGenerator::StartDataGeneration)
       .def("terminate", &CloneDataGenerator::Terminate)
       .def("generate_eval_data", &CloneDataGenerator::GenerateEvalData);
 
   m.def("registered_encoders", &RegisteredEncoders);
-  m.def("load_encoder", &LoadEncoder);
+  m.def("load_encoder", py::overload_cast<const std::string &,
+                                          const std::shared_ptr<ble::BridgeGame> &,
+                                          const ble::GameParameters &>(&LoadEncoder));
+  m.def("load_encoder", py::overload_cast<const std::string &,
+                                          const std::shared_ptr<ble::BridgeGame> &>(&LoadEncoder));
   m.def("is_encoder_registered", &IsEncoderRegistered);
+
+  py::class_<FFCloneDataGenerator, std::shared_ptr<FFCloneDataGenerator>>(m, "FFCloneDataGenerator")
+      .def(py::init<std::shared_ptr<rela::FFPrioritizedReplay> &,
+                    int,
+                    const BridgeEnvOptions &,
+                    std::string_view,
+                    float>())
+      .def("set_game_params", &FFCloneDataGenerator::SetGameParams)
+      .def("set_env_options", &FFCloneDataGenerator::SetEnvOptions)
+      .def("set_reward_type", &FFCloneDataGenerator::SetRewardType)
+      .def("add_game", &FFCloneDataGenerator::AddGame)
+      .def("start_data_generation", &FFCloneDataGenerator::StartDataGeneration)
+      .def("terminate", &FFCloneDataGenerator::Terminate)
+      .def("generate_eval_data", &FFCloneDataGenerator::GenerateEvalData);
 
 }

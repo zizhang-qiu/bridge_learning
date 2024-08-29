@@ -21,59 +21,53 @@ namespace ble = bridge_learning_env;
 namespace rlcc {
 class DuplicateEnv : public GameEnv {
  public:
-  DuplicateEnv(const ble::GameParameters& params,
-               const BridgeEnvOptions& options)
+  DuplicateEnv(const ble::GameParameters &params,
+               const BridgeEnvOptions &options)
       : game_(params),
-        options_(options),
-        encoder_(std::make_shared<ble::BridgeGame>(game_)),
-        pbe_encoder_(std::make_shared<ble::BridgeGame>(game_)),
-        jps_encoder_(std::make_shared<ble::BridgeGame>(game_)),
-        dnns_encoder_() {
+        options_(options) {
     if (!options.bidding_phase && !options.playing_phase) {
       rela::utils::RelaFatalError(
           "Both bidding and playing phase are off. At least one phase should "
           "be on.");
     }
+    encoder_ = rlcc::LoadEncoder(options_.encoder, std::make_shared<ble::BridgeGame>(game_), {});
   }
 
-  DuplicateEnv(const ble::GameParameters& params,
-               const BridgeEnvOptions& options,
-               const std::shared_ptr<BridgeDataset>& dataset)
+  DuplicateEnv(const ble::GameParameters &params,
+               const BridgeEnvOptions &options,
+               const std::shared_ptr<BridgeDataset> &dataset)
       : game_(params),
         options_(options),
-        dataset_(dataset),
-        encoder_(std::make_shared<ble::BridgeGame>(game_)),
-        pbe_encoder_(std::make_shared<ble::BridgeGame>(game_)),
-        jps_encoder_(std::make_shared<ble::BridgeGame>(game_)),
-        dnns_encoder_() {
+        dataset_(dataset) {
     if (!options.bidding_phase && !options.playing_phase) {
       rela::utils::RelaFatalError(
           "Both bidding and playing phase are off. At least one phase should "
           "be on.");
     }
+    encoder_ = rlcc::LoadEncoder(options_.encoder, std::make_shared<ble::BridgeGame>(game_));
   }
 
-  DuplicateEnv(const DuplicateEnv& env)
+  DuplicateEnv(const DuplicateEnv &env)
       : game_index_(env.game_index_),
         game_(env.game_),
         options_(env.options_),
         terminated_(env.terminated_),
-        dataset_(env.dataset_),
-        encoder_(env.encoder_),
-        pbe_encoder_(env.pbe_encoder_),
-        jps_encoder_(env.jps_encoder_),
-        dnns_encoder_(env.dnns_encoder_) {
+        dataset_(env.dataset_) {
     states_[0] = std::make_unique<ble::BridgeState>(*env.states_[0]);
     states_[1] = std::make_unique<ble::BridgeState>(*env.states_[1]);
+    encoder_ = rlcc::LoadEncoder(options_.encoder, std::make_shared<ble::BridgeGame>(game_));
   }
 
-  void SetBridgeDataset(const std::shared_ptr<BridgeDataset>& bridge_dataset) {
+  void SetBridgeDataset(const std::shared_ptr<BridgeDataset> &bridge_dataset) {
     dataset_ = bridge_dataset;
   }
 
-  int MaxNumAction() const override { return game_.NumDistinctActions(); }
+  int MaxNumAction() const override { return game_.NumDistinctActions() + 1; }
+
+  int FeatureSize() const { return encoder_->Shape()[0]; }
 
   bool Reset() override {
+    num_steps_ = 0;
     if (dataset_ != nullptr) {
       return ResetWithDataset();
     }
@@ -82,14 +76,16 @@ class DuplicateEnv : public GameEnv {
 
   void Step(int uid) override;
 
-  bool Terminated() const override { return terminated_; }
+  bool Terminated() const override {
+    return terminated_;
+  }
 
   int CurrentPlayer() const override {
     if (game_index_ == 0) {
       return states_[0]->CurrentPlayer();
     }
 
-    return (states_[1]->CurrentPlayer() + 1) % ble::kNumPlayers;
+    return (states_[1]->CurrentPlayer() - 1 + ble::kNumPlayers) % ble::kNumPlayers;
   }
 
   float PlayerReward(int player) const override;
@@ -113,22 +109,21 @@ class DuplicateEnv : public GameEnv {
     return {ble::kNumPlayers, ble::kNumPartnerships};
   }
 
-  rela::TensorDict Feature(int player=-1) const override;
+  rela::TensorDict Feature(int player = -1) const override;
 
  private:
   bool ResetWithoutDataset();
   bool ResetWithDataset();
   int game_index_ = 0;
   const ble::BridgeGame game_;
-  const BridgeEnvOptions& options_;
+  const BridgeEnvOptions options_;
+  int num_steps_ = 0;
+  // 2 tables.
   std::array<std::unique_ptr<ble::BridgeState>, 2> states_;
   bool terminated_ = true;
   std::shared_ptr<BridgeDataset> dataset_ = nullptr;
 
-  const ble::CanonicalEncoder encoder_;
-  const ble::PBEEncoder pbe_encoder_;
-  const ble::JPSEncoder jps_encoder_;
-  const ble::DNNsEncoder dnns_encoder_;
+  std::unique_ptr<ble::ObservationEncoder> encoder_;
 };
 }  // namespace rlcc
 

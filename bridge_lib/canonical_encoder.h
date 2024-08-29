@@ -62,12 +62,6 @@ int EncodeHandEvaluationOneHot(const BridgeObservation& obs, int start_offset,
 int EncodeHandEvaluation(const BridgeObservation& obs, int start_offset,
                          std::vector<int>* encoding, int relative_player);
 
-// int EncodeHandRankMajorStyle(const BridgeObservation& obs, int start_offset,
-//                              std::vector<int>* encoding, int relative_player);
-
-// int EncodePBEBiddingHistory(const BridgeObservation& obs, int start_offset,
-//                             std::vector<int>* encoding);
-
 class CanonicalEncoder : public ObservationEncoder {
  public:
   explicit CanonicalEncoder(const std::shared_ptr<BridgeGame>& game,

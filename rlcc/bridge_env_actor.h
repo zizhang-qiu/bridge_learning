@@ -39,12 +39,11 @@ class BridgeEnvActor final : public EnvActor {
   }
 
   void Act() override {
-    // // std::cout << "Enter act" << std::endl;
+//    std::cout << "Enter act" << std::endl;
     const int current_player = env_->CurrentPlayer();
-    // // std::cout << "current player: " << current_player << std::endl;
+//    std::cout << "current player: " << current_player << std::endl;
     // actors_[current_player]->Act(*env_);
     // // std::cout << "After actors_[current_player]->Act(*env_)\n";
-
     for (size_t i = 0; i < actors_.size(); ++i) {
 //      std::cout << i << ", " << std::endl;
       actors_[i]->Act(*env_, current_player);
@@ -62,7 +61,11 @@ class BridgeEnvActor final : public EnvActor {
     // std::cout << "Leave act" << std::endl;
   }
 
-  void ObserveAfterAct() override {}
+  void ObserveAfterAct() override {
+    for (int i = 0; i < actors_.size(); ++i) {
+      actors_[i]->ObserveAfterAct(*env_);
+    }
+  }
 
   void SendExperience() override {
     if (!env_->Terminated()) {

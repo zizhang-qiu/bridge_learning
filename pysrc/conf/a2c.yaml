@@ -6,9 +6,9 @@ num_publ_mlp_layer: 2
 num_lstm_layer: 1
 activation: "gelu"
 dropout: !!float 0.0
-net: "lstm"
+net: "publ-lstm"
 rl_checkpoint: ""
-sl_checkpoint: "lstm_sl/exp5/model1.pthw"
+sl_checkpoint: "lstm_sl/exp7/model0.pthw"
 
 # Replay buffer.
 capacity: 20000
@@ -30,20 +30,21 @@ dealer: 0
 is_dealer_vulnerable: False
 is_non_dealer_vulnerable: False
 duplicate: False
+encoder: "detailed"
 
 # Training settings
-num_threads: 6
+num_threads: 8
 num_envs_per_thread: 250
-batch_size: 64
+batch_size: 256
 train_device: "cuda"
 burn_in: 5000
 num_epochs: 1000
 epoch_len: 1000
-max_grad_norm: 0.5
+max_grad_norm: 5
 synq_freq: 5
 save_dir: lstm_a2c
-clip_eps: 0.2
-entropy_ratio: 0.01
+clip_eps: !!float 0.2
+entropy_ratio: !!float 0.01
 value_loss_weight: 0.5
 
 # Optimizer

@@ -18,15 +18,18 @@ inline static constexpr int kDetailedFeatureSize =
         + ble::kNumBids * kSingleBidTensorSize;      // Encoding for each bid.
 
 int EncodeAuctionDetailed(const ble::BridgeObservation &obs, int start_offset, std::vector<int> *encoding);
+int EncoderTurn(const ble::BridgeObservation &obs, int start_offset, std::vector<int> *encoding);
 
 class DetailedEncoder : public ble::ObservationEncoder {
  public:
-  DetailedEncoder(const std::shared_ptr<ble::BridgeGame> &game) : parent_game_(game) {}
-  std::vector<int> Shape() const override { return {kDetailedFeatureSize}; }
+  DetailedEncoder(const std::shared_ptr<ble::BridgeGame> &game,
+                  bool turn) : parent_game_(game), turn_(turn) {}
+  std::vector<int> Shape() const override { return {kDetailedFeatureSize + turn_}; }
   std::vector<int> Encode(const ble::BridgeObservation &obs) const override;
   Type type() const override { return kDetailed; }
  private:
 
   std::shared_ptr<ble::BridgeGame> parent_game_;
+  bool turn_;
 };
 #endif //BRIDGE_LEARNING_RLCC_DETAILED_ENCODER_H_

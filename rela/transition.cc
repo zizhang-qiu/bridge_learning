@@ -4,8 +4,8 @@
 #include "transition.h"
 #include "utils.h"
 
-namespace rela{
-Transition Transition::makeBatch(std::vector<Transition> transitions, int batchdim, const std::string& device) {
+namespace rela {
+Transition Transition::makeBatch(std::vector<Transition> transitions, int batchdim, const std::string &device) {
   assert(transitions.size() >= 1);
 
   TensorVecDict ds;
@@ -26,7 +26,7 @@ Transition Transition::makeBatch(std::vector<Transition> transitions, int batchd
 
   if (device != "cpu") {
     auto d = torch::Device(device);
-    auto toDevice = [&](const torch::Tensor& t) { return t.to(d); };
+    auto toDevice = [&](const torch::Tensor &t) { return t.to(d); };
     batch.d = rela::tensor_dict::apply(batch.d, toDevice);
   }
   return batch;
@@ -38,7 +38,7 @@ Transition Transition::padLike() const {
   return pad;
 }
 
-TorchJitInput Transition::toJitInput(const torch::Device& device) const {
+TorchJitInput Transition::toJitInput(const torch::Device &device) const {
   TorchJitInput input;
   input.push_back(rela::tensor_dict::toTorchDict(d, device));
   return input;
@@ -47,10 +47,10 @@ TorchJitInput Transition::toJitInput(const torch::Device& device) const {
 FFTransition FFTransition::index(int i) const {
   FFTransition element;
 
-  for (auto& name2tensor : obs) {
+  for (auto &name2tensor : obs) {
     element.obs.insert({name2tensor.first, name2tensor.second[i]});
   }
-  for (auto& name2tensor : action) {
+  for (auto &name2tensor : action) {
     element.action.insert({name2tensor.first, name2tensor.second[i]});
   }
 
@@ -58,7 +58,7 @@ FFTransition FFTransition::index(int i) const {
   element.terminal = terminal[i];
   element.bootstrap = bootstrap[i];
 
-  for (auto& name2tensor : nextObs) {
+  for (auto &name2tensor : nextObs) {
     element.nextObs.insert({name2tensor.first, name2tensor.second[i]});
   }
 
@@ -79,7 +79,7 @@ FFTransition FFTransition::padLike() const {
 }
 
 std::vector<torch::jit::IValue> FFTransition::toVectorIValue(
-    const torch::Device& device) const {
+    const torch::Device &device) const {
   std::vector<torch::jit::IValue> vec;
   vec.push_back(tensor_dict::toIValue(obs, device));
   vec.push_back(tensor_dict::toIValue(action, device));
@@ -92,11 +92,11 @@ std::vector<torch::jit::IValue> FFTransition::toVectorIValue(
 
 TensorDict FFTransition::toDict() {
   auto dict = obs;
-  for (auto& kv : nextObs) {
+  for (auto &kv : nextObs) {
     dict["next_" + kv.first] = kv.second;
   }
 
-  for (auto& kv : action) {
+  for (auto &kv : action) {
     auto ret = dict.emplace(kv.first, kv.second);
     assert(ret.second);
   }
@@ -113,14 +113,14 @@ TensorDict FFTransition::toDict() {
 RNNTransition RNNTransition::index(int i) const {
   RNNTransition element;
 
-  for (auto& name2tensor : obs) {
+  for (auto &name2tensor : obs) {
     element.obs.insert({name2tensor.first, name2tensor.second[i]});
   }
-  for (auto& name2tensor : h0) {
+  for (auto &name2tensor : h0) {
     auto t = name2tensor.second.narrow(1, i, 1).squeeze(1);
     element.h0.insert({name2tensor.first, t});
   }
-  for (auto& name2tensor : action) {
+  for (auto &name2tensor : action) {
     element.action.insert({name2tensor.first, name2tensor.second[i]});
   }
 
@@ -134,12 +134,12 @@ RNNTransition RNNTransition::index(int i) const {
 TensorDict RNNTransition::toDict() {
   auto dict = obs;
 
-  for (auto& kv : action) {
+  for (auto &kv : action) {
     auto ret = dict.emplace(kv.first, kv.second);
     assert(ret.second);
   }
 
-  for (auto& kv : h0) {
+  for (auto &kv : h0) {
     auto ret = dict.emplace(kv.first, kv.second);
     assert(ret.second);
   }
@@ -155,10 +155,10 @@ TensorDict RNNTransition::toDict() {
   return dict;
 }
 
-void RNNTransition::toDevice(const std::string& device) {
+void RNNTransition::toDevice(const std::string &device) {
   if (device != "cpu") {
     auto d = torch::Device(device);
-    auto toDevice = [&](const torch::Tensor& t) { return t.to(d); };
+    auto toDevice = [&](const torch::Tensor &t) { return t.to(d); };
     obs = tensor_dict::apply(obs, toDevice);
     h0 = tensor_dict::apply(h0, toDevice);
     action = tensor_dict::apply(action, toDevice);
@@ -170,7 +170,7 @@ void RNNTransition::toDevice(const std::string& device) {
 }
 
 RNNTransition makeBatch(
-    const std::vector<RNNTransition>& transitions, const std::string& device) {
+    const std::vector<RNNTransition> &transitions, const std::string &device) {
   std::vector<TensorDict> obsVec;
   std::vector<TensorDict> h0Vec;
   std::vector<TensorDict> actionVec;
@@ -179,7 +179,7 @@ RNNTransition makeBatch(
   std::vector<torch::Tensor> bootstrapVec;
   std::vector<torch::Tensor> seqLenVec;
 
-  for (const auto & transition : transitions) {
+  for (const auto &transition : transitions) {
     obsVec.push_back(transition.obs);
     h0Vec.push_back(transition.h0);
     actionVec.push_back(transition.action);
@@ -200,7 +200,7 @@ RNNTransition makeBatch(
 
   if (device != "cpu") {
     auto d = torch::Device(device);
-    auto toDevice = [&](const torch::Tensor& t) { return t.to(d); };
+    auto toDevice = [&](const torch::Tensor &t) { return t.to(d); };
     batch.obs = tensor_dict::apply(batch.obs, toDevice);
     batch.h0 = tensor_dict::apply(batch.h0, toDevice);
     batch.action = tensor_dict::apply(batch.action, toDevice);
@@ -214,14 +214,53 @@ RNNTransition makeBatch(
 }
 
 TensorDict makeBatch(
-    const std::vector<TensorDict>& transitions, const std::string& device) {
+    const std::vector<TensorDict> &transitions, const std::string &device) {
   auto batch = tensor_dict::stack(transitions, 0);
   if (device != "cpu") {
     auto d = torch::Device(device);
-    for (auto& kv : batch) {
+    for (auto &kv : batch) {
       batch[kv.first] = kv.second.to(d);
     }
   }
+  return batch;
+}
+
+FFTransition makeBatch(const std::vector<FFTransition> &transitions, const std::string &device) {
+  std::vector<TensorDict> obsVec;
+  std::vector<TensorDict> actionVec;
+  std::vector<torch::Tensor> rewardVec;
+  std::vector<torch::Tensor> terminalVec;
+  std::vector<torch::Tensor> bootstrapVec;
+  std::vector<TensorDict> nextObsVec;
+
+  for (const auto &transition : transitions) {
+    obsVec.push_back(transition.obs);
+    actionVec.push_back(transition.action);
+    rewardVec.push_back(transition.reward);
+    terminalVec.push_back(transition.terminal);
+    bootstrapVec.push_back(transition.bootstrap);
+    nextObsVec.push_back(transition.nextObs);
+  }
+
+  FFTransition batch;
+  batch.obs = tensor_dict::stack(obsVec, 0);
+  batch.action = tensor_dict::stack(actionVec, 0);
+  batch.reward = torch::stack(rewardVec, 0);
+  batch.terminal = torch::stack(terminalVec, 0);
+  batch.bootstrap = torch::stack(bootstrapVec, 0);
+  batch.nextObs = tensor_dict::stack(nextObsVec, 0);
+
+  if (device != "cpu") {
+    auto d = torch::Device(device);
+    auto toDevice = [&](const torch::Tensor &t) { return t.to(d); };
+    batch.obs = tensor_dict::apply(batch.obs, toDevice);
+    batch.action = tensor_dict::apply(batch.action, toDevice);
+    batch.reward = batch.reward.to(d);
+    batch.terminal = batch.terminal.to(d);
+    batch.bootstrap = batch.bootstrap.to(d);
+    batch.nextObs = tensor_dict::apply(batch.nextObs, toDevice);
+  }
+
   return batch;
 }
 }

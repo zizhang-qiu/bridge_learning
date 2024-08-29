@@ -20,55 +20,57 @@ class EnvActorThreadLoop : public rela::ThreadLoop {
         waitUntilResume();
       }
 
-       if (verbose_) {
-         std::cout << "Before observe before act" << std::endl;
-         std::cout << "Terminal count: " << env_actors_[0]->TerminalCount()
-                   << std::endl;
-         std::cout << "Current Env:\n"
-                   << env_actors_[0]->GetEnv()->ToString() << std::endl;
+      if (verbose_) {
+        std::cout << "Before observe before act" << std::endl;
+        std::cout << "Terminal count: " << env_actors_[0]->TerminalCount()
+                  << std::endl;
+        std::cout << "Current Env:\n"
+                  << env_actors_[0]->GetEnv()->ToString() << std::endl;
 //         std::cout << "Current Env:\n"
 //                   << env_actors_[1]->GetEnv()->ToString() << std::endl;
-       }
+      }
 
-      for (auto& ea : env_actors_) {
+      for (auto &ea : env_actors_) {
         if (!EnvFinished(*ea)) {
           ea->ObserveBeforeAct();
         }
       }
 
-       if (verbose_) {
-         std::cout << "Before act" << std::endl;
-       }
+      if (verbose_) {
+        std::cout << "Before act" << std::endl;
+      }
 
-      for (auto& ea : env_actors_) {
+      for (auto &ea : env_actors_) {
         if (!EnvFinished(*ea)) {
           ea->Act();
         }
       }
-      if(verbose_)
-       std::cout << "Before observe after act" << std::endl;
-      for (auto& ea : env_actors_) {
+      if (verbose_)
+        std::cout << "Before observe after act" << std::endl;
+      for (auto &ea : env_actors_) {
         if (!EnvFinished(*ea)) {
           ea->ObserveAfterAct();
         }
       }
-      if(verbose_)
-       std::cout << "Before send experience" << std::endl;
-      for (auto& ea : env_actors_) {
+
+      if (verbose_)
+        std::cout << "Before send experience" << std::endl;
+      for (auto &ea : env_actors_) {
         if (!EnvFinished(*ea)) {
           ea->SendExperience();
         }
       }
-      if(verbose_)
-       std::cout << "Before post send experience" << std::endl;
-      for (auto& ea : env_actors_) {
+
+      if (verbose_)
+        std::cout << "Before post send experience" << std::endl;
+      for (auto &ea : env_actors_) {
         if (!EnvFinished(*ea)) {
           ea->PostSendExperience();
         }
       }
 
       bool all_finished = true;
-      for (auto& ea : env_actors_) {
+      for (auto &ea : env_actors_) {
         if (!EnvFinished(*ea)) {
           all_finished = false;
           break;
@@ -96,7 +98,7 @@ class EnvActorThreadLoop : public rela::ThreadLoop {
   bool verbose_;
 
   //Check is an env actor is finished, useful when eval.
-  bool EnvFinished(const EnvActor& ea) {
+  bool EnvFinished(const EnvActor &ea) {
     return (num_game_per_env_ > 0 && ea.TerminalCount() >= num_game_per_env_);
   }
 };

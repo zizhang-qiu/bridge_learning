@@ -12,7 +12,7 @@ class ObservationEncoderFactory {
   virtual ~ObservationEncoderFactory() = default;
 
   virtual std::unique_ptr<ble::ObservationEncoder> Create(
-      std::shared_ptr<ble::BridgeGame>& game,
+      const std::shared_ptr<ble::BridgeGame>& game,
       const ble::GameParameters &encoder_params
   ) = 0;
 };
@@ -29,7 +29,7 @@ class ObservationEncoderRegisterer {
   }
 
   static std::unique_ptr<ble::ObservationEncoder> CreateByName(const std::string &name,
-                                                          std::shared_ptr<ble::BridgeGame>& game,
+                                                          const std::shared_ptr<ble::BridgeGame>& game,
                                                           const ble::GameParameters &encoder_params) {
     auto iter = factories().find(name);
     if (iter == factories().end()) {
@@ -73,8 +73,11 @@ std::vector<std::string> RegisteredEncoders();
 bool IsEncoderRegistered(const std::string& name);
 
 std::unique_ptr<ble::ObservationEncoder> LoadEncoder(const std::string& name,
-                                                std::shared_ptr<ble::BridgeGame>& game,
+                                                const std::shared_ptr<ble::BridgeGame>& game,
                                                 const ble::GameParameters &encoder_params);
+
+std::unique_ptr<ble::ObservationEncoder> LoadEncoder(const std::string& name,
+                                                     const std::shared_ptr<ble::BridgeGame>& game);
 }
 
 #endif //BRIDGE_LEARNING_RLCC_ENCODER_REGISTERER_H_

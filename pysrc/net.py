@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from typing import Dict, Union, Optional
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
 from common_utils import activation_function_from_str
 
 
@@ -164,7 +165,6 @@ class MLP(torch.jit.ScriptModule):
         return net
 
 
-
 def get_activation(name: str) -> nn.Module:
     if name == "relu":
         return nn.ReLU()
@@ -179,8 +179,151 @@ def get_activation(name: str) -> nn.Module:
     raise ValueError
 
 
+class FFWDA2CWeightSharingNet(torch.jit.ScriptModule):
+    __constants__ = ["in_dim", "hid_dim", "out_dim", "num_mlp_layer", "dropout"]
+
+    def __init__(self,
+                 in_dim: int,
+                 hid_dim: int,
+                 out_dim: int,
+                 num_mlp_layer: int,
+                 activation: str,
+                 dropout: float):
+        super().__init__()
+        self.in_dim = in_dim
+        self.hid_dim = hid_dim
+        self.out_dim = out_dim
+        self.num_mlp_layer = num_mlp_layer
+        self.activation = get_activation(activation)
+        self.dropout = dropout
+        ff_layers = [nn.Linear(self.in_dim, self.hid_dim), self.activation]
+        for i in range(1, self.num_mlp_layer):
+            ff_layers.append(nn.Linear(self.hid_dim, self.hid_dim))
+            ff_layers.append(self.activation)
+        self.net = nn.Sequential(*ff_layers)
+        self.fc_p = nn.Linear(hid_dim, out_dim)
+        self.fc_v = nn.Linear(hid_dim, 1)
+
+    @torch.jit.script_method
+    def forward(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        priv_s = obs["priv_s"]
+        legal_move = obs["legal_move"]
+        single_act = False
+        if priv_s.dim() == 1:
+            single_act = True
+            priv_s = priv_s.unsqueeze(0)
+            legal_move = legal_move.unsqueeze(0)
+
+        x = self.net(priv_s)
+
+        x = torch.nn.functional.dropout(x, self.dropout, self.training)
+        logits = self.fc_p(x)
+        v = self.fc_v(x)
+        pi = torch.nn.functional.softmax(logits, dim=-1)
+        legal_pi = pi * legal_move
+
+        if single_act:
+            pi = pi.squeeze(0)
+            v = v.squeeze(0)
+            legal_pi = legal_pi.squeeze(0)
+
+        return {"pi": pi, "v": v, "legal_pi": legal_pi}
+
+
+class FFWDA2CSeparateNet(torch.jit.ScriptModule):
+    __constants__ = ["p_in_dim", "v_in_dim"]
+
+    def __init__(self,
+                 p_in_dim: int,
+                 v_in_dim: int,
+                 p_hid_dim: int,
+                 v_hid_dim: int,
+                 p_out_dim: int,
+                 num_p_mlp_layer: int,
+                 num_v_mlp_layer: int,
+                 p_activation: str,
+                 v_activation: str,
+                 dropout: float):
+        """
+        An A2C net using separate policy network and value network, allowing us to use different features for them.
+        Args:
+            p_in_dim: The input dimension of policy network.
+            v_in_dim: The input dimension of value network.
+            p_hid_dim: The hidden dimension of policy network.
+            v_hid_dim: The hidden dimension of value network.
+            p_out_dim: The output dimension of policy network.
+            num_p_mlp_layer: The number of layer of policy network.
+            num_v_mlp_layer: The number of layer of value network.
+            p_activation: The activation function of policy network.
+            v_activation: The activation function of value network.
+            dropout: The dropout prob.
+        """
+        super().__init__()
+        self.p_in_dim = p_in_dim
+        self.v_in_dim = v_in_dim
+        self.p_hid_dim = p_hid_dim
+        self.v_hid_dim = v_hid_dim
+        self.p_out_dim = p_out_dim
+        self.num_p_mlp_layer = num_p_mlp_layer
+        self.num_v_mlp_layer = num_v_mlp_layer
+        self.p_activation = get_activation(p_activation)
+        self.v_activation = get_activation(v_activation)
+        self.dropout = dropout
+
+        p_ff_layers = [nn.Linear(self.p_in_dim, self.p_hid_dim), self.p_activation]
+        for i in range(1, self.num_p_mlp_layer):
+            p_ff_layers.append(nn.Linear(self.p_hid_dim, self.p_hid_dim))
+            p_ff_layers.append(self.p_activation)
+
+        self.p_net = nn.Sequential(*p_ff_layers)
+        self.fc_p = nn.Linear(self.p_hid_dim, self.p_out_dim)
+
+        v_ff_layers = [nn.Linear(self.v_in_dim, self.v_hid_dim), self.v_activation]
+        for i in range(1, self.num_v_mlp_layer):
+            v_ff_layers.append(nn.Linear(self.v_hid_dim, self.v_hid_dim))
+            v_ff_layers.append(self.v_activation)
+
+        self.v_net = nn.Sequential(*v_ff_layers)
+        self.fc_v = nn.Linear(self.v_hid_dim, 1)  # Value network always output 1 value.
+
+    @torch.jit.script_method
+    def forward(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        priv_s = obs["priv_s"]
+        legal_move = obs["legal_move"]
+        if self.p_in_dim != self.v_in_dim:
+            assert "perf_s" in obs
+            value_s = obs["perf_s"]
+        else:
+            value_s = priv_s
+        single_act = False
+        if priv_s.dim() == 1:
+            single_act = True
+            priv_s = priv_s.unsqueeze(0)
+            legal_move = legal_move.unsqueeze(0)
+            value_s = value_s.unsqueeze(0)
+
+        p_x = self.p_net(priv_s)
+        v_x = self.v_net(value_s)
+
+        p_x = torch.nn.functional.dropout(p_x, self.dropout, self.training)
+        v_x = torch.nn.functional.dropout(v_x, self.dropout, self.training)
+
+        logits = self.fc_p(p_x)
+        pi = torch.nn.functional.softmax(logits, dim=-1)
+        legal_pi = pi * legal_move
+        v = self.fc_v(v_x)
+
+        if single_act:
+            pi = pi.squeeze(0)
+            v = v.squeeze(0)
+            legal_pi = legal_pi.squeeze(0)
+
+        return {"pi": pi, "v": v, "legal_pi": legal_pi}
+
+
 class LSTMNet(torch.jit.ScriptModule):
     __constants__ = ["in_dim", "hid_dim", "out_dim", "num_priv_mlp_layer", "num_publ_mlp_layer", "num_lstm_layer"]
+
     def __init__(self,
                  device: str,
                  in_dim: int,
@@ -189,7 +332,7 @@ class LSTMNet(torch.jit.ScriptModule):
                  num_priv_mlp_layer: int,
                  num_publ_mlp_layer: int,
                  num_lstm_layer: int,
-                 activation:str,
+                 activation: str,
                  dropout: float = 0.
                  ):
         super().__init__()

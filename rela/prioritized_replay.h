@@ -18,23 +18,23 @@
 
 namespace rela {
 
-template <class DataType>
+template<class DataType>
 class ConcurrentQueue {
  public:
   explicit ConcurrentQueue(int capacity)
-      : capacity(capacity)
-      , head_(0)
-      , tail_(0)
-      , size_(0)
-      , safeTail_(0)
-      , safeSize_(0)
-      , sum_(0)
-      , evicted_(capacity, false)
-      , elements_(capacity)
-      , weights_(capacity, 0) {
+      : capacity(capacity),
+        head_(0),
+        tail_(0),
+        size_(0),
+        safeTail_(0),
+        safeSize_(0),
+        sum_(0),
+        evicted_(capacity, false),
+        elements_(capacity),
+        weights_(capacity, 0) {
   }
 
-  int safeSize(float* sum) const {
+  int safeSize(float *sum) const {
     std::unique_lock<std::mutex> lk(m_);
     if (sum != nullptr) {
       *sum = sum_;
@@ -64,7 +64,7 @@ class ConcurrentQueue {
     cvSize_.notify_all();
   }
 
-  void append(const DataType& data, float weight) {
+  void append(const DataType &data, float weight) {
     int blockSize = 1;
     std::unique_lock<std::mutex> lk(m_);
     cvSize_.wait(lk, [=] { return terminated_ || (size_ + blockSize <= capacity); });
@@ -122,10 +122,10 @@ class ConcurrentQueue {
     cvSize_.notify_all();
   }
 
-  void update(const std::vector<int>& ids, const torch::Tensor& weights) {
+  void update(const std::vector<int> &ids, const torch::Tensor &weights) {
     double diff = 0;
     auto weightAcc = weights.accessor<float, 1>();
-    for (int i = 0; i < (int)ids.size(); ++i) {
+    for (int i = 0; i < (int) ids.size(); ++i) {
       auto id = ids[i];
       if (evicted_[id]) {
         continue;
@@ -151,7 +151,7 @@ class ConcurrentQueue {
     return elements_[id];
   }
 
-  float getWeight(int idx, int* id) {
+  float getWeight(int idx, int *id) {
     assert(id != nullptr);
     *id = (head_ + idx) % capacity;
     return weights_[*id];
@@ -196,16 +196,13 @@ class ConcurrentQueue {
   bool terminated_ = false;
 };
 
-template <class DataType>
+template<class DataType>
 class PrioritizedReplay {
  public:
   PrioritizedReplay(int capacity, int seed, float alpha, float beta, int prefetch)
       : alpha_(alpha)  // priority exponent
       , beta_(beta)    // importance sampling exponent
-      , prefetch_(prefetch)
-      , capacity_(capacity)
-      , storage_(int(1.25 * capacity))
-      , numAdd_(0) {
+      , prefetch_(prefetch), capacity_(capacity), storage_(int(1.25 * capacity)), numAdd_(0) {
     rng_.seed(seed);
   }
 
@@ -222,17 +219,17 @@ class PrioritizedReplay {
     storage_.terminate();
   }
 
-  void add(const DataType& sample, float priority) {
+  void add(const DataType &sample, float priority) {
     numAdd_ += 1;
     storage_.append(sample, std::pow(priority, alpha_));
   }
 
-  void add(const DataType& sample) {
+  void add(const DataType &sample) {
     float priority = 1.0;
     add(sample, priority);
   }
 
-  std::tuple<DataType, torch::Tensor> sample(int batchsize, const std::string& device) {
+  std::tuple<DataType, torch::Tensor> sample(int batchsize, const std::string &device) {
     if (!sampledIds_.empty()) {
       std::cout << "Error: previous samples' priority has not been updated." << std::endl;
       assert(false);
@@ -252,7 +249,7 @@ class PrioritizedReplay {
       futures_.pop();
     }
 
-    while ((int)futures_.size() < prefetch_) {
+    while ((int) futures_.size() < prefetch_) {
       auto f = std::async(
           std::launch::async,
           &PrioritizedReplay<DataType>::sample_,
@@ -265,14 +262,14 @@ class PrioritizedReplay {
     return std::make_tuple(batch, priority);
   }
 
-  void updatePriority(const torch::Tensor& priority) {
+  void updatePriority(const torch::Tensor &priority) {
     if (priority.size(0) == 0) {
       sampledIds_.clear();
       return;
     }
 
     assert(priority.dim() == 1);
-    assert((int)sampledIds_.size() == priority.size(0));
+    assert((int) sampledIds_.size() == priority.size(0));
 
     auto weights = torch::pow(priority, alpha_);
     {
@@ -297,7 +294,7 @@ class PrioritizedReplay {
  private:
   using SampleWeightIds = std::tuple<DataType, torch::Tensor, std::vector<int>>;
 
-  SampleWeightIds sample_(int batchsize, const std::string& device) {
+  SampleWeightIds sample_(int batchsize, const std::string &device) {
     std::unique_lock<std::mutex> lk(mSampler_);
 
     float sum;
@@ -319,7 +316,7 @@ class PrioritizedReplay {
     int id = 0;
     for (int i = 0; i < batchsize; i++) {
       float rand = dist(rng_) + i * segment;
-      rand = std::min(sum - (float)0.1, rand);
+      rand = std::min(sum - (float) 0.1, rand);
 
       while (nextIdx <= size) {
         if (accSum > 0 && accSum >= rand) {
@@ -343,7 +340,7 @@ class PrioritizedReplay {
         ++nextIdx;
       }
     }
-    assert((int)samples.size() == batchsize);
+    assert((int) samples.size() == batchsize);
 
     // pop storage if full
     size = storage_.size();
@@ -382,6 +379,7 @@ class PrioritizedReplay {
 
 using RNNPrioritizedReplay = PrioritizedReplay<RNNTransition>;
 using TensorDictReplay = PrioritizedReplay<TensorDict>;
+using FFPrioritizedReplay = PrioritizedReplay<FFTransition>;
 }  // namespace rela
 
 

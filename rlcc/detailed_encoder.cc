@@ -61,6 +61,12 @@ int EncodeAuctionDetailed(const ble::BridgeObservation &obs, int start_offset, s
 
   return offset - start_offset;
 }
+int EncoderTurn(const ble::BridgeObservation &obs, int start_offset, std::vector<int> *encoding) {
+  int offset = start_offset;
+  (*encoding)[offset] = !obs.LegalMoves().empty();
+  offset += 1;
+  return offset - start_offset;
+}
 
 std::vector<int> DetailedEncoder::Encode(const ble::BridgeObservation &obs) const {
   if (obs.NumCardsPlayed() > 0) {
@@ -72,16 +78,20 @@ std::vector<int> DetailedEncoder::Encode(const ble::BridgeObservation &obs) cons
   offset += ble::EncodeVulnerabilityBoth(obs, parent_game_, offset, &encoding);
   offset += EncodeAuctionDetailed(obs, offset, &encoding);
   offset += ble::EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/0);
+  if (turn_) {
+    offset += EncoderTurn(obs, offset, &encoding);
+  }
 
-  REQUIRE_EQ(offset, kDetailedFeatureSize);
+  REQUIRE_EQ(offset, kDetailedFeatureSize + turn_);
   return encoding;
 }
 
 class DetailedEncoderFactory : public rlcc::ObservationEncoderFactory {
  public:
-  std::unique_ptr<ble::ObservationEncoder> Create(std::shared_ptr<ble::BridgeGame> &game,
+  std::unique_ptr<ble::ObservationEncoder> Create(const std::shared_ptr<ble::BridgeGame> &game,
                                                   const bridge_learning_env::GameParameters &encoder_params) override {
-    return std::make_unique<DetailedEncoder>(game);
+    const bool turn = ble::ParameterValue<bool>(encoder_params, "turn", false);
+    return std::make_unique<DetailedEncoder>(game, turn);
   }
 };
 
