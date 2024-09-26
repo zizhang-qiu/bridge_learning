@@ -282,7 +282,7 @@ rela::TensorDict BridgeVecEnv::Feature() const {
   std::vector<rela::TensorDict> obs_vec;
   obs_vec.reserve(Size());
   for (const auto &env : envs_) {
-    obs_vec.push_back(env->Feature());
+    obs_vec.push_back(env->Feature(-1));
   }
   auto feature = rela::tensor_dict::stack(obs_vec, 0);
   return feature;

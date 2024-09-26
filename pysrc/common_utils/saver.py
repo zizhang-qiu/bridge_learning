@@ -4,6 +4,7 @@
 @date:2023/3/21
 @encoding:utf-8
 """
+
 import os
 from typing import List, Tuple
 
@@ -11,12 +12,13 @@ import torch
 
 
 class TopkSaver:
-    def __init__(self, save_dir, topk):
+    def __init__(self, save_dir, topk, prefix: str = ""):
         self.save_dir = save_dir
         self.topk = topk
         self.worse_perf = -float("inf")
         self.worse_perf_idx = 0
         self.perfs = [self.worse_perf]
+        self.prefix = prefix
 
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
@@ -31,8 +33,8 @@ class TopkSaver:
                 torch.save(state_dict, os.path.join(self.save_dir, weight_name))
 
         if save_latest:
-            model_name = "latest.pthm"
-            weight_name = "latest.pthw"
+            model_name = self.prefix + "latest.pthm"
+            weight_name = self.prefix + "latest.pthw"
             if model is not None:
                 model.save(os.path.join(self.save_dir, model_name))
             if state_dict is not None:
@@ -43,8 +45,8 @@ class TopkSaver:
             # [print(i) for i in self.perfs]
             return False
 
-        model_name = "model%i.pthm" % self.worse_perf_idx
-        weight_name = "model%i.pthw" % self.worse_perf_idx
+        model_name = self.prefix + "model%i.pthm" % self.worse_perf_idx
+        weight_name = self.prefix + "model%i.pthw" % self.worse_perf_idx
         if model is not None:
             model.save(os.path.join(self.save_dir, model_name))
         if state_dict is not None:

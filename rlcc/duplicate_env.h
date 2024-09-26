@@ -64,7 +64,14 @@ class DuplicateEnv : public GameEnv {
 
   int MaxNumAction() const override { return game_.NumDistinctActions() + 1; }
 
-  int FeatureSize() const { return encoder_->Shape()[0]; }
+  std::tuple<int, int, int> FeatureSize() const {
+    int size = encoder_->Shape()[0];
+    // Remove other players' hands.
+    int priv_size = size - ble::kNumCards * (ble::kNumPlayers - 1);
+    // Remove all hands.
+    int publ_size = size - ble::kNumCards * ble::kNumPlayers;
+    return {size, priv_size, publ_size};
+  }
 
   bool Reset() override {
     num_steps_ = 0;
@@ -109,7 +116,7 @@ class DuplicateEnv : public GameEnv {
     return {ble::kNumPlayers, ble::kNumPartnerships};
   }
 
-  rela::TensorDict Feature(int player = -1) const override;
+  rela::TensorDict Feature(int player) const override;
 
  private:
   bool ResetWithoutDataset();

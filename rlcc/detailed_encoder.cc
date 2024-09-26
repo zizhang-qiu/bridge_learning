@@ -12,6 +12,33 @@ int FlatLength(const std::vector<int> &shape) {
                          std::multiplies<>());
 }
 
+constexpr int VulnerabilitySectionLength() {
+  return ble::kNumVulnerabilities * ble::kNumPartnerships;
+}
+
+constexpr int OpeningPassSectionLength() {
+  return ble::kNumPlayers;
+}
+
+constexpr int SingleBidSectionLength(){
+  // For each bid and player, a player can make it, pass after it is made,
+  // double it, pass after it is doubled, redouble it and pass after it is redoubled.
+  return 6 * ble::kNumPlayers;
+}
+
+constexpr int BiddingSectionLength() {
+  return SingleBidSectionLength() * ble::kNumBids;
+}
+
+constexpr int HandSectionLength() {
+  return ble::kNumPlayers * ble::kNumCards;
+}
+
+std::vector<int> DetailedEncoder::Shape() const {
+  int l = VulnerabilitySectionLength() + OpeningPassSectionLength() + BiddingSectionLength() + HandSectionLength();
+  return {l};
+}
+
 int EncodeAuctionDetailed(const ble::BridgeObservation &obs, int start_offset, std::vector<int> *encoding) {
   int offset = start_offset;
   const auto &history = obs.AuctionHistory();
@@ -37,27 +64,27 @@ int EncodeAuctionDetailed(const ble::BridgeObservation &obs, int start_offset, s
     const auto &item = history[idx];
     if (item.other_call == ble::kPass) {
       const int pass_idx = 1 + 2 * (int(last_bid_doubled) + int(last_bid_redoubled));
-      (*encoding)[offset + (last_bid - ble::kFirstBid) * kSingleBidTensorSize + ble::kNumPlayers * pass_idx
+      (*encoding)[offset + (last_bid - ble::kFirstBid) * SingleBidSectionLength() + ble::kNumPlayers * pass_idx
           + item.player] = 1;
     } else if (item.other_call == ble::kDouble) {
       last_bid_doubled = true;
-      (*encoding)[offset + (last_bid - ble::kFirstBid) * kSingleBidTensorSize + ble::kNumPlayers * 2
+      (*encoding)[offset + (last_bid - ble::kFirstBid) * SingleBidSectionLength() + ble::kNumPlayers * 2
           + item.player] = 1;
     } else if (item.other_call == ble::kRedouble) {
       last_bid_redoubled = true;
-      (*encoding)[offset + (last_bid - ble::kFirstBid) * kSingleBidTensorSize + ble::kNumPlayers * 4
+      (*encoding)[offset + (last_bid - ble::kFirstBid) * SingleBidSectionLength() + ble::kNumPlayers * 4
           + item.player] = 1;
     } else {
       // Should be a bid.
       const int bid_index = BidIndex(item.level, item.denomination);
-      (*encoding)[offset + (bid_index - ble::kFirstBid) * kSingleBidTensorSize +
+      (*encoding)[offset + (bid_index - ble::kFirstBid) * SingleBidSectionLength() +
           item.player] = 1;
       last_bid = bid_index;
       last_bid_doubled = false;
       last_bid_redoubled = false;
     }
   }
-  offset += kSingleBidTensorSize * ble::kNumBids;
+  offset += SingleBidSectionLength() * ble::kNumBids;
 
   return offset - start_offset;
 }
@@ -68,21 +95,26 @@ int EncoderTurn(const ble::BridgeObservation &obs, int start_offset, std::vector
   return offset - start_offset;
 }
 
-std::vector<int> DetailedEncoder::Encode(const ble::BridgeObservation &obs) const {
+std::vector<int> DetailedEncoder::Encode(const ble::BridgeObservation &obs,
+                                         const std::unordered_map<std::string, std::any> &kwargs) const {
   if (obs.NumCardsPlayed() > 0) {
-    rela::utils::RelaFatalError("This encoder doesn't support playing phase.");
+    rela::utils::RelaFatalError("Detailed encoder doesn't support playing phase.");
   }
   std::vector<int> encoding(FlatLength(Shape()), 0);
   int offset = 0;
 
   offset += ble::EncodeVulnerabilityBoth(obs, parent_game_, offset, &encoding);
   offset += EncodeAuctionDetailed(obs, offset, &encoding);
-  offset += ble::EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/0);
+  bool show_all_hands = true;
+  if (kwargs.count("show_all_hands")) {
+    show_all_hands = std::any_cast<bool>(kwargs.at("show_all_hands"));
+  }
+  offset += ble::EncodeAllHands(obs, offset, &encoding, /*show_all_hands=*/show_all_hands);
   if (turn_) {
     offset += EncoderTurn(obs, offset, &encoding);
   }
 
-  REQUIRE_EQ(offset, kDetailedFeatureSize + turn_);
+  REQUIRE_EQ(offset, FlatLength(Shape()));
   return encoding;
 }
 

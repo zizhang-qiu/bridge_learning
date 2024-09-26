@@ -130,7 +130,7 @@ std::vector<int> DuplicateEnv::LegalActions() const {
 }
 
 rela::TensorDict DuplicateEnv::Feature(int player) const {
-  auto state = states_.at(game_index_).get();
+  const auto state = states_.at(game_index_).get();
   int state_player = 0;
   if (player == -1) {
     state_player = state->CurrentPlayer();

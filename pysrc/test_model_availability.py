@@ -88,8 +88,8 @@ if __name__ == "__main__":
 
     num_threads = 8
     num_env_per_thread = 10
-    num_game_per_env = test_set["cards"].shape[0] // (num_threads * num_env_per_thread)
-    # num_game_per_env = 40
+    # num_game_per_env = test_set["cards"].shape[0] // (num_threads * num_env_per_thread)
+    num_game_per_env = 40
     print(num_game_per_env)
 
     bridge_dataset = bridgelearn.BridgeDataset(test_set["cards"], test_set["ddts"])  # type: ignore
@@ -117,14 +117,7 @@ if __name__ == "__main__":
     #     "gelu", 0.0, "lstm",
     #     greedy
     # )
-    agent_cons = lambda: BridgeFFWDAgent(
-        device, p_in_dim=in_dim, v_in_dim=in_dim,
-        p_hid_dim=hid_dim, v_hid_dim=hid_dim,
-        p_out_dim=out_dim - 1, num_p_mlp_layer=4,
-        num_v_mlp_layer=4, p_activation="gelu",
-        v_activation="gelu", dropout=0.0, net="sep",
-        greedy=False, uniform_priority=True
-    )
+
     env_options = bridgelearn.BridgeEnvOptions()
     env_options.bidding_phase = True
     env_options.playing_phase = False
@@ -135,6 +128,16 @@ if __name__ == "__main__":
     env_actor_options.eval = True
 
     env = bridgelearn.DuplicateEnv({}, env_options, bridge_dataset)
+    perf_size, priv_size, publ_size = env.feature_size()
+
+    agent_cons = lambda: BridgeFFWDAgent(
+        device, p_in_dim=priv_size, v_in_dim=perf_size,
+        p_hid_dim=hid_dim, v_hid_dim=hid_dim,
+        p_out_dim=out_dim - 1, num_p_mlp_layer=4,
+        num_v_mlp_layer=4, p_activation="gelu",
+        v_activation="gelu", dropout=0.0, net="sep",
+        greedy=greedy, uniform_priority=True
+    )
     # env = bridgelearn.BridgeEnv({}, env_options)
     # env.set_bridge_dataset(bridge_dataset)
     env.reset()
@@ -143,47 +146,47 @@ if __name__ == "__main__":
     #
     # print(env.feature(-1))
     # print(env.feature(1))
-    agent = agent_cons()
+    # agent = agent_cons()
     #
-    runner = pyrela.BatchRunner(agent, device, 1000, ["act", "get_h0"])
-    runner.start()
-    #
-    actor = bridgelearn.BridgeLSTMActor(runner, 0)
+    # runner = pyrela.BatchRunner(agent, device, 1000, ["act", "get_h0"])
+    # runner.start()
+    # #
+    # actor = bridgelearn.BridgeLSTMActor(runner, 0)
 
     # env.reset()
 
     # feature = env.feature(0)
     # print(feature)
 
-    while not env.terminated():
-        print(env)
-        legal_actions = env.legal_actions()
-        print("legal_actions:", legal_actions)
-        print("current_player: ", env.current_player())
-        for p in range(4):
-            f = env.feature(p)
-            # print(f"player: {p}, feature:\n{f}")
-            # print(f"nonzero: ", torch.nonzero(f["s"], as_tuple=True)[0])
-            print("player ", p)
-            print("legal_actions: ", torch.nonzero(f["legal_move"], as_tuple=True)[0])
-            real_player = p if f["table_idx"].item() == 0 else (p + 1) % 4
-            analyze_detailed_encoding(f, real_player, no_vul=True)
-            if p == env.current_player():
-                obs = {
-                    "priv_s": f["s"],
-                    "legal_move": f["legal_move"][-39:-1]
-                }
-                obs = tensor_dict_to_device(obs, device)
-                action = agent.act(obs)
-                print(action)
-        action = random.choice(legal_actions)
-        print("action: ", action, bridge.call_string(action - 52))
-        env.step(action)
-        # input("Click any button to continue.")
-        # print(env)
-
-    print(env)
-    print(env.rewards())
+    # while not env.terminated():
+    #     print(env)
+    #     legal_actions = env.legal_actions()
+    #     print("legal_actions:", legal_actions)
+    #     print("current_player: ", env.current_player())
+    #     for p in range(4):
+    #         f = env.feature(p)
+    #         # print(f"player: {p}, feature:\n{f}")
+    #         # print(f"nonzero: ", torch.nonzero(f["s"], as_tuple=True)[0])
+    #         print("player ", p)
+    #         print("legal_actions: ", torch.nonzero(f["legal_move"], as_tuple=True)[0])
+    #         real_player = p if f["table_idx"].item() == 0 else (p + 1) % 4
+    #         analyze_detailed_encoding(f, real_player, no_vul=True)
+    #         if p == env.current_player():
+    #             obs = {
+    #                 "priv_s": f["s"],
+    #                 "legal_move": f["legal_move"][-39:-1]
+    #             }
+    #             obs = tensor_dict_to_device(obs, device)
+    #             action = agent.act(obs)
+    #             print(action)
+    #     action = random.choice(legal_actions)
+    #     print("action: ", action, bridge.call_string(action - 52))
+    #     env.step(action)
+    #     # input("Click any button to continue.")
+    #     # print(env)
+    #
+    # print(env)
+    # print(env.rewards())
 
     # print(env)
     # actor.reset(env)
@@ -194,7 +197,7 @@ if __name__ == "__main__":
     #
     # print(env)
 
-    sys.exit(0)
+    # sys.exit(0)
 
     st = time.perf_counter()
     context = pyrela.Context()
@@ -202,13 +205,14 @@ if __name__ == "__main__":
     runners = []
     for i in range(bridge.NUM_PLAYERS):
         agent = agent_cons()
-        agent.load_state_dict(torch.load("lstm_sl/exp5/model0.pthw", map_location="cuda")["model_state_dict"])
-        runner = pyrela.BatchRunner(agent, device, 1000, ["act", "get_h0"])
+        agent.load_state_dict(torch.load("ffwd_sl/sl_sep.pthw", map_location="cuda")["model_state_dict"])
+        agent.eval()
+        runner = pyrela.BatchRunner(agent, device, 1000, ["act", "compute_priority"])
         runner.start()
         runners.append(runner)
 
     all_env_actors: List[bridgelearn.BridgeEnvActor] = []
-    replay_buffer = pyrela.RNNPrioritizedReplay(int(1e5), 42, 0.8, 0.6, 2)
+    replay_buffer = pyrela.FFPrioritizedReplay(int(1e5), 42, 0.8, 0.6, 2)
     for i_thread in range(num_threads):
 
         env_actors = []
@@ -221,20 +225,20 @@ if __name__ == "__main__":
             #     for i in range(bridge.NUM_PLAYERS)
             # ]
             actors = [
-                bridgelearn.BridgeLSTMActor(
+                bridgelearn.BridgeFFWDActor(
                     runners[0], 0
                 ),
-                bridgelearn.BridgeLSTMActor(
-                    runners[0], 1
-                ),
-                # bridgelearn.AllPassActor(1),
-                bridgelearn.BridgeLSTMActor(
+                # bridgelearn.BridgeFFWDActor(
+                #     runners[0], 1
+                # ),
+                bridgelearn.AllPassActor(1),
+                bridgelearn.BridgeFFWDActor(
                     runners[0], 2
                 ),
-                bridgelearn.BridgeLSTMActor(
-                    runners[0], 3
-                ),
-                # bridgelearn.AllPassActor(3)
+                # bridgelearn.BridgeFFWDActor(
+                #     runners[0], 3
+                # ),
+                bridgelearn.AllPassActor(3)
             ]
             env_actor = bridgelearn.BridgeEnvActor(env, env_actor_options, actors)  # type: ignore
 
@@ -257,8 +261,8 @@ if __name__ == "__main__":
         f"The simulation of {num_threads * num_env_per_thread * num_game_per_env} games takes {ed - st:.2f} seconds."
     )
 
-    print("num_add: ", replay_buffer.num_add())
-    print("size: ", replay_buffer.size())
+    # print("num_add: ", replay_buffer.num_add())
+    # print("size: ", replay_buffer.size())
 
     # Get stats.
     rewards = []

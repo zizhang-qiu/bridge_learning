@@ -243,4 +243,11 @@ PYBIND11_MODULE(bridgelearn, m) {
       .def("terminate", &FFCloneDataGenerator::Terminate)
       .def("generate_eval_data", &FFCloneDataGenerator::GenerateEvalData);
 
+  py::class_<BridgeFFWDActor, Actor, std::shared_ptr<BridgeFFWDActor>>(m, "BridgeFFWDActor")
+      .def(py::init<std::shared_ptr<rela::BatchRunner> &,
+                    float,
+                    std::shared_ptr<rela::FFPrioritizedReplay> &,
+                    int>())
+      .def(py::init<std::shared_ptr<rela::BatchRunner> &, int>());
+
 }

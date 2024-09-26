@@ -1,14 +1,13 @@
+import os
+import pprint
 import sys
 import time
-
-import numpy as np
-import torch
-from torch.cuda import device
-from tqdm import tqdm, trange
-from typing import List, Optional, Tuple, Callable
 from argparse import ArgumentParser
-import pprint
-import os
+from sys import prefix
+from typing import List, Tuple
+
+import torch
+
 from set_path import append_sys_path
 
 append_sys_path()
@@ -24,10 +23,10 @@ from common_utils import (
     MultiStats,
     mkdir_with_increment,
     TopkSaver,
-    find_files_in_dir
+    find_files_in_dir,
 )
 from utils import load_dataset, Tachometer, tensor_dict_to_device
-from agent import BridgeLSTMAgent, BridgeFFWDAgent
+from agent import BridgeFFWDAgent
 
 BIDDING_ACTION_BASE = bridge.BIDDING_ACTION_BASE
 
@@ -48,15 +47,16 @@ def parse_args():
     parser.add_argument("--num_threads", type=int, default=4)
     parser.add_argument("--encoder", type=str, default="detailed")
     parser.add_argument(
-        "--capacity", type=int, default=int(800000), help="Capacity of replay buffer."
+        "--capacity", type=int, default=int(600000), help="Capacity of replay buffer."
     )
     parser.add_argument("--prefetch", type=int, default=3)
-
     parser.add_argument("--num_epoch", type=int, default=1000)
     parser.add_argument("--epoch_len", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     parser.add_argument("--inf_loop", type=int, default=1)
-    parser.add_argument("--reward_type", type=str, default="real", choices=["real", "dds"])
+    parser.add_argument(
+        "--reward_type", type=str, default="real", choices=["real", "dds"]
+    )
     parser.add_argument("--gamma", type=float, default=1.0)
 
     parser.add_argument("--value_loss_weight", type=float, default=0.0)
@@ -77,8 +77,12 @@ def parse_args():
     parser.add_argument("--max_grad_norm", type=float, default=0.5)
 
     parser.add_argument("--save_dir", type=str, default="ffwd_sl")
-    parser.add_argument("--eval_only", type=int, default=0,
-                        help="Set to 1 if you only want to evaluate model.")
+    parser.add_argument(
+        "--eval_only",
+        type=int,
+        default=0,
+        help="Set to 1 if you only want to evaluate model.",
+    )
     parser.add_argument(
         "--eval_dataset",
         type=str,
@@ -91,10 +95,12 @@ def parse_args():
     return parser.parse_args()
 
 
-def compute_loss(pred_logits: torch.Tensor,
-                 gt_action: torch.Tensor,
-                 pred_values: torch.Tensor,
-                 gt_reward: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+def compute_loss(
+    pred_logits: torch.Tensor,
+    gt_action: torch.Tensor,
+    pred_values: torch.Tensor,
+    gt_reward: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor]:
     assert gt_action.dim() == 1
     labels = torch.nn.functional.one_hot(gt_action, bridge.NUM_CALLS)
     p_loss = -torch.sum(torch.log(pred_logits + 1e-10) * labels, -1)
@@ -102,17 +108,16 @@ def compute_loss(pred_logits: torch.Tensor,
     return p_loss, v_loss
 
 
-def compute_accuracy(pred_logits: torch.Tensor,
-                     gt_action: torch.Tensor) -> torch.Tensor:
+def compute_accuracy(
+    pred_logits: torch.Tensor, gt_action: torch.Tensor
+) -> torch.Tensor:
     assert gt_action.dim() == 1
     greedy_action = torch.argmax(pred_logits, 1)
     match = greedy_action == gt_action
     return match.float()
 
 
-def evaluate(batches: List[pyrela.FFTransition],
-             agent: BridgeFFWDAgent,
-             args):
+def evaluate(batches: List[pyrela.FFTransition], agent: BridgeFFWDAgent, args):
     # Eval.
     agent.eval()
     policy_loss_vec = []
@@ -128,7 +133,7 @@ def evaluate(batches: List[pyrela.FFTransition],
             reply = agent.forward(obs)
 
             pi = reply["pi"]
-            v = reply["v"].squeeze() / 7600
+            v = reply["v"].squeeze()
 
             policy_loss, value_loss = compute_loss(pi, action, v, reward)
             acc = compute_accuracy(pi, action)
@@ -143,6 +148,7 @@ def evaluate(batches: List[pyrela.FFTransition],
 
 
 def main():
+    torch.set_printoptions(threshold=1000000000000)
     args = parse_args()
     eval_dataset = load_dataset(args.eval_dataset)
     print("Load eval dataset.")
@@ -152,30 +158,33 @@ def main():
     env_options.encoder = args.encoder
 
     env = bridgelearn.BridgeEnv({}, env_options)
-    in_dim = env.feature_size()
-    out_dim = env.max_num_action() - bridge.NUM_CARDS - 1  # No play actions and no-op action.
-    print(f"in_dim：{in_dim}, out_dim:{out_dim}.")
+    perf_size, priv_size, publ_size = env.feature_size()
+    out_dim = (
+        env.max_num_action() - bridge.NUM_CARDS - 1
+    )  # No play actions and no-op action.
+    print(f"in_dim：{perf_size, priv_size}, out_dim:{out_dim}.")
 
     del env
     priority_exponent = 1.0
     priority_weight = 0.0
-    replay_buffer = pyrela.FFPrioritizedReplay(args.capacity, args.seed, priority_exponent, priority_weight,
-                                               args.prefetch)
+    replay_buffer = pyrela.FFPrioritizedReplay(
+        args.capacity, args.seed, priority_exponent, priority_weight, args.prefetch
+    )
 
-    clone_data_generator = bridgelearn.FFCloneDataGenerator(replay_buffer,
-                                                            args.num_threads,
-                                                            env_options,
-                                                            args.reward_type,
-                                                            args.gamma)
+    clone_data_generator = bridgelearn.FFCloneDataGenerator(
+        replay_buffer, args.num_threads, env_options, args.reward_type, args.gamma
+    )
 
-    eval_batches = clone_data_generator.generate_eval_data(args.eval_batch_size, "cpu", eval_dataset)
+    eval_batches = clone_data_generator.generate_eval_data(
+        args.eval_batch_size, "cpu", eval_dataset
+    )
     print("Eval batch created.")
 
     print("Creating agent...")
     agent = BridgeFFWDAgent(
         args.device,
-        args.p_in_dim if args.p_in_dim is not None else in_dim,
-        args.v_in_dim if args.v_in_dim is not None else in_dim,
+        args.p_in_dim if args.p_in_dim is not None else priv_size,
+        args.v_in_dim if args.v_in_dim is not None else perf_size,
         args.p_hid_dim,
         args.v_hid_dim,
         args.p_out_dim if args.p_out_dim is not None else out_dim,
@@ -184,7 +193,7 @@ def main():
         args.p_activation,
         args.v_activation,
         args.dropout,
-        args.net
+        args.net,
     ).to(args.device)
     opt = torch.optim.Adam(lr=args.lr, params=agent.parameters())
 
@@ -204,7 +213,9 @@ def main():
             agent.load_state_dict(ckpt["model_state_dict"])
 
             p_loss, v_loss, acc = evaluate(eval_batches, agent, args)
-            print(f"Model: {model_path}, p_loss: {p_loss.item()}, v_loss: {v_loss.item()}, acc:{acc.item()}.")
+            print(
+                f"Model: {model_path}, p_loss: {p_loss.item()}, v_loss: {v_loss.item()}, acc:{acc.item()}."
+            )
 
         sys.exit(0)
 
@@ -219,7 +230,9 @@ def main():
 
         # Eval.
         p_loss, v_loss, acc = evaluate(eval_batches, agent, args)
-        print(f"Performance of ckpt model, p_loss: {p_loss.item()}, v_loss: {v_loss.item()}, acc:{acc.item()}.")
+        print(
+            f"Performance of ckpt model, p_loss: {p_loss.item()}, v_loss: {v_loss.item()}, acc:{acc.item()}."
+        )
 
     train_dataset = load_dataset(args.dataset_path)
     print(f"Total num game: {len(train_dataset)}.")
@@ -235,13 +248,16 @@ def main():
     tachometer = Tachometer()
 
     args.save_dir = mkdir_with_increment(args.save_dir)
-    logger = Logger(os.path.join(args.save_dir, "train.log"), verbose=True, auto_line_feed=True)
-    saver = TopkSaver(args.save_dir, 5)
+    logger = Logger(
+        os.path.join(args.save_dir, "train.log"), verbose=True, auto_line_feed=True
+    )
+    p_saver = TopkSaver(args.save_dir, 5, prefix="p_")
+    v_saver = TopkSaver(args.save_dir, 5, prefix="v_")
     logger.write(pprint.pformat(vars(args)))
     clone_data_generator.start_data_generation(bool(args.inf_loop), args.seed)
 
     while (n := replay_buffer.size()) < args.capacity:
-        print(f"Warming up replay buffer, \r{n}/{args.capacity}", end="")
+        print(f"\rWarming up replay buffer, {n}/{args.capacity}", end="")
         time.sleep(1)
     print("\n", "Start training.", sep="")
 
@@ -264,7 +280,7 @@ def main():
             reply = agent.forward(obs)
             torch.cuda.synchronize()
             pi = reply["pi"]
-            v = reply["v"].squeeze() / 7600
+            v = reply["v"].squeeze()
             reward = batch.reward / 7600
 
             policy_loss, value_loss = compute_loss(pi, action, v, reward)
@@ -293,10 +309,15 @@ def main():
         tachometer.lap(replay_buffer, args.batch_size * args.epoch_len, 1)
         # Eval.
         p_loss, v_loss, acc = evaluate(eval_batches, agent, args)
-        logger.write(f"Epoch {epoch}, p_loss: {p_loss.item()}, v_loss: {v_loss.item()}, acc:{acc.item()}.")
-        ckpt = {"model_state_dict": agent.state_dict(),
-                "opt_state_dict": opt.state_dict}
-        saver.save(None, ckpt, -p_loss.item())
+        logger.write(
+            f"Epoch {epoch}, p_loss: {p_loss.item()}, v_loss: {v_loss.item()}, acc:{acc.item()}."
+        )
+        ckpt = {
+            "model_state_dict": agent.state_dict(),
+            "opt_state_dict": opt.state_dict,
+        }
+        p_saver.save(None, ckpt, -p_loss.item())
+        v_saver.save(None, ckpt, -v_loss.item())
         global_stats.feed("p_loss", p_loss.item())
         global_stats.feed("v_loss", v_loss.item())
         global_stats.feed("acc", acc.item())
@@ -304,5 +325,5 @@ def main():
     clone_data_generator.terminate()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

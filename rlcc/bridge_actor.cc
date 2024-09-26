@@ -10,9 +10,8 @@ void BridgeA2CActor::ObserveBeforeAct(const GameEnv &env) {
     return;
   }
   torch::NoGradGuard ng;
-  rela::TensorDict input;
 
-  input = env.Feature();
+  const rela::TensorDict input = env.Feature(player_idx_);
   fut_reply_ = runner_->call("act", input);
 }
 
@@ -21,7 +20,7 @@ void BridgeA2CActor::Act(GameEnv &env, int current_player) {
     return;
   }
   torch::NoGradGuard ng;
-  auto reply = fut_reply_.get();
+  const auto reply = fut_reply_.get();
   int action = reply.at("a").item<int>();
   env.Step(action);
 }
@@ -31,9 +30,8 @@ void JPSActor::ObserveBeforeAct(const GameEnv &env) {
     return;
   }
   torch::NoGradGuard ng;
-  rela::TensorDict input;
 
-  input = env.Feature();
+  const rela::TensorDict input = env.Feature(player_idx_);
   fut_reply_ = runner_->call("act_greedy", input);
 }
 
@@ -133,6 +131,7 @@ void BridgeLSTMActor::ObserveBeforeAct(const GameEnv &env) {
   const auto feature = env.Feature(player_idx_);
   auto input = SplitPrivatePublic(feature);
 
+
   // Push before we add hidden.
   if (transition_buffer_ != nullptr) {
     transition_buffer_->PushObs(input);
@@ -185,8 +184,8 @@ void BridgeLSTMActor::Act(GameEnv &env, int current_player) {
 }
 
 void UpdateRNNTransitionReward(rela::RNNTransition &transition,
-                               float reward,
-                               float gamma) {
+                               const float reward,
+                               const float gamma) {
   const int len = transition.seqLen.item<int>();
   transition.reward[len - 1] = reward;
   for (int i = len - 2; i >= 0; --i) {
@@ -267,6 +266,127 @@ void BridgeLSTMActor::SendExperience(const rela::TensorDict &t) {
       fut_priority0_ = runner_->call("compute_priority", input0);
 //      replay_buffer_->add(transition);
     }
+  }
+}
+
+void BridgeFFWDActor::Reset(const GameEnv &env) {
+  // Check if the env is duplicated.
+  if (!duplicated.has_value()) {
+    const auto feature = env.Feature(player_idx_);
+    duplicated = IsEnvDuplicated(feature);
+  }
+}
+
+void BridgeFFWDActor::ObserveBeforeAct(const GameEnv &env) {
+  if (env.CurrentPlayer() != player_idx_) {
+    // Do not call network if it's not player's turn for ffwd actor.
+    return;
+  }
+  torch::NoGradGuard ng;
+  auto feature = env.Feature(player_idx_);
+  const int perf_size = static_cast<int>(feature.at("s").size(0));
+  const int priv_size = perf_size - (ble::kNumPlayers - 1) * ble::kNumCards;
+  const int publ_size = perf_size - (ble::kNumPlayers) * ble::kNumCards;
+  feature["perf_s"] = feature.at("s");
+  feature["publ_s"] = feature.at("s").index(
+      {torch::indexing::Slice(0, publ_size)});
+  feature["priv_s"] = feature.at("s").index(
+      {torch::indexing::Slice(0, priv_size)});
+  feature.erase("s");
+  feature["legal_move"] = feature.at("legal_move").index(
+      {torch::indexing::Slice(ble::kNumCards, -1)});
+  if (transition_buffer_ != nullptr) {
+    transition_buffer_->PushObs(feature);
+  }
+
+  // No-blocking async call to neural network
+  fut_reply_ = runner_->call("act", feature);
+}
+
+void BridgeFFWDActor::Act(GameEnv &env, int current_player) {
+  if (current_player != player_idx_) {
+    return;
+  }
+  torch::NoGradGuard ng;
+  auto reply = fut_reply_.get();
+
+  if (transition_buffer_ != nullptr) {
+    transition_buffer_->PushAction(reply);
+  }
+
+  const int action = reply.at("a").item<int>();
+
+  env.Step(action);
+}
+void BridgeFFWDActor::ObserveAfterAct(const GameEnv &env) {
+  if (!duplicated.value()) {
+    return;
+  }
+
+  if (env.Terminated()) {
+    table_idx_ = 0;
+    return;
+  }
+
+  const auto feature = env.Feature(player_idx_);
+  // If the first table of duplicate environment is terminated, we have to pop the transition first.
+  if (table_idx_ == 0 && feature.at("table_idx").item<int>() == 1) {
+    table_idx_ = 1;
+    if (transition_buffer_ != nullptr) {
+      transition_buffer_->PushTerminal();
+      transition_buffer_->PushReward(0.0); // Fake reward here.
+      const auto transitions = transition_buffer_->PopTransition();
+      table0_transition_ = rela::makeBatch(transitions, "cpu");
+    }
+  }
+}
+void BridgeFFWDActor::SendExperience(const rela::TensorDict &dict) {
+//  std::cout << "Actor " << player_idx_ << "Send Experience." << std::endl;
+//  std::cout << "replay_buffer_ == nullptr?" << (replay_buffer_ == nullptr) << std::endl;
+  torch::NoGradGuard ng;
+  if (replay_buffer_ == nullptr) {
+    return;
+  }
+  transition_buffer_->PushReward(dict.at("r").item<float>());
+  if (duplicated.value()) {
+    auto table1_transitions = transition_buffer_->PopTransition();
+    table1_transition_ = rela::makeBatch(table1_transitions, "cpu");
+
+    // Update table0 transition.
+    auto &table0_reward = table0_transition_.reward;
+    table0_reward[-1] = dict.at("r").item<float>();
+    if (table0_reward.size(0) > 1) {
+      for (int i = static_cast<int>(table0_reward.size(0)) - 2; i >= 0; i--) {
+        table0_reward[i] += table0_reward[i + 1] * gamma_;
+      }
+    }
+  } else {
+    auto table0_transitions = transition_buffer_->PopTransition();
+    table0_transition_ = rela::makeBatch(table0_transitions, "cpu");
+  }
+
+//  std::cout << "table0 transition size: " << table0_transition_.reward.size(0) << std::endl;
+  auto input0 = table0_transition_.toDict();
+//  for(const auto& kv:input0){
+//    std::cout << kv.first << ": " << kv.second.sizes() << std::endl;
+//  }
+  auto priority0 = runner_->blockCall("compute_priority", input0).at("priority");
+  RELA_CHECK_EQ(priority0.size(0), table0_transition_.reward.size(0));
+  for (int i = 0; i < priority0.size(0); ++i) {
+    replay_buffer_->add(table0_transition_.index(i), priority0[i].item<float>());
+  }
+  if (duplicated.value()) {
+    auto input1 = table1_transition_.toDict();
+    auto priority1 = runner_->blockCall("compute_priority", input1).at("priority");
+    for (int i = 0; i < priority1.size(0); ++i) {
+      replay_buffer_->add(table1_transition_.index(i), priority1[i].item<float>());
+    }
+  }
+
+}
+void BridgeFFWDActor::SetTerminal() {
+  if (transition_buffer_ != nullptr) {
+    transition_buffer_->PushTerminal();
   }
 }
 

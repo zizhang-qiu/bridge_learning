@@ -100,7 +100,7 @@ class RandomActor : public Actor {
     if (player_idx_ != env.CurrentPlayer()) {
       return;
     }
-    obs_ = env.Feature();
+    obs_ = env.Feature(-1);
   }
 
   void Act(GameEnv &env, int current_player) override {
@@ -256,6 +256,51 @@ class BridgeLSTMActor : public Actor {
   std::unique_ptr<rlcc::RNNTransitionBuffer> transition_buffer_;
 
   std::shared_ptr<rela::RNNPrioritizedReplay> replay_buffer_;
+};
+
+class BridgeFFWDActor : public Actor {
+ public:
+  BridgeFFWDActor(std::shared_ptr<rela::BatchRunner> &runner,
+                  float gamma,
+                  std::shared_ptr<rela::FFPrioritizedReplay> &replay_buffer,
+                  int player_idx)
+      : runner_(runner),
+        gamma_(gamma),
+        transition_buffer_(std::make_unique<FFTransitionBuffer>(gamma)),
+        player_idx_(player_idx),
+        replay_buffer_(replay_buffer) {
+    RELA_CHECK_NOTNULL(replay_buffer_);
+  }
+
+  BridgeFFWDActor(std::shared_ptr<rela::BatchRunner> &runner,
+                  int player_idx) :
+      runner_(runner),
+      transition_buffer_(nullptr),
+      replay_buffer_(nullptr),
+      player_idx_(player_idx) {}
+  void Reset(const GameEnv &env) override;
+  void ObserveBeforeAct(const GameEnv &env) override;
+  void Act(GameEnv &env, int current_player) override;
+  void ObserveAfterAct(const GameEnv &env) override;
+  void SendExperience(const rela::TensorDict &dict) override;
+  void SetTerminal() override;
+
+ private:
+
+  int player_idx_;
+  float gamma_;
+
+  std::shared_ptr<rela::BatchRunner> runner_;
+  std::shared_ptr<rela::FFPrioritizedReplay> replay_buffer_;
+  rela::FutureReply fut_reply_{};
+  rela::FutureReply fut_priority0_{};
+  // Only used for duplicate envs.
+  rela::FutureReply fut_priority1_{};
+  std::optional<bool> duplicated{};
+  int table_idx_ = 0;
+  std::unique_ptr<FFTransitionBuffer> transition_buffer_;
+  rela::FFTransition table0_transition_;
+  rela::FFTransition table1_transition_;
 };
 
 }  // namespace rlcc

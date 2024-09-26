@@ -32,7 +32,7 @@ struct BridgeEnvOptions {
   int max_len = 50;
 };
 
-class BridgeEnv : public GameEnv {
+class BridgeEnv final : public GameEnv {
  public:
   BridgeEnv(const ble::GameParameters &params, const BridgeEnvOptions &options);
 
@@ -42,7 +42,14 @@ class BridgeEnv : public GameEnv {
 
   int MaxNumAction() const override { return game_.NumDistinctActions() + 1; }
 
-  int FeatureSize() const { return encoder_->Shape()[0]; }
+  std::tuple<int, int, int> FeatureSize() const {
+    int size = encoder_->Shape()[0];
+    // Remove other players' hands.
+    int priv_size = size - ble::kNumCards * (ble::kNumPlayers - 1);
+    // Remove all hands.
+    int publ_size = size - ble::kNumCards * ble::kNumPlayers;
+    return {size, priv_size, publ_size};
+  }
 
   void ResetWithDeck(const std::vector<int> &cards);
 
@@ -85,7 +92,7 @@ class BridgeEnv : public GameEnv {
     std::vector<float> rewards(returns.size());
 
     std::transform(returns.begin(), returns.end(), rewards.begin(),
-                   [](int i) { return static_cast<float>(i); });
+                   [](int i) { return static_cast<float>(i) / static_cast<float>(ble::kMaxUtility); });
     return rewards;
   }
 
@@ -102,7 +109,9 @@ class BridgeEnv : public GameEnv {
 
   ble::BridgeMove LastMove() const { return last_move_; }
 
-  rela::TensorDict Feature(int player = -1) const override;
+
+  // Use -1 for current player.
+  rela::TensorDict Feature(int player) const override;
 
   const ble::GameParameters &Parameters() const;
 

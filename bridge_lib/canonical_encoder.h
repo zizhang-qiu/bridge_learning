@@ -20,7 +20,7 @@ inline constexpr int kCardTensorSize = kNumCards;
 inline constexpr int kPlayerSeatTensorSize = kNumPlayers;
 inline constexpr int kAuctionTensorSize =
     kVulnerabilityTensorSize + kOpeningPassTensorSize +
-    kBiddingHistoryTensorSize + kCardTensorSize;
+        kBiddingHistoryTensorSize + kCardTensorSize;
 inline constexpr int kHCPTensorSize = 38;      // AKQJAKQAKQAKQ = 37
 inline constexpr int kControlTensorSize = 13;  // AAAAKKKKxxxxx = 12
 // Each suit may have [0, 13] cards.
@@ -29,87 +29,73 @@ inline constexpr int kHandEvaluationOneHotTensorSize =
     kHCPTensorSize + kControlTensorSize + kSuitLengthTensorSize;
 inline constexpr int kHandEvaluationTensorSize = 6;
 
+int EncodeVulnerabilityBoth(const BridgeObservation &obs,
+                            const std::shared_ptr<BridgeGame> &game,
+                            int start_offset, std::vector<int> *encoding);
 
+int EncodeAuction(const BridgeObservation &obs, int start_offset,
+                  std::vector<int> *encoding);
 
-int EncodeVulnerabilityBoth(const BridgeObservation& obs,
-                            const std::shared_ptr<BridgeGame>& game,
-                            int start_offset, std::vector<int>* encoding);
+int EncodePlayerHand(const BridgeObservation &obs, int start_offset,
+                     std::vector<int> *encoding, int relative_player);
 
-int EncodeAuction(const BridgeObservation& obs, int start_offset,
-                  std::vector<int>* encoding);
+int EncodeAllHands(const BridgeObservation &obs, const int start_offset,
+                   std::vector<int> *encoding, const bool show_all_hands);
 
-int EncodePlayerHand(const BridgeObservation& obs, int start_offset,
-                     std::vector<int>* encoding, int relative_player);
+int EncodeContract(const BridgeObservation &obs, int start_offset,
+                   std::vector<int> *encoding);
 
-int EncodeContract(const BridgeObservation& obs, int start_offset,
-                   std::vector<int>* encoding);
+int EncodeVulnerabilityDeclarer(const BridgeObservation &obs, int start_offset,
+                                std::vector<int> *encoding);
 
-int EncodeVulnerabilityDeclarer(const BridgeObservation& obs, int start_offset,
-                                std::vector<int>* encoding);
+int EncodeDummyHand(const BridgeObservation &obs, int start_offset,
+                    std::vector<int> *encoding);
 
-int EncodeDummyHand(const BridgeObservation& obs, int start_offset,
-                    std::vector<int>* encoding);
+int EncodePlayedTricks(const BridgeObservation &obs, int start_offset,
+                       std::vector<int> *encoding, int num_tricks);
 
-int EncodePlayedTricks(const BridgeObservation& obs, int start_offset,
-                       std::vector<int>* encoding, int num_tricks);
+int EncodeNumTricksWon(const BridgeObservation &obs, int start_offset,
+                       std::vector<int> *encoding);
 
-int EncodeNumTricksWon(const BridgeObservation& obs, int start_offset,
-                       std::vector<int>* encoding);
+int EncodeHandEvaluationOneHot(const BridgeObservation &obs, int start_offset,
+                               std::vector<int> *encoding, int relative_player);
 
-int EncodeHandEvaluationOneHot(const BridgeObservation& obs, int start_offset,
-                               std::vector<int>* encoding, int relative_player);
-
-int EncodeHandEvaluation(const BridgeObservation& obs, int start_offset,
-                         std::vector<int>* encoding, int relative_player);
+int EncodeHandEvaluation(const BridgeObservation &obs, int start_offset,
+                         std::vector<int> *encoding, int relative_player);
 
 class CanonicalEncoder : public ObservationEncoder {
  public:
-  explicit CanonicalEncoder(const std::shared_ptr<BridgeGame>& game,
-                            const int num_tricks_in_observation = kNumTricks)
-      : parent_game_(game),
-        num_tricks_in_observation_(num_tricks_in_observation) {}
+  explicit CanonicalEncoder(const std::shared_ptr<BridgeGame> &game)
+      : parent_game_(game){}
 
   [[nodiscard]] std::vector<int> Encode(
-      const BridgeObservation& obs) const override;
+      const BridgeObservation &obs,
+      const std::unordered_map<std::string, std::any> &kwargs = {}) const override;
 
   [[nodiscard]] std::vector<int> Shape() const override;
 
-  std::vector<int> EncodeMyHand(const BridgeObservation& obs) const;
+  std::vector<int> EncodeMyHand(const BridgeObservation &obs) const;
 
-  std::vector<int> EncodeOtherHands(const BridgeObservation& obs) const;
+  std::vector<int> EncodeOtherHands(const BridgeObservation &obs) const;
 
   std::vector<int> EncodeOtherHandEvaluationsOneHot(
-      const BridgeObservation& obs) const;
+      const BridgeObservation &obs) const;
 
   std::vector<int> EncodeOtherHandEvaluations(
-      const BridgeObservation& obs) const;
+      const BridgeObservation &obs) const;
 
   // std::vector<int> EncodePBE(const BridgeObservation& obs) const;
+
+  ObservationEncoder::EncoderPhase EncodingPhase() const override {
+    return kAuction;
+  }
 
   [[nodiscard]] ObservationEncoder::Type type() const override {
     return ObservationEncoder::Type::kCanonical;
   }
 
-
-  int GetPlayTensorSize() const {
-    return kNumBidLevels          // What the contract is
-           + kNumDenominations    // What trumps are
-           + kNumOtherCalls       // Undoubled / doubled / redoubled
-           + kNumPlayers          // Who declarer is
-           + kNumVulnerabilities  // Vulnerability of the declaring side
-           + kNumCards            // Our remaining cards
-           + kNumCards            // Dummy's remaining cards
-           + num_tricks_in_observation_ * kNumPlayers * kNumCards
-           // Number of played tricks
-           + kNumTricks   // Number of tricks we have won
-           + kNumTricks;  // Number of tricks they have won
-  }
-
-  int GetAuctionTensorSize() const { return kAuctionTensorSize; }
-
  private:
   const std::shared_ptr<BridgeGame> parent_game_;
-  const int num_tricks_in_observation_;
 };
 }  // namespace bridge_learning_env
 

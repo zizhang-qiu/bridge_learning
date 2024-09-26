@@ -22,10 +22,15 @@ class PBEEncoder : public ObservationEncoder {
   }
 
   [[nodiscard]] std::vector<int> Encode(
-      const BridgeObservation& obs) const override;
+      const BridgeObservation& obs,
+      const std::unordered_map<std::string, std::any> &kwargs = {}) const override;
 
   [[nodiscard]] ObservationEncoder::Type type() const override {
     return ObservationEncoder::Type::kPBE;
+  }
+
+  ObservationEncoder::EncoderPhase EncodingPhase() const override{
+    return kAuction;
   }
 
  private:

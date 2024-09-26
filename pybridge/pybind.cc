@@ -321,7 +321,7 @@ PYBIND11_MODULE(bridge, m) {
   m.attr("default_game_params") = default_game_params;
   m.attr("default_game") = default_game;
 
-  py::enum_<Phase>(m, "Phase")
+  py::enum_<Phase>(m, "EncoderPhase")
       .value("DEAL", Phase::kDeal)
       .value("AUCTION", Phase::kAuction)
       .value("PLAY", Phase::kPlay)
@@ -398,16 +398,15 @@ PYBIND11_MODULE(bridge, m) {
       .value("CANONICAL", ObservationEncoder::Type::kCanonical)
       .value("PBE", ObservationEncoder::Type::kPBE)
       .value("JPS", ObservationEncoder::Type::kJPS)
+      .value("DETAILED", ObservationEncoder::Type::kDetailed)
       .export_values();
 
   m.attr("AUCTION_TENSOR_SIZE") = kAuctionTensorSize;
   py::class_<CanonicalEncoder, ObservationEncoder>(m, "CanonicalEncoder")
-      .def(py::init<std::shared_ptr<BridgeGame>, int>(),
-           py::arg("game"), py::arg("num_tricks_in_observation") = kNumTricks)
+      .def(py::init<std::shared_ptr<BridgeGame>>(),
+           py::arg("game"))
       .def("shape", &CanonicalEncoder::Shape)
-      .def("encode", &CanonicalEncoder::Encode)
-      .def("get_play_tensor_size", &CanonicalEncoder::GetPlayTensorSize)
-      .def("get_auction_tensor_size", &CanonicalEncoder::GetAuctionTensorSize)
+      .def("encode", &CanonicalEncoder::Encode, py::arg("obs"), py::arg("kwargs") = std::unordered_map<std::string, std::any>{})
       .def("type", &CanonicalEncoder::type);
 
   py::class_<PBEEncoder, ObservationEncoder>(m, "PBEEncoder")

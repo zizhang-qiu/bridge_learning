@@ -20,7 +20,7 @@ class GameEnv {
  public:
   GameEnv() = default;
 
-  GameEnv(const GameEnv&) = default;
+  GameEnv(const GameEnv &) = default;
 
   virtual ~GameEnv() = default;
   // State retrievers.
@@ -30,11 +30,13 @@ class GameEnv {
 
   virtual void Step(int action) = 0;
 
+  virtual void Step(const rela::TensorDict &d) {}
+
   // Return false if the environment won't work anymore (e.g., it has gone
   // through all samples).
   virtual bool Reset() = 0;
 
-  virtual void SetReply(const rela::TensorDict&) {}
+  virtual void SetReply(const rela::TensorDict &) {}
 
   virtual std::vector<int> LegalActions() const {
     // Get legal actions for that particular state.
@@ -43,7 +45,7 @@ class GameEnv {
     if (Terminated())
       return {};
     std::vector<int> actions(MaxNumAction());
-    for (int i = 0; i < (int)actions.size(); ++i) {
+    for (int i = 0; i < (int) actions.size(); ++i) {
       actions[i] = i;
     }
     return actions;
@@ -63,9 +65,9 @@ class GameEnv {
   virtual EnvSpec Spec() const = 0;
 
   // Get the feature for a player, default: current player.
-  virtual rela::TensorDict Feature(int player = -1) const = 0;
+  virtual rela::TensorDict Feature(int player) const = 0;
 
-  virtual int NoOPUid() const{return MaxNumAction() - 1;};
+  virtual int NoOPUid() const { return MaxNumAction() - 1; };
 
  private:
   torch::Tensor LegalActionMask() const {
@@ -73,7 +75,7 @@ class GameEnv {
     auto legals = LegalActions();
 
     auto f = legal_move.accessor<float, 1>();
-    for (const auto& idx : legals) {
+    for (const auto &idx : legals) {
       f[idx] = 1.0;
     }
     return legal_move;
@@ -97,7 +99,7 @@ class RLEnv {
   // through all samples).
   virtual bool Reset() = 0;
 
-  virtual void SetReply(const rela::TensorDict&) {}
+  virtual void SetReply(const rela::TensorDict &) {}
 
   virtual std::vector<int> LegalActions() const {
     // Get legal actions for that particular state.
@@ -106,7 +108,7 @@ class RLEnv {
     if (Terminated())
       return {};
     std::vector<int> actions(MaxNumAction());
-    for (int i = 0; i < (int)actions.size(); ++i) {
+    for (int i = 0; i < (int) actions.size(); ++i) {
       actions[i] = i;
     }
     return actions;

@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 //  }
 //
 //  int num_moves = 0;
-//  while (state.IsInPhase(ble::Phase::kAuction) && num_moves < 7) {
+//  while (state.IsInPhase(ble::EncoderPhase::kAuction) && num_moves < 7) {
 //    const auto legal_moves = state.LegalMoves();
 //    const auto random_move = rela::utils::UniformSample(legal_moves, rng);
 //    state.ApplyMove(random_move);

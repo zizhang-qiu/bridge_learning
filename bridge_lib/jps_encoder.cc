@@ -97,8 +97,9 @@ int EncodeJPSPlayerHand(const BridgeObservation& obs, int start_offset,
   return offset - start_offset;
 }
 
-std::vector<int> JPSEncoder::Encode(const BridgeObservation& obs) const {
-  REQUIRE(obs.CurrentPhase() == Phase::kAuction);
+std::vector<int> JPSEncoder::Encode(const BridgeObservation& obs,
+                                    const std::unordered_map<std::string, std::any> &kwargs) const {
+  REQUIRE(obs.CurrentPhase() == bridge_learning_env::Phase::kAuction);
   std::vector<int> encoding(kJPSTensorSize, 0);
   int offset = 0;
   // Hand.

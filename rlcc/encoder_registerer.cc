@@ -13,9 +13,7 @@ class CanonicalEncoderFactory : public ObservationEncoderFactory {
  public:
   std::unique_ptr<ble::ObservationEncoder> Create(const std::shared_ptr<ble::BridgeGame> &game,
                                                   const ble::GameParameters &encoder_params) override {
-    const int num_tricks_in_observation =
-        ble::ParameterValue<int>(encoder_params, "num_tricks_in_observation", ble::kNumTricks);
-    auto encoder = std::make_unique<ble::CanonicalEncoder>(game, num_tricks_in_observation);
+    auto encoder = std::make_unique<ble::CanonicalEncoder>(game);
     return encoder;
   }
 };

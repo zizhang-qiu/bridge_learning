@@ -21,7 +21,12 @@ class DNNsEncoder : public ObservationEncoder {
 
   Type type() const override { return kDNNS; }
 
-  std::vector<int> Encode(const BridgeObservation& obs) const override;
+  std::vector<int> Encode(const BridgeObservation& obs,
+                          const std::unordered_map<std::string, std::any> &kwargs = {}) const override;
+
+  ObservationEncoder::EncoderPhase EncodingPhase() const override{
+    return kAuction;
+  }
 };
 }  // namespace bridge_learning_env
 #endif /* BRIDGE_LIB_DNNS_ENCODER_H */

@@ -116,7 +116,7 @@ class BridgeBeliefModel(torch.jit.ScriptModule):
         self.pred3 = nn.Linear(self.net.output_size, output_size)
 
     def forward(
-            self, obs: Dict[str, torch.Tensor]
+        self, obs: Dict[str, torch.Tensor]
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         digits = self.net(obs["s"])
         pred1 = torch.nn.functional.sigmoid(self.pred1(digits))
@@ -129,13 +129,13 @@ class BridgeBeliefModel(torch.jit.ScriptModule):
         ground_truth = batch[self.target_key]
         bits_per_player = ground_truth.shape[1] // 3
         g_truth1 = ground_truth[:, :bits_per_player]
-        g_truth2 = ground_truth[:, bits_per_player: 2 * bits_per_player]
-        g_truth3 = ground_truth[:, 2 * bits_per_player:]
+        g_truth2 = ground_truth[:, bits_per_player : 2 * bits_per_player]
+        g_truth3 = ground_truth[:, 2 * bits_per_player :]
         loss_func = nn.BCELoss()
         loss = (
-                loss_func(pred1, g_truth1)
-                + loss_func(pred2, g_truth2)
-                + loss_func(pred3, g_truth3)
+            loss_func(pred1, g_truth1)
+            + loss_func(pred2, g_truth2)
+            + loss_func(pred3, g_truth3)
         )
         return loss
 
@@ -145,39 +145,55 @@ class BridgeBeliefModel(torch.jit.ScriptModule):
 
 
 class BridgeLSTMAgent(torch.jit.ScriptModule):
-    __constants__ = ["in_dim",
-                     "hid_dim",
-                     "out_dim",
-                     "num_priv_mlp_layer",
-                     "num_publ_mlp_layer",
-                     "num_lstm_layer",
-                     "uniform_priority"]
+    __constants__ = [
+        "in_dim",
+        "hid_dim",
+        "out_dim",
+        "num_priv_mlp_layer",
+        "num_publ_mlp_layer",
+        "num_lstm_layer",
+        "uniform_priority",
+    ]
 
     def __init__(
-            self,
-            device: str,
-            in_dim: int,
-            hid_dim: int,
-            out_dim: int,
-            num_priv_mlp_layer: int,
-            num_publ_mlp_layer: int,
-            num_lstm_layer: int,
-            activation: str,
-            dropout: float = 0.,
-            net: str = "publ-lstm",
-            greedy=False,
-            uniform_priority=True
+        self,
+        device: str,
+        in_dim: int,
+        hid_dim: int,
+        out_dim: int,
+        num_priv_mlp_layer: int,
+        num_publ_mlp_layer: int,
+        num_lstm_layer: int,
+        activation: str,
+        dropout: float = 0.0,
+        net: str = "publ-lstm",
+        greedy=False,
+        uniform_priority=True,
     ):
         super().__init__()
         if net == "publ-lstm":
             self.network = PublicLSTMNet(
-                device, in_dim, hid_dim, out_dim, num_priv_mlp_layer, num_publ_mlp_layer, num_lstm_layer, activation,
-                dropout
+                device,
+                in_dim,
+                hid_dim,
+                out_dim,
+                num_priv_mlp_layer,
+                num_publ_mlp_layer,
+                num_lstm_layer,
+                activation,
+                dropout,
             ).to(device)
         elif net == "lstm":
             self.network = LSTMNet(
-                device, in_dim, hid_dim, out_dim, num_priv_mlp_layer, num_publ_mlp_layer, num_lstm_layer, activation,
-                dropout
+                device,
+                in_dim,
+                hid_dim,
+                out_dim,
+                num_priv_mlp_layer,
+                num_publ_mlp_layer,
+                num_lstm_layer,
+                activation,
+                dropout,
             ).to(device)
         else:
             raise ValueError(f"The net type {net} is not supported.")
@@ -208,7 +224,7 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
             overwrite.get("activation", self.activation),
             overwrite.get("dropout", self.dropout),
             self.net,
-            overwrite.get("greedy", self.greedy)
+            overwrite.get("greedy", self.greedy),
         )
         cloned.load_state_dict(self.state_dict())
         cloned.train(self.training)
@@ -230,7 +246,7 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         # print("get_reply")
         # for k, v in reply.items():
         #     print(k, v.size())
-        legal_pi = reply["pi"] * legal_move[:, -self.out_dim:]
+        legal_pi = reply["pi"] * legal_move[:, -self.out_dim :]
         # legal_pi[legal_move[:, -self.out_dim:] == 1] += 1e-8
         if self.greedy:
             action = legal_pi.max(dim=1)[1].view(-1, 1) + 52
@@ -253,10 +269,14 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
             hid = {"h0": obs["h0"], "c0": obs["c0"]}
         else:
             hid = {}
-        return self.network.forward(obs["priv_s"], obs["publ_s"], obs["legal_move"], hid)
+        return self.network.forward(
+            obs["priv_s"], obs["publ_s"], obs["legal_move"], hid
+        )
 
     @torch.jit.script_method
-    def compute_priority(self, input_: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_priority(
+        self, input_: Dict[str, torch.Tensor]
+    ) -> Dict[str, torch.Tensor]:
         # Uniform priority, all to 1.
         # Since the input is batched in 0 dim, we have to use size(0) here.
         if self.uniform_priority:
@@ -275,13 +295,15 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         priority = priority.sum(0) / input_["seq_len"]
         return {"priority": priority}
 
-    def compute_loss_and_priority(self,
-                                  batch: pyrela.RNNTransition,
-                                  clip_eps: float,
-                                  entropy_ratio: float,
-                                  value_loss_weight: float,
-                                  policy_no_op_coeff: float,
-                                  value_no_op_coeff: float):
+    def compute_loss_and_priority(
+        self,
+        batch: pyrela.RNNTransition,
+        clip_eps: float,
+        entropy_ratio: float,
+        value_loss_weight: float,
+        policy_no_op_coeff: float,
+        value_no_op_coeff: float,
+    ):
         priv_s = batch.obs["priv_s"]
         seq_len, batch_size, _ = priv_s.size()
         mask = torch.arange(0, seq_len, device=batch.seq_len.device)
@@ -332,10 +354,7 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         old_probs = batch.action["pi"]
         # old_probs = old_probs[mask == 1]
         old_log_probs = torch.log(old_probs + 1e-16)
-        old_action_log_probs = old_log_probs.gather(
-            2,
-            action.long()
-        ).squeeze(2)
+        old_action_log_probs = old_log_probs.gather(2, action.long()).squeeze(2)
         # print("old_action_log_probs: ", old_action_log_probs)
 
         # [seq_len, batch_size]
@@ -367,28 +386,34 @@ class BridgeLSTMAgent(torch.jit.ScriptModule):
         # [batch_size]
         priority = priority.abs().sum(0) / batch.seq_len
 
-        return policy_loss.sum(0) / batch.seq_len, value_loss.sum(0) / batch.seq_len, priority.cpu()
+        return (
+            policy_loss.sum(0) / batch.seq_len,
+            value_loss.sum(0) / batch.seq_len,
+            priority.cpu(),
+        )
 
 
 class BridgeFFWDAgent(torch.jit.ScriptModule):
-    __constants__ = ["device", "greedy", "uniform_priority"]
+    __constants__ = ["device", "greedy", "uniform_priority", "reuse_value_in_priority"]
 
-    def __init__(self,
-                 device: str,
-                 p_in_dim: int,
-                 v_in_dim: int,
-                 p_hid_dim: int,
-                 v_hid_dim: int,
-                 p_out_dim: int,
-                 num_p_mlp_layer: int,
-                 num_v_mlp_layer: int,
-                 p_activation: str,
-                 v_activation: str,
-                 dropout: float,
-                 net: str,
-                 greedy: bool = False,
-                 uniform_priority: bool = False
-                 ):
+    def __init__(
+        self,
+        device: str,
+        p_in_dim: int,
+        v_in_dim: int,
+        p_hid_dim: int,
+        v_hid_dim: int,
+        p_out_dim: int,
+        num_p_mlp_layer: int,
+        num_v_mlp_layer: int,
+        p_activation: str,
+        v_activation: str,
+        dropout: float,
+        net: str,
+        greedy: bool = False,
+        uniform_priority: bool = False,
+        reuse_value_in_priority: bool = False,
+    ):
         super().__init__()
         self.device = device
         self.p_in_dim = p_in_dim
@@ -404,6 +429,7 @@ class BridgeFFWDAgent(torch.jit.ScriptModule):
         self.net = net
         self.greedy = greedy
         self.uniform_priority = uniform_priority
+        self.reuse_value_in_priority = reuse_value_in_priority
 
         if net == "ws":
             self.network = FFWDA2CWeightSharingNet(
@@ -412,7 +438,7 @@ class BridgeFFWDAgent(torch.jit.ScriptModule):
                 out_dim=p_out_dim,
                 num_mlp_layer=num_p_mlp_layer,
                 activation=p_activation,
-                dropout=dropout
+                dropout=dropout,
             ).to(self.device)
         elif net == "sep":
             self.network = FFWDA2CSeparateNet(
@@ -425,7 +451,7 @@ class BridgeFFWDAgent(torch.jit.ScriptModule):
                 num_v_mlp_layer=num_v_mlp_layer,
                 p_activation=p_activation,
                 v_activation=v_activation,
-                dropout=dropout
+                dropout=dropout,
             ).to(self.device)
         else:
             raise ValueError(f"The net {net} is not supported.")
@@ -448,8 +474,9 @@ class BridgeFFWDAgent(torch.jit.ScriptModule):
             overwrite.get("dropout", self.dropout),
             self.net,
             overwrite.get("greedy", self.greedy),
-            overwrite.get("uniform_priority", self.uniform_priority)
+            overwrite.get("uniform_priority", self.uniform_priority),
         )
+        cloned.load_state_dict(self.state_dict())
         cloned.train(self.training)
         return cloned.to(device)
 
@@ -463,6 +490,18 @@ class BridgeFFWDAgent(torch.jit.ScriptModule):
         assert "legal_pi" in reply
         legal_pi = reply["legal_pi"]
         single_act = legal_pi.dim() == 1
+        legal_move = obs["legal_move"]
+        if single_act:
+            legal_move = legal_move.unsqueeze(0)
+
+
+        pi_sum = legal_pi.sum(1)
+        zero_sel = pi_sum < 1e-5
+        # Replace if the sum of pi is too small.
+        legal_pi[zero_sel, :] = legal_move[zero_sel, :]
+        pi_sum[zero_sel] = legal_pi[zero_sel, :].sum(1)
+        legal_pi = legal_pi / pi_sum[:, None]
+        reply["legal_pi"] = legal_pi
         greedy_a = torch.argmax(legal_pi, -1).view(-1, 1)
 
         if self.greedy:
@@ -484,7 +523,20 @@ class BridgeFFWDAgent(torch.jit.ScriptModule):
             return {"priority": priority}
 
         # Use abs(v - r) to compute priority.
-        v = self.forward(obs)["v"].squeeze(0)  # [batch_size, ]
+
+        if self.reuse_value_in_priority:
+            # Use values computed by old model. This can speed up priority computation.
+            assert "v" in obs
+            v = obs["v"].squeeze()
+        else:
+            input_ = {
+                "publ_s": obs["publ_s"],
+                "priv_s": obs["priv_s"],
+                "perf_s": obs["perf_s"],
+                "legal_move": obs["legal_move"],
+            }
+            v = self.forward(input_)["v"].squeeze()  # [batch_size, ]
+
         r = obs["reward"]  # [batch_size, ]
         adv = v - r
         priority = torch.abs(adv).detach().cpu()
@@ -492,3 +544,34 @@ class BridgeFFWDAgent(torch.jit.ScriptModule):
         return {"priority": priority}
 
     # Python only functions
+    def compute_loss_and_priority(
+        self,
+        batch: pyrela.FFTransition,
+        clip_eps: float,
+        entropy_ratio: float,
+        value_weight: float = 1.0,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        obs = batch.obs
+        reply = self.forward(obs)
+        v = reply["v"]
+        pi = reply["pi"]
+        action = batch.action["a"] - 52
+        # print(action)
+        current_log_probs = torch.log(pi + 1e-16)
+        current_action_log_probs = current_log_probs.gather(1, action.long()).squeeze(1)
+        old_log_probs = torch.log(batch.action["pi"] + 1e-16)
+        old_action_log_probs = old_log_probs.gather(1, action.long()).squeeze(1)
+
+        ratio = torch.exp(current_action_log_probs - old_action_log_probs)
+        adv = batch.reward - v.squeeze()
+        surr1 = ratio * (adv.detach())
+        surr2 = torch.clamp(ratio, 1 - clip_eps, 1 + clip_eps) * (adv.detach())
+
+        entropy = -torch.sum(pi * current_log_probs, -1)
+
+        p_loss = -torch.min(surr1, surr2) - entropy_ratio * entropy
+        v_loss = torch.pow(adv, 2) * value_weight
+
+        priority = torch.abs(adv).detach().cpu()
+
+        return p_loss, v_loss, priority

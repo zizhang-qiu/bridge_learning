@@ -12,6 +12,22 @@ int FlatLength(const std::vector<int> &shape) {
                          std::multiplies<>());
 }
 
+int VulnerabilitySectionLength() {
+  return kNumVulnerabilities * kNumPartnerships;
+}
+
+int HandSectionLength() {
+  return kNumCards * kNumPlayers;
+}
+
+int OpeningPassSectionLength() {
+  return kNumPlayers;
+}
+
+int BiddingSectionLength() {
+  return kSingleBidTensorSize * kNumBids;
+}
+
 int EncodeVulnerabilityBoth(const BridgeObservation &obs,
                             const std::shared_ptr<BridgeGame> &game,
                             const int start_offset,
@@ -76,6 +92,24 @@ int EncodePlayerHand(const BridgeObservation &obs, const int start_offset,
     (*encoding)[offset + card.Index()] = 1;
   }
   offset += kNumCards;
+  return offset - start_offset;
+}
+
+int EncodeAllHands(const BridgeObservation &obs, const int start_offset,
+                   std::vector<int> *encoding, const bool show_all_hands) {
+  int offset = start_offset;
+  // My hand.
+  offset += EncodePlayerHand(obs, offset, encoding, /*relative_player=*/0);
+
+  if (show_all_hands) {
+    for (int player = 1; player < kNumPlayers; ++player) {
+      offset += EncodePlayerHand(obs, offset, encoding, /*relative_player=*/player);
+    }
+  } else {
+    offset += (kNumPlayers - 1) * kNumCards;
+  }
+
+  REQUIRE_EQ(offset - start_offset, kNumPlayers * kNumCards);
   return offset - start_offset;
 }
 
@@ -255,7 +289,13 @@ int EncodeHandEvaluation(const BridgeObservation &obs, int start_offset,
 }
 
 std::vector<int> CanonicalEncoder::Shape() const {
-  return {std::max(kAuctionTensorSize, GetPlayTensorSize())};
+  const int l = {
+      VulnerabilitySectionLength()
+          + OpeningPassSectionLength()
+          + BiddingSectionLength()
+          + HandSectionLength()
+  };
+  return {l};
 }
 
 std::vector<int> CanonicalEncoder::EncodeMyHand(
@@ -302,32 +342,19 @@ std::vector<int> CanonicalEncoder::EncodeOtherHandEvaluations(
   return encoding;
 }
 
-std::vector<int> CanonicalEncoder::Encode(const BridgeObservation &obs) const {
+std::vector<int> CanonicalEncoder::Encode(const BridgeObservation &obs,
+                                          const std::unordered_map<std::string, std::any> &kwargs) const {
   std::vector<int> encoding(FlatLength(Shape()), 0);
 
   int offset = 0;
 
-  // Play phase.
-  if (obs.NumCardsPlayed() > 0) {
-    // 0~18
-    offset += EncodeContract(obs, offset, &encoding);
-    // 19~20
-    offset += EncodeVulnerabilityDeclarer(obs, offset, &encoding);
-    // 21~72
-    offset += EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/0);
-    // 73~124
-    offset += EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/
-                               obs.Dummy());
-    // 125~2828 (Assuming 13 tricks).
-    offset +=
-        EncodePlayedTricks(obs, offset, &encoding, num_tricks_in_observation_);
-    // 2829~2854
-    offset += EncodeNumTricksWon(obs, offset, &encoding);
-  } else {
-    offset += EncodeVulnerabilityBoth(obs, parent_game_, offset, &encoding);
-    offset += EncodeAuction(obs, offset, &encoding);
-    offset += EncodePlayerHand(obs, offset, &encoding, /*relative_player=*/0);
+  offset += EncodeVulnerabilityBoth(obs, parent_game_, offset, &encoding);
+  offset += EncodeAuction(obs, offset, &encoding);
+  bool show_all_hands = true;
+  if (kwargs.count("show_all_hands")) {
+    show_all_hands = std::any_cast<bool>(kwargs.at("show_all_hands"));
   }
+  offset += EncodeAllHands(obs, offset, &encoding, /*show_all_hands=*/show_all_hands);
 
   REQUIRE(offset <= encoding.size());
   return encoding;

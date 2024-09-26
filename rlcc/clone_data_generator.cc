@@ -260,7 +260,6 @@ void FFDataGenLoop::mainLoop() {
 
     const GameTrajectory game_trajectory = game_trajectories_[idx];
 
-
     BridgeEnv env{params_, env_options_};
 
     // Deal.
@@ -277,10 +276,12 @@ void FFDataGenLoop::mainLoop() {
 //      std::cout << "midx: " << midx << std::endl;
       int current_player = env.CurrentPlayer();
       auto feature = env.Feature(current_player);
-      const int kPrivateFeatureSize = static_cast<int>(feature.at("s").size(0)) - ble::kNumCards;
+      const auto [_, priv_size, publ_size] = env.FeatureSize();
+      feature["perf_s"] = feature.at("s");
       feature["publ_s"] = feature.at("s").index(
-          {torch::indexing::Slice(0, kPrivateFeatureSize)});
-      feature["priv_s"] = feature.at("s");
+          {torch::indexing::Slice(0, publ_size)});
+      feature["priv_s"] = feature.at("s").index(
+          {torch::indexing::Slice(0, priv_size)});
       feature.erase("s");
       feature["legal_move"] = feature.at("legal_move").index(
           {torch::indexing::Slice(ble::kNumCards, -1)}
@@ -363,7 +364,7 @@ std::vector<rela::FFTransition> FFCloneDataGenerator::GenerateEvalData(int batch
 
   for (size_t idx = 0; idx < game_trajectories.size(); ++idx) {
 //    std::cout << "game idx: " << idx << std::endl;
-    const GameTrajectory& game_trajectory = game_trajectories[idx];
+    const GameTrajectory &game_trajectory = game_trajectories[idx];
 //    std::cout << "trajectory: \n";
 //    rela::utils::printVector(game_trajectory);
 
@@ -383,10 +384,12 @@ std::vector<rela::FFTransition> FFCloneDataGenerator::GenerateEvalData(int batch
 //      std::cout << "mid idx: " << midx << std::endl;
       int current_player = env.CurrentPlayer();
       auto feature = env.Feature(current_player);
-      const int kPrivateFeatureSize = static_cast<int>(feature.at("s").size(0)) - ble::kNumCards;
+      const auto [_, priv_size, publ_size] = env.FeatureSize();
+      feature["perf_s"] = feature.at("s");
       feature["publ_s"] = feature.at("s").index(
-          {torch::indexing::Slice(0, kPrivateFeatureSize)});
-      feature["priv_s"] = feature.at("s");
+          {torch::indexing::Slice(0, publ_size)});
+      feature["priv_s"] = feature.at("s").index(
+          {torch::indexing::Slice(0, priv_size)});
       feature.erase("s");
       feature["legal_move"] = feature.at("legal_move").index(
           {torch::indexing::Slice(ble::kNumCards, -1)}

@@ -83,7 +83,7 @@ rela::TensorDict NNBeliefResampler::MakeTensorDictObs(
   const auto observation = ble::BridgeObservation(state, state.CurrentPlayer());
   auto encoding = encoder_.Encode(observation);
   encoding = {encoding.begin(),
-              encoding.begin() + encoder_.GetAuctionTensorSize()};
+              encoding.begin() + encoder_.Shape()[0]};
   const auto& legal_moves = observation.LegalMoves();
   const auto game = state.ParentGame();
 
@@ -110,7 +110,7 @@ std::array<int, ble::kNumCards> NNBeliefResampler::SampleFromBelief(
   const torch::Tensor basic_indices =
       torch::arange(0, ble::kNumCardsPerHand) * ble::kNumPlayers;
   // std::cout <<"basic_indices:\n" << basic_indices << std::endl;
-  const int observation_tensor_size = encoder_.GetAuctionTensorSize();
+  const int observation_tensor_size = encoder_.Shape()[0];
 
   const auto player_cards_feature =
       torch::tensor(encoder_.EncodeMyHand({state}));

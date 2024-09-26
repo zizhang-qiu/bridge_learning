@@ -70,7 +70,8 @@ int EncodeDNNsBiddingHistory(const BridgeObservation& obs, int start_offset,
   return offset - start_offset;
 }
 
-std::vector<int> DNNsEncoder::Encode(const BridgeObservation& obs) const {
+std::vector<int> DNNsEncoder::Encode(const BridgeObservation& obs,
+                                     const std::unordered_map<std::string, std::any> &kwargs) const {
   int offset = 0;
   std::vector<int> encoding(Shape()[0]);
 

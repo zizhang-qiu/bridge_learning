@@ -1,0 +1,61 @@
+# Agent.
+act_device: "cuda"
+p_hid_dim: 1024
+v_hid_dim: 1024
+num_p_mlp_layer: 4
+num_v_mlp_layer: 4
+p_activation: "gelu"
+v_activation: "gelu"
+dropout: !!float 0.0
+net: "sep"
+uniform_priority: !!bool False
+reuse_value_in_priority: !!bool True
+rl_checkpoint: ""
+sl_checkpoint: "ffwd_sl/sl_sep_p.pthw"
+sl_init: !!bool True
+
+# Replay buffer.
+capacity: 200000
+alpha: 0.9
+beta: 0.6
+prefetch: 2
+
+# Actor
+gamma: 1.0
+
+
+# Dataset
+train_dataset: "../rl_data/train.pkl"
+eval_dataset: "../rl_data/valid.pkl"
+
+# Env settings
+dealer: 0
+is_dealer_vulnerable: False
+is_non_dealer_vulnerable: False
+duplicate: True
+encoder: "detailed"
+
+# Training settings
+num_threads: 8
+num_envs_per_thread: 250
+batch_size: 2048
+train_device: "cuda"
+burn_in: 20000
+num_epochs: 5000
+epoch_len: 1000
+max_grad_norm: 0.5
+synq_freq: 50
+model_pool_capacity: 1
+oppo_synq_freq: 50
+save_dir: ffwd_a2c
+clip_eps: !!float 0.2
+entropy_ratio: !!float 0.01
+value_loss_weight: 2.0
+
+# Optimizer
+lr: 0.00001
+
+# Evaluation
+num_eval_threads: 8
+num_eval_envs_per_thread: 250
+num_eval_games: 50000

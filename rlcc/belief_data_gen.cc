@@ -83,7 +83,7 @@ rela::TensorDict BeliefDataGen::GetDataFromTrajectory(
   auto encoding = encoder_.Encode(observation);
   encoding = std::vector<int>(encoding.begin(),
                               encoding.begin()
-                              + encoder_.GetAuctionTensorSize());
+                              + encoder_.Shape()[0]);
   const auto label = encoder_.EncodeOtherHands(observation);
   const auto belief_he_one_hot = encoder_.EncodeOtherHandEvaluationsOneHot(observation);
   const auto belief_he = encoder_.EncodeOtherHandEvaluations(observation);

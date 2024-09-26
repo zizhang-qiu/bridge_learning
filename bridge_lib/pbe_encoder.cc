@@ -50,8 +50,9 @@ int EncodePBEBiddingHistory(const BridgeObservation& obs, int start_offset,
   return offset - start_offset;
 }
 
-std::vector<int> PBEEncoder::Encode(const BridgeObservation& obs) const {
-  REQUIRE(obs.CurrentPhase() == Phase::kAuction);
+std::vector<int> PBEEncoder::Encode(const BridgeObservation& obs,
+                                    const std::unordered_map<std::string, std::any> &kwargs) const {
+  REQUIRE(obs.CurrentPhase() == bridge_learning_env::Phase::kAuction);
   int offset = 0;
   std::vector<int> encoding(kNumCards + kPBEBiddingHistoryTensorSize, 0);
   // Encode player hand.
