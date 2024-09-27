@@ -9,6 +9,6 @@ fi
 
 cd "$DIR"
 wget http://142.171.233.124/train.pkl
-wget http://142.171.233.124/test.pkl
+wget http://142.171.233.124/valid.pkl
 
 echo "Download finished!!"
